@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net40</TargetFramework>
+    <RootNamespace />
+    <AssemblyName>IntermediaryLightning.Quintessential.mm</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Lightning">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\IntermediaryLightning.exe</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="MMHOOK_IntermediaryLightning">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\MMHOOK_IntermediaryLightning.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\Mono.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil.Mdb">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\Mono.Cecil.Mdb.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil.Pdb">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\Mono.Cecil.Pdb.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil.Rocks">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\Mono.Cecil.Rocks.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoMod">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\MonoMod.exe</HintPath>
+    </Reference>
+    <Reference Include="MonoMod.Common">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\MonoMod.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoMod.RuntimeDetour">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\MonoMod.RuntimeDetour.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoMod.Utils">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\MonoMod.Utils.dll</HintPath>
+    </Reference>
+    <Reference Include="Steamworks.NET">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\Steamworks.NET.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
