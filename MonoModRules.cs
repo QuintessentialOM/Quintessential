@@ -3,6 +3,7 @@ using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.InlineRT;
 using System;
+using System.Collections.Generic;
 
 namespace MonoMod {
 
@@ -14,6 +15,9 @@ namespace MonoMod {
 
 	[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchPuzzleIdWrite))]
 	class PatchPuzzleIdWrite : Attribute { }
+
+	[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchScoreManagerLoad))]
+	class PatchScoreManagerLoad : Attribute { }
 
 	static class MonoModRules {
 
@@ -71,6 +75,25 @@ namespace MonoMod {
 				}
 			} else {
 				Console.WriteLine("Failed to modify puzzle serialization!");
+				throw new Exception();
+			}
+		}
+
+		public static void PatchScoreManagerLoad(MethodDefinition method, CustomAttribute attrib) {
+			MonoModRule.Modder.Log("Patching ScoreManager loading");
+			// Replace "SteamUser.GetSteamID().m_SteamID" with "0" (until a proper format is created)
+			if(method.HasBody) {
+				ILCursor cursor = new ILCursor(new ILContext(method));
+				if(cursor.TryGotoNext(MoveType.After, instr => instr.Match(OpCodes.Brfalse_S))
+					&& cursor.TryGotoNext(MoveType.After, instr => instr.Match(OpCodes.Brfalse_S))
+					&& cursor.TryGotoNext(MoveType.After, instr => instr.Match(OpCodes.Brfalse_S))) {
+					cursor.Emit(OpCodes.Ret);
+				} else {
+					Console.WriteLine("Failed to modify ScoreManager loading (no match)!");
+					throw new Exception();
+				}
+			} else {
+				Console.WriteLine("Failed to modify ScoreManager loading (no body)!");
 				throw new Exception();
 			}
 		}

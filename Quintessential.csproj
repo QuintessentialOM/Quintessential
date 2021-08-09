@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net40</TargetFramework>
+    <TargetFramework>net451</TargetFramework>
     <RootNamespace />
     <AssemblyName>IntermediaryLightning.Quintessential.mm</AssemblyName>
   </PropertyGroup>
@@ -10,9 +10,6 @@
     <Reference Include="Lightning">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\IntermediaryLightning.exe</HintPath>
       <Private>false</Private>
-    </Reference>
-    <Reference Include="MMHOOK_IntermediaryLightning">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\MMHOOK_IntermediaryLightning.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Cecil">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\Mono.Cecil.dll</HintPath>
