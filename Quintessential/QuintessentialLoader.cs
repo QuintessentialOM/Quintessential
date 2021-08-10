@@ -19,7 +19,7 @@ namespace Quintessential {
 
 		public static List<QuintessentialMod> CodeMods = new List<QuintessentialMod>();
 		public static List<ModMeta> Mods = new List<ModMeta>();
-		private static List<string> ModContent = new List<string>();
+		public static List<string> ModContentDirectories = new List<string>();
 		private static List<Assembly> Assemblies = new List<Assembly>();
 
 		public static void PreInit() {
@@ -57,7 +57,7 @@ namespace Quintessential {
 			// Load mods
 			foreach(var mod in CodeMods)
 				mod.Load();
-			Logger.Log($"Finished pre-init loading - {Mods.Count} mods loaded, and {CodeMods.Count} assemblies loaded.");
+			Logger.Log($"Finished pre-init loading - {Mods.Count} mods loaded, {CodeMods.Count} assemblies loaded, {ModContentDirectories.Count} content directories found.");
 		}
 
 		public static void PostLoad() {
@@ -99,11 +99,14 @@ namespace Quintessential {
 					}
 				}
 			}
-			
+
 			// Get mod content
 			//  - Consider modded folders when fetching any content
 			//  - Custom language files: vanilla stores in a big CSV, but for custom dialogue (and languages) we'll want seperate files (e.g. English.txt, French.txt)
 			//  - Custom solitaires too?
+			var content = Path.Combine(dir, "Content");
+			if(Directory.Exists(content))
+				ModContentDirectories.Add(dir);
 		}
 
 		protected static void LoadModAssembly(ModMeta meta, Assembly asm) {
@@ -115,7 +118,7 @@ namespace Quintessential {
 					types = e.Types.Where(t => t != null).ToArray();
 				}
 			} catch(Exception e) {
-				//Logger.Log(LogLevel.Warn, "loader", $"Failed reading assembly: {e}");
+				Logger.Log($"Failed reading assembly: {e}");
 				e.LogDetailed();
 				return;
 			}

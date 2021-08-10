@@ -16,7 +16,7 @@ namespace Quintessential {
 		public static void Init() {
 			LogPath = Path.Combine(QuintessentialLoader.PathLightning, "log.txt");
 			File.Delete(LogPath);
-			File.AppendAllText(LogPath, "Quintessential log");
+			File.AppendAllText(LogPath, "Quintessential log\n");
 		}
 
 		public static void Log(string text) {
