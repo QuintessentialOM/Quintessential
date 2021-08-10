@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Quintessential {
 
-namespace Quintessential {
+	abstract class QuintessentialMod {
 
-	interface QuintessentialMod {
+		public ModMeta Meta;
 
-		void Load();
+		public abstract void Load();
 
-		void Unload();
+		public abstract void PostLoad();
+
+		public abstract void Unload();
 	}
 }

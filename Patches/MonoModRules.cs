@@ -33,6 +33,9 @@ namespace MonoMod {
 				if(cursor.TryGotoNext(MoveType.Before, instr => instr.MatchCallvirt("WorkshopManager", "method_2233"))) {
 					cursor.Remove();
 					cursor.Emit(OpCodes.Pop);
+				} else {
+					Console.WriteLine("Failed to remove WorkshopManager call in GameLogic!");
+					throw new Exception();
 				}
 			} else {
 				Console.WriteLine("Failed to remove WorkshopManager call in GameLogic!");
