@@ -17,10 +17,10 @@ namespace Quintessential {
 		public static string PathLightning;
 		public static string PathMods;
 
-		public static List<QuintessentialMod> Mods = new List<QuintessentialMod>();
+		public static List<QuintessentialMod> CodeMods = new List<QuintessentialMod>();
+		public static List<ModMeta> Mods = new List<ModMeta>();
 		private static List<string> ModContent = new List<string>();
 		private static List<Assembly> Assemblies = new List<Assembly>();
-		private static List<ModMeta> ToLoad = new List<ModMeta>();
 
 		public static void PreInit() {
 			PathLightning = Path.GetDirectoryName(typeof(GameLogic).Assembly.Location);
@@ -43,7 +43,7 @@ namespace Quintessential {
 				LoadFolderMod(folder);
 
 			// Load dlls
-			foreach(var mod in ToLoad)
+			foreach(var mod in Mods)
 				if(!string.IsNullOrWhiteSpace(mod.DLL)) {
 					string dllPath = mod.DLL;
 					if(!string.IsNullOrEmpty(mod.PathArchive)) {
@@ -55,14 +55,14 @@ namespace Quintessential {
 			
 			// Add mod content
 			// Load mods
-			foreach(var mod in Mods)
+			foreach(var mod in CodeMods)
 				mod.Load();
-			Logger.Log($"Finished pre-init loading - {ToLoad.Count} mods loaded.");
+			Logger.Log($"Finished pre-init loading - {Mods.Count} mods loaded, and {CodeMods.Count} assemblies loaded.");
 		}
 
 		public static void PostLoad() {
 			Logger.Log("Starting post-init loading.");
-			foreach(var mod in Mods)
+			foreach(var mod in CodeMods)
 				mod.PostLoad();
 			Logger.Log("Finished post-init loading.");
 		}
@@ -91,7 +91,7 @@ namespace Quintessential {
 							meta = YamlHelper.Deserializer.Deserialize<ModMeta>(reader);
 							meta.PathDirectory = dir;
 							meta.PostParse();
-							ToLoad.Add(meta);
+							Mods.Add(meta);
 							Logger.Log($"Will load mod \"{meta.Name}\", version {meta.VersionString}.");
 						}
 					} catch(Exception e) {
@@ -132,7 +132,7 @@ namespace Quintessential {
 		}
 
 		protected static void Register(QuintessentialMod mod) {
-			Mods.Add(mod);
+			CodeMods.Add(mod);
 		}
 
 		public static Assembly GetRemappedAssembly(Assembly asm, ModMeta meta) {
