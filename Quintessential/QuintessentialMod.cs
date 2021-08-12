@@ -1,6 +1,6 @@
 ﻿namespace Quintessential {
 
-	abstract class QuintessentialMod {
+	public abstract class QuintessentialMod {
 
 		public ModMeta Meta;
 

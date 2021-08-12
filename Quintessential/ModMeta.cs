@@ -4,7 +4,7 @@ using YamlDotNet.Serialization;
 
 namespace Quintessential {
 
-	class ModMeta {
+    public class ModMeta {
 
 		public string Name { get; set; }
 

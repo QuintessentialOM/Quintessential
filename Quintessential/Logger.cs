@@ -9,7 +9,7 @@ namespace Quintessential {
 
 	// don't actually know how logging works in OM, but rn it looks like it just doesn't?
 	// so let's do it ourself
-	class Logger {
+	public static class Logger {
 
 		private static string LogPath;
 

@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace Quintessential {
 
-	class QuintessentialLoader {
+	public class QuintessentialLoader {
 
 		public readonly static string VersionString = "0.0.1";
 
