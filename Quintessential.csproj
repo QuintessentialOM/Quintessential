@@ -39,6 +39,9 @@
     <Reference Include="MonoMod.Utils">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\MonoMod.Utils.dll</HintPath>
     </Reference>
+    <Reference Include="OpusMutatum">
+      <HintPath>..\OpusMutatum\bin\Release\publish\OpusMutatum.exe</HintPath>
+    </Reference>
     <Reference Include="Steamworks.NET">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\Steamworks.NET.dll</HintPath>
     </Reference>

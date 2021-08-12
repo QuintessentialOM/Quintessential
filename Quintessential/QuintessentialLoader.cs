@@ -49,8 +49,7 @@ namespace Quintessential {
 					if(!string.IsNullOrEmpty(mod.PathArchive)) {
 						// unzip the mod first
 					}
-					Assembly asm = Assembly.LoadFrom(dllPath);
-					LoadModAssembly(mod, GetRemappedAssembly(asm, mod));
+					LoadModAssembly(mod, GetRemappedAssembly(dllPath, mod));
 				}
 			
 			// Add mod content
@@ -138,11 +137,16 @@ namespace Quintessential {
 			CodeMods.Add(mod);
 		}
 
-		public static Assembly GetRemappedAssembly(Assembly asm, ModMeta meta) {
+		public static Assembly GetRemappedAssembly(string asmPath, ModMeta meta) {
 			if(!string.IsNullOrEmpty(meta.Mappings)) {
-				// remap first
+				// load mappings
+				// load assembly def
+				// remap
+				// save in cache
+				// load that
+				//OpusMutatum.OpusMutatum.DoRemap();
 			}
-			return asm;
+			return Assembly.LoadFrom(asmPath);
 		}
 	}
 }

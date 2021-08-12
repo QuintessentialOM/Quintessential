@@ -1,5 +1,4 @@
-﻿using MonoMod;
-using Quintessential;
+﻿using Quintessential;
 using System;
 using System.IO;
 
