@@ -9,8 +9,7 @@ class patch_class_283 {
 		AppDomain.CurrentDomain.UnhandledException += (sender, args) => {
 			Logger.Log("Encountered an error!");
 			Exception e = args.ExceptionObject as Exception;
-			Logger.Log(e.Message);
-			Logger.Log(e.StackTrace);
+			Logger.Log(e.ToString());
 		};
 	}
 }
