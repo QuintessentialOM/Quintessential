@@ -46,7 +46,6 @@ namespace MonoMod {
 		public static void PatchSettingsStaticInit(MethodDefinition method, CustomAttribute attrib) {
 			MonoModRule.Modder.Log("Patching settings static init");
 			// Set "class_65.field_783" (Steam support) to false
-			// and "field_781" (Logging) to true
 			if(method.HasBody) {
 				ILCursor cursor = new ILCursor(new ILContext(method));
 				if(cursor.TryGotoNext(MoveType.Before,
