@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net451</TargetFramework>
     <RootNamespace />
-    <AssemblyName>IntermediaryLightning.Quintessential.mm</AssemblyName>
+    <AssemblyName>Quintessential</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,32 +18,14 @@
     <Reference Include="Mono.Cecil">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\Mono.Cecil.dll</HintPath>
     </Reference>
-    <Reference Include="Mono.Cecil.Mdb">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\Mono.Cecil.Mdb.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil.Pdb">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\Mono.Cecil.Pdb.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil.Rocks">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\Mono.Cecil.Rocks.dll</HintPath>
-    </Reference>
     <Reference Include="MonoMod">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\MonoMod.exe</HintPath>
     </Reference>
     <Reference Include="MonoMod.Common">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\MonoMod.Common.dll</HintPath>
     </Reference>
-    <Reference Include="MonoMod.RuntimeDetour">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\MonoMod.RuntimeDetour.dll</HintPath>
-    </Reference>
     <Reference Include="MonoMod.Utils">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\MonoMod.Utils.dll</HintPath>
-    </Reference>
-    <Reference Include="OpusMutatum">
-      <HintPath>..\OpusMutatum\bin\Release\publish\OpusMutatum.exe</HintPath>
-    </Reference>
-    <Reference Include="Steamworks.NET">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\Steamworks.NET.dll</HintPath>
     </Reference>
   </ItemGroup>
 
