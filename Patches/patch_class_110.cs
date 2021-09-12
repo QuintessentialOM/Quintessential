@@ -1,6 +1,6 @@
 ﻿using MonoMod;
 
-class patch_class_65 {
+class patch_class_110 {
 
 	[PatchSettingsStaticInit]
 	public static extern void orig_cctor();

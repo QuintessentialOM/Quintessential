@@ -2,10 +2,10 @@
 using Quintessential;
 using System;
 
-class patch_class_283 {
+class patch_class_129 {
 
-	public static extern void orig_method_753();
-	public static void method_753() {
+	public static extern void orig_method_238();
+	public static void method_238() {
 		AppDomain.CurrentDomain.UnhandledException += (sender, args) => {
 			Logger.Log("Encountered an error!");
 			Exception e = args.ExceptionObject as Exception;

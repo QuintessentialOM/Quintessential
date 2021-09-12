@@ -3,7 +3,6 @@ using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.InlineRT;
 using System;
-using System.Collections.Generic;
 
 namespace MonoMod {
 
@@ -27,10 +26,10 @@ namespace MonoMod {
 
 		public static void PatchGameLogicInit(MethodDefinition method, CustomAttribute attrib) {
 			MonoModRule.Modder.Log("Patching GameLogic init");
-			// Cut out the "this.field_2461.method_2233();" call
+			// Cut out the "this.field_2460.method_2230();" call
 			if(method.HasBody) {
 				ILCursor cursor = new ILCursor(new ILContext(method));
-				if(cursor.TryGotoNext(MoveType.Before, instr => instr.MatchCallvirt("WorkshopManager", "method_2233"))) {
+				if(cursor.TryGotoNext(MoveType.Before, instr => instr.MatchCallvirt("WorkshopManager", "method_2230"))) {
 					cursor.Remove();
 					cursor.Emit(OpCodes.Pop);
 				} else {
@@ -45,20 +44,20 @@ namespace MonoMod {
 
 		public static void PatchSettingsStaticInit(MethodDefinition method, CustomAttribute attrib) {
 			MonoModRule.Modder.Log("Patching settings static init");
-			// Set "class_65.field_783" (Steam support) to false
+			// Set "class_110.field_1012" (Steam support) to false
 			if(method.HasBody) {
 				ILCursor cursor = new ILCursor(new ILContext(method));
 				if(cursor.TryGotoNext(MoveType.Before,
 										instr => instr.MatchLdcI4(1),
-										instr => instr.MatchStsfld("class_65", "field_783"))) {
+										instr => instr.MatchStsfld("class_110", "field_1012"))) {
 					cursor.Remove();
 					cursor.Emit(OpCodes.Ldc_I4_0);
 				} else {
-					Console.WriteLine("Failed to disable Steam setting in class_65!");
+					Console.WriteLine("Failed to disable Steam setting in class_110!");
 					throw new Exception();
 				}
 			} else {
-				Console.WriteLine("Failed to disable Steam setting in class_65!");
+				Console.WriteLine("Failed to disable Steam setting in class_110!");
 				throw new Exception();
 			}
 		}
@@ -83,7 +82,6 @@ namespace MonoMod {
 
 		public static void PatchScoreManagerLoad(MethodDefinition method, CustomAttribute attrib) {
 			MonoModRule.Modder.Log("Patching ScoreManager loading");
-			// Replace "SteamUser.GetSteamID().m_SteamID" with "0" (until a proper format is created)
 			if(method.HasBody) {
 				ILCursor cursor = new ILCursor(new ILContext(method));
 				if(cursor.TryGotoNext(MoveType.After, instr => instr.Match(OpCodes.Brfalse_S))

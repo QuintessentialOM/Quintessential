@@ -9,10 +9,10 @@ class patch_ScoreManager {
 
 	[PatchScoreManagerLoad]
 	[MonoModIgnore]
-	public extern void method_1373(Puzzle param_5140, enum_127 param_5141, int param_5142);
+	public extern void method_1369(Puzzle param_5132, enum_133 param_5133, int param_5134);
 
-	public extern void orig_method_1374(string str);
-	public void method_1374(string str) {
+	public extern void orig_method_1370(string str);
+	public void method_1370(string str) {
 		// no-op
 	}
 }

@@ -9,5 +9,5 @@ class patch_Puzzle {
 
 	[PatchPuzzleIdWrite]
 	[MonoModIgnore]
-	public static extern void method_1251(string param_4989);
+	public static extern void method_1248(string param_4980);
 }
