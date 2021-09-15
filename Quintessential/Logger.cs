@@ -12,15 +12,24 @@ namespace Quintessential {
 	public static class Logger {
 
 		private static string LogPath;
+		public static bool Setup {
+			get;
+			private set;
+		} = false;
 
 		public static void Init() {
 			LogPath = Path.Combine(QuintessentialLoader.PathLightning, "log.txt");
 			File.Delete(LogPath);
-			File.AppendAllText(LogPath, "Quintessential log\n");
+			Log("Quintessential log");
+			Setup = true;
 		}
 
 		public static void Log(string text) {
 			File.AppendAllText(LogPath, $"({DateTime.Now}) {text}\n");
+		}
+
+		public static void Log(Exception e) {
+			Log(e.ToString());
 		}
 	}
 }
