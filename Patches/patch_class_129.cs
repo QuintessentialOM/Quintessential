@@ -4,6 +4,9 @@ using System;
 
 class patch_class_129 {
 
+	// error logging
+	// replaces the regular method (opening a (broken by string parsing?) website) with logging
+
 	public static extern void orig_method_238();
 	public static void method_238() {
 		AppDomain.CurrentDomain.UnhandledException += (sender, args) => {

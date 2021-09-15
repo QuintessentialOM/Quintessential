@@ -3,7 +3,9 @@
 #pragma warning disable CS0626 // Method, operator, or accessor is marked external and has no attributes on it
 class patch_class_93 {
 
-	// Render main menu
+	// renders main menu
+	// adds notice mod count
+
 	public static extern void orig_method_90(float param_3772, float param_3773, bool param_3774);
 	public static void method_90(float param_3772, float time, bool renderText) {
 		orig_method_90(param_3772, time, renderText);

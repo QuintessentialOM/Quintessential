@@ -3,6 +3,9 @@ using Quintessential;
 
 class patch_GameLogic {
 
+	// calls mod loading
+	// also removes WorkshopManager calls
+
 	[PatchGameLogicInit]
 	public extern void orig_method_942();
 

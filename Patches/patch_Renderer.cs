@@ -4,6 +4,8 @@ using System.IO;
 
 class patch_Renderer {
 
+	// checks mods for textures before vanilla
+
 	public static extern bool orig_method_1343(class_256 param_5118);
 
 	public static bool method_1343(class_256 textureInfo) {

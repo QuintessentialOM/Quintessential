@@ -2,6 +2,9 @@
 
 class patch_class_110 {
 
+	// settings init
+	// disabling steam
+
 	[PatchSettingsStaticInit]
 	public static extern void orig_cctor();
 
