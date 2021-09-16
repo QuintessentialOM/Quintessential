@@ -12,7 +12,7 @@ namespace Quintessential {
 
 		public readonly static string VersionString = "0.0.2";
 
-		public readonly static int VersionNumber = 1;
+		public readonly static int VersionNumber = 2;
 
 		public static string PathLightning;
 		public static string PathMods;
