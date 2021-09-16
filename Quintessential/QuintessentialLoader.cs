@@ -10,7 +10,7 @@ namespace Quintessential {
 
 	public class QuintessentialLoader {
 
-		public readonly static string VersionString = "0.0.1";
+		public readonly static string VersionString = "0.0.2";
 
 		public readonly static int VersionNumber = 1;
 
