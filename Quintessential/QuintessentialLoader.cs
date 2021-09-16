@@ -29,6 +29,8 @@ namespace Quintessential {
 			Logger.Init();
 			Logger.Log("Starting pre-init loading.");
 
+			QApi.Init();
+
 			if(!Directory.Exists(PathMods))
 				Directory.CreateDirectory(PathMods);
 
