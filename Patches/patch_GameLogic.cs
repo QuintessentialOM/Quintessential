@@ -1,6 +1,7 @@
 ﻿using MonoMod;
 using Quintessential;
 
+#pragma warning disable CS0626 // Method, operator, or accessor is marked external and has no attributes on it
 class patch_GameLogic {
 
 	// calls mod loading
@@ -13,5 +14,13 @@ class patch_GameLogic {
 		QuintessentialLoader.PreInit();
 		orig_method_942();
 		QuintessentialLoader.PostLoad();
+	}
+
+
+	public extern void orig_method_963(int exitCode);
+
+	public void method_963(int exitCode) {
+		QuintessentialLoader.Unload();
+		orig_method_963(exitCode);
 	}
 }

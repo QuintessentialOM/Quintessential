@@ -1,5 +1,5 @@
-﻿using MonoMod.Utils;
-using SDL2;
+﻿using Ionic.Zip;
+using MonoMod.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,55 +10,85 @@ namespace Quintessential {
 
 	public class QuintessentialLoader {
 
-		public readonly static string VersionString = "0.0.2";
-
-		public readonly static int VersionNumber = 2;
+		public readonly static string VersionString = "0.0.3";
+		public readonly static int VersionNumber = 3;
 
 		public static string PathLightning;
 		public static string PathMods;
+		public static string PathBlacklist;
 
 		public static List<QuintessentialMod> CodeMods = new List<QuintessentialMod>();
 		public static List<ModMeta> Mods = new List<ModMeta>();
 		public static List<string> ModContentDirectories = new List<string>();
-		private static List<Assembly> Assemblies = new List<Assembly>();
+
+		private static List<string> blacklisted = new List<string>();
+
+		private static readonly string zipExtractSuffix = "__quintessential_from_zip";
 
 		public static void PreInit() {
-			PathLightning = Path.GetDirectoryName(typeof(GameLogic).Assembly.Location);
-			PathMods = Path.Combine(PathLightning, "Mods");
+			try {
+				PathLightning = Path.GetDirectoryName(typeof(GameLogic).Assembly.Location);
+				PathMods = Path.Combine(PathLightning, "Mods");
 
-			Logger.Init();
-			Logger.Log("Starting pre-init loading.");
+				Logger.Init();
+				Logger.Log("Starting pre-init loading.");
 
-			QApi.Init();
+				QApi.Init();
 
-			if(!Directory.Exists(PathMods))
-				Directory.CreateDirectory(PathMods);
+				if(!Directory.Exists(PathMods))
+					Directory.CreateDirectory(PathMods);
 
-			// Find mods in Mods/
-			string[] files = Directory.GetFiles(PathMods);
-			foreach(var file in files)
-				if(file.EndsWith(".zip"))
-					LoadZipMod(file);
+				PathBlacklist = Path.Combine(PathMods, "blacklist.txt");
+				if(File.Exists(PathBlacklist)) 
+					blacklisted = File.ReadAllLines(PathBlacklist).Select(l => (l.StartsWith("#") ? "" : l).Trim()).ToList();
+				else {
+					File.WriteAllText(PathBlacklist, @"# This is the blacklist. Lines starting with # are ignored.
+ExampleFolderThatIWantToBlacklist
+SomeZipIDontLike.zip");
+				}
 
-			string[] folders = Directory.GetDirectories(PathMods);
-			foreach(var folder in folders)
-				LoadFolderMod(folder);
+				// Find mods in Mods/
+				// Delete leftover quintessential extracted zips
+				CleanupExtractedZips();
 
-			// Load dlls
-			foreach(var mod in Mods)
+				// Unzip zips
+				string[] files = Directory.GetFiles(PathMods);
+				foreach(var file in files) {
+					string filename = Path.GetFileName(file);
+					if(blacklisted.Contains(filename))
+						continue;
+					if(filename.EndsWith(".zip"))
+						LoadZipMod(file);
+				}
+					
+				// Load folder mods
+				string[] folders = Directory.GetDirectories(PathMods);
+				foreach(var folder in folders) {
+					string filename = Path.GetFileName(folder);
+					if(blacklisted.Contains(filename))
+						continue;
+					LoadFolderMod(folder);
+				}
+
+				// Load DLLs
+				foreach(var mod in Mods)
 				if(!string.IsNullOrWhiteSpace(mod.DLL)) {
 					string dllPath = mod.DLL;
-					if(!string.IsNullOrEmpty(mod.PathArchive)) {
-						// unzip the mod first
-					}
 					LoadModAssembly(mod, GetRemappedAssembly(dllPath, mod));
 				}
 			
-			// Add mod content
-			// Load mods
-			foreach(var mod in CodeMods)
-				mod.Load();
-			Logger.Log($"Finished pre-init loading - {Mods.Count} mods loaded, {CodeMods.Count} assemblies loaded, {ModContentDirectories.Count} content directories found.");
+				// Add mod content
+				// Load mods
+				foreach(var mod in CodeMods)
+					mod.Load();
+					Logger.Log($"Finished pre-init loading - {Mods.Count} mods loaded, {CodeMods.Count} assemblies loaded, {ModContentDirectories.Count} content directories found.");
+			} catch(Exception e) {
+				if(Logger.Setup) {
+					Logger.Log("Failed to pre-initialize!");
+					Logger.Log(e);
+				}
+				throw;
+			}
 		}
 
 		public static void PostLoad() {
@@ -68,12 +98,33 @@ namespace Quintessential {
 			Logger.Log("Finished post-init loading.");
 		}
 
-		protected static void LoadZipMod(string zip) {
-
+		public static void Unload() {
+			Logger.Log("Starting mod unloading.");
+			foreach(var mod in CodeMods)
+				mod.Unload();
+			Logger.Log("Finished unloading.");
 		}
 
-		protected static void LoadFolderMod(string dir) {
-			Logger.Log("Loading folder mod: " + dir);
+		protected static void LoadZipMod(string zip) {
+			Logger.Log("Unzipping zip mod: " + zip);
+			// Check that the zip exists
+			if(!File.Exists(zip)) // Relative path?
+				zip = Path.Combine(PathMods, zip);
+			if(!File.Exists(zip)) // It just doesn't exist.
+				return;
+			
+			var dest = zip.Substring(0, zip.Length - ".zip".Length) + zipExtractSuffix;
+			using(ZipFile file = new ZipFile(zip))
+				file.ExtractAll(dest);
+			LoadFolderMod(dest, zip);
+		}
+
+		protected static void LoadFolderMod(string dir, string zipName = null) {
+			// don't load zip mods again
+			if(string.IsNullOrEmpty(zipName) && dir.EndsWith("__quintessential_from_zip"))
+				return;
+			
+			Logger.Log("Loading mod from folder: " + dir);
 			// Check that the folder exists
 			if(!Directory.Exists(dir)) // Relative path?
 				dir = Path.Combine(PathMods, dir);
@@ -91,6 +142,8 @@ namespace Quintessential {
 						if(!reader.EndOfStream) {
 							meta = YamlHelper.Deserializer.Deserialize<ModMeta>(reader);
 							meta.PathDirectory = dir;
+							if(!string.IsNullOrEmpty(zipName))
+								meta.PathArchive = zipName;
 							meta.PostParse();
 							Mods.Add(meta);
 							Logger.Log($"Will load mod \"{meta.Name}\", version {meta.VersionString}.");
@@ -133,6 +186,13 @@ namespace Quintessential {
 					Register(mod);
 				}
 			}
+		}
+
+		protected static void CleanupExtractedZips() {
+			string[] folders = Directory.GetDirectories(PathMods);
+			foreach(var folder in folders)
+				if(folder.EndsWith(zipExtractSuffix))
+					Directory.Delete(folder, true);
 		}
 
 		protected static void Register(QuintessentialMod mod) {

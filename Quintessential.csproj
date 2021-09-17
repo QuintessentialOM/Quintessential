@@ -11,6 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Ionic.Zip.Reduced">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\Ionic.Zip.Reduced.dll</HintPath>
+    </Reference>
     <Reference Include="Lightning">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\IntermediaryLightning.exe</HintPath>
       <Private>false</Private>
