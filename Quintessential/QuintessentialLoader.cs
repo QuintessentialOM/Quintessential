@@ -31,6 +31,7 @@ namespace Quintessential {
 				PathMods = Path.Combine(PathLightning, "Mods");
 
 				Logger.Init();
+				Logger.Log($"Quintessential v{VersionString} ({VersionNumber})");
 				Logger.Log("Starting pre-init loading.");
 
 				QApi.Init();
