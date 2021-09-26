@@ -6,8 +6,8 @@ using System;
 
 namespace MonoMod {
 
-	[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchGameLogicInit))]
-	class PatchGameLogicInit : Attribute { }
+	/*[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchGameLogicInit))]
+	class PatchGameLogicInit : Attribute { }*/
 
 	[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchSettingsStaticInit))]
 	class PatchSettingsStaticInit : Attribute { }
@@ -22,24 +22,6 @@ namespace MonoMod {
 
 		static MonoModRules() {
 			MonoModRule.Modder.Log("Patching OM");
-		}
-
-		public static void PatchGameLogicInit(MethodDefinition method, CustomAttribute attrib) {
-			MonoModRule.Modder.Log("Patching GameLogic init");
-			// Cut out the "this.field_2460.method_2230();" call
-			if(method.HasBody) {
-				ILCursor cursor = new ILCursor(new ILContext(method));
-				if(cursor.TryGotoNext(MoveType.Before, instr => instr.MatchCallvirt("WorkshopManager", "method_2230"))) {
-					cursor.Remove();
-					cursor.Emit(OpCodes.Pop);
-				} else {
-					Console.WriteLine("Failed to remove WorkshopManager call in GameLogic!");
-					throw new Exception();
-				}
-			} else {
-				Console.WriteLine("Failed to remove WorkshopManager call in GameLogic!");
-				throw new Exception();
-			}
 		}
 
 		public static void PatchSettingsStaticInit(MethodDefinition method, CustomAttribute attrib) {

@@ -1,13 +1,9 @@
-﻿using MonoMod;
-using Quintessential;
+﻿using Quintessential;
 
 #pragma warning disable CS0626 // Method, operator, or accessor is marked external and has no attributes on it
 class patch_GameLogic {
 
 	// calls mod loading
-	// also removes WorkshopManager calls
-
-	[PatchGameLogicInit]
 	public extern void orig_method_942();
 
 	public void method_942() {
