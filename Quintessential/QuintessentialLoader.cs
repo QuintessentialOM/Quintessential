@@ -99,6 +99,13 @@ SomeZipIDontLike.zip");
 			Logger.Log("Finished post-init loading.");
 		}
 
+		public static void LoadPuzzleContent() {
+			Logger.Log("Starting puzzle content loading.");
+			foreach(var mod in CodeMods)
+				mod.LoadPuzzleContent();
+			Logger.Log("Finished puzzle content loading.");
+		}
+
 		public static void Unload() {
 			Logger.Log("Starting mod unloading.");
 			foreach(var mod in CodeMods)

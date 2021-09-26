@@ -16,11 +16,17 @@ class patch_GameLogic {
 		QuintessentialLoader.PostLoad();
 	}
 
-
 	public extern void orig_method_963(int exitCode);
 
 	public void method_963(int exitCode) {
 		QuintessentialLoader.Unload();
 		orig_method_963(exitCode);
+	}
+
+	public extern void orig_method_956();
+
+	public void method_956() {
+		orig_method_956();
+		QuintessentialLoader.LoadPuzzleContent();
 	}
 }

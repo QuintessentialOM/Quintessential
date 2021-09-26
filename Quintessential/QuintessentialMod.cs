@@ -9,5 +9,9 @@
 		public abstract void PostLoad();
 
 		public abstract void Unload();
+
+		public virtual void LoadPuzzleContent() {
+
+		}
 	}
 }
