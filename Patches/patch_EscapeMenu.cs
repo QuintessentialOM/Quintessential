@@ -1,6 +1,8 @@
-﻿using Quintessential;
+﻿using MonoMod;
+using Quintessential;
 
-class patch_class_178 {
+[MonoModPatch("class_178")]
+class patch_EscapeMenu {
 
 	public extern void orig_method_50(float param_3782);
 

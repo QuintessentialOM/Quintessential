@@ -1,6 +1,7 @@
 ﻿using MonoMod;
 
-class patch_class_110 {
+[MonoModPatch("class_110")]
+class patch_Settings {
 
 	// settings init
 	// disabling steam

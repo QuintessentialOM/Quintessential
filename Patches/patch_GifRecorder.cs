@@ -1,7 +1,8 @@
 ﻿using MonoMod;
 using Quintessential;
 
-class patch_class_250 {
+[MonoModPatch("class_250")]
+class patch_GifRecorder {
 
 	[PatchGifRecorderFrame]
 	[MonoModIgnore]

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 #pragma warning disable CS0626 // Method, operator, or accessor is marked external and has no attributes on it
 [MonoModPatch("SolutionEditorPartsPanel/class_428")]
-class patch_class_428 {
+class patch_SolutionEditorPartsPanelSection {
 
 	// add our parts to the panel
 

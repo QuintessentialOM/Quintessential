@@ -1,7 +1,9 @@
-﻿using Quintessential;
+﻿using MonoMod;
+using Quintessential;
 
 #pragma warning disable CS0626 // Method, operator, or accessor is marked external and has no attributes on it
-class patch_class_93 {
+[MonoModPatch("class_93")]
+class patch_TitleScreen {
 
 	// renders main menu
 	// adds notice mod count

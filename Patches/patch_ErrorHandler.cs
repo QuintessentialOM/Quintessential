@@ -1,8 +1,10 @@
 ﻿#pragma warning disable CS0626 // Method, operator, or accessor is marked external and has no attributes on it
+using MonoMod;
 using Quintessential;
 using System;
 
-class patch_class_129 {
+[MonoModPatch("class_129")]
+class patch_ErrorHandler {
 
 	// error logging
 	// replaces the regular method (opening a (broken by string parsing?) website) with logging
