@@ -215,9 +215,10 @@ SomeZipIDontLike.zip");
 				if(File.Exists(savePath)) {
 					using(StreamReader reader = new StreamReader(savePath)) {
 						var settings = YamlHelper.Deserializer.Deserialize(reader, mod.SettingsType);
-						if(settings != null)
+						if(settings != null) {
 							mod.Settings = settings;
-						else
+							mod.ApplySettings();
+						} else
 							Logger.Log("Loaded null settings for mod " + mod.Meta.Name);
 					}
 				}
