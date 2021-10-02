@@ -25,6 +25,8 @@ namespace Quintessential {
 		private static List<ModMeta> loaded = new List<ModMeta>();
 		private static List<ModMeta> waiting = new List<ModMeta>();
 
+		internal static QuintessentialSettings settings = new QuintessentialSettings();
+
 		private static readonly string zipExtractSuffix = "__quintessential_from_zip";
 
 		public static void PreInit() {

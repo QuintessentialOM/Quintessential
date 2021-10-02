@@ -28,7 +28,7 @@ namespace Quintessential {
 			File.AppendAllText(LogPath, $"({DateTime.Now}) {text}\n");
 		}
 
-		public static void Log(Exception e) {
+		public static void Log(object e) {
 			Log(e.ToString());
 		}
 	}
