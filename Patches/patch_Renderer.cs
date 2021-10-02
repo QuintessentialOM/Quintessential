@@ -11,7 +11,8 @@ class patch_Renderer {
 	public static bool method_1339(class_256 textureInfo) {
 		if(textureInfo.field_2062.method_1085() /*Exists*/ && textureInfo.field_2062.method_1087()/*Get*/.StartsWith("Content")) {
 			Maybe<string> origPath = textureInfo.field_2062;
-			foreach(var dir in QuintessentialLoader.ModContentDirectories) {
+			for(int i = QuintessentialLoader.ModContentDirectories.Count - 1; i >= 0; i--) {
+				string dir = QuintessentialLoader.ModContentDirectories[i];
 				try {
 					textureInfo.field_2062 = Path.Combine(dir, origPath.method_1087());
 					return orig_method_1339(textureInfo);

@@ -22,6 +22,8 @@ namespace Quintessential {
 		public static List<string> ModContentDirectories = new List<string>();
 
 		private static List<string> blacklisted = new List<string>();
+		private static List<ModMeta> loaded = new List<ModMeta>();
+		private static List<ModMeta> waiting = new List<ModMeta>();
 
 		private static readonly string zipExtractSuffix = "__quintessential_from_zip";
 
@@ -59,25 +61,102 @@ SomeZipIDontLike.zip");
 					if(blacklisted.Contains(filename))
 						continue;
 					if(filename.EndsWith(".zip"))
-						LoadZipMod(file);
+						FindZipMod(file);
 				}
 					
-				// Load folder mods
+				// Find folder mods
 				string[] folders = Directory.GetDirectories(PathMods);
 				foreach(var folder in folders) {
 					string filename = Path.GetFileName(folder);
 					if(blacklisted.Contains(filename))
 						continue;
-					LoadFolderMod(folder);
+					FindFolderMod(folder);
 				}
 
-				// Load DLLs
-				foreach(var mod in Mods)
-				if(!string.IsNullOrWhiteSpace(mod.DLL)) {
-					string dllPath = mod.DLL;
-					LoadModAssembly(mod, GetRemappedAssembly(dllPath, mod));
+				// Load mods
+				Func<ModMeta.Dependency, List<ModMeta>, bool> Contains = (dep, list) => list.Any(m => m.Name.Equals(dep.Name) && m.Version >= dep.Version);
+				List<ModMeta> rem = new List<ModMeta>();
+				foreach(var mod in Mods) {
+					// check dependencies
+					bool willLoad = true, wait = false;
+					foreach(var dep in mod.Dependencies) {
+						// if a dependency is missing, don't load the mod
+						if(!Contains(dep, Mods))
+							willLoad = false;
+						// if a dependency is present but not loaded, add to waiting list and load later
+						else if(!Contains(dep, loaded)) {
+							willLoad = false;
+							wait = true;
+						}
+					}
+					// check optional deps
+					foreach(var opDep in mod.OptionalDependencies) {
+						// if an optional dep is present but outdated, don't load
+						if(Mods.Any(m => m.Name.Equals(opDep.Name) && m.Version < opDep.Version))
+							willLoad = false;
+						// if an optional dep is present but not yet loaded, add to waiting list and load later
+						if(Contains(opDep, Mods) && !Contains(opDep, loaded)) {
+							willLoad = false;
+							wait = true;
+						}
+					}
+					if(willLoad)
+						LoadModFromMeta(mod);
+					else if(wait)
+						waiting.Add(mod);
+					else {
+						Logger.Log("Not loading " + mod.Name + ": missing dependency, or outdated optional dependency.");
+						rem.Add(mod);
+					}
 				}
-			
+				Mods.RemoveAll(m => rem.Contains(m));
+
+				while(waiting.Count() > 0) {
+					var toRemove = new List<ModMeta>();
+					foreach(var mod in waiting) {
+						// if deps are now loaded, load and remove from waiting list
+						bool willLoad = true;
+						foreach(var dep in mod.Dependencies)
+							if(!Contains(dep, loaded))
+								willLoad = false;
+						foreach(var dep in mod.OptionalDependencies)
+							if(!Contains(dep, loaded))
+								willLoad = false;
+						if(willLoad) {
+							LoadModFromMeta(mod);
+							toRemove.Add(mod);
+						} else {
+							// check if a dependency has missing deps itself
+							bool wontLoad = false;
+							foreach(var dep in mod.Dependencies)
+								if(!Contains(dep, Mods))
+									wontLoad = true;
+							if(wontLoad) {
+								Logger.Log("Not loading " + mod.Name + ": missing dependency.");
+								toRemove.Add(mod);
+							} else {
+								// check that outdated optional dependencies still exist
+								bool skipLoad = true;
+								foreach(var opDep in mod.OptionalDependencies)
+									if(Mods.Any(m => m.Name.Equals(opDep.Name) && m.Version < opDep.Version))
+										skipLoad = false;
+								if(skipLoad) {
+									LoadModFromMeta(mod);
+									toRemove.Add(mod);
+								}
+							}
+						}
+					}
+					// if we don't load any mods, we have a circular dep, don't load any more
+					waiting.RemoveAll(m => toRemove.Contains(m));
+					Mods.RemoveAll(m => toRemove.Contains(m));
+					if(toRemove.Count() == 0) {
+						foreach(var item in waiting)
+							Logger.Log("Not loading " + item.Name + ": circular dependency!");
+						break;
+					}
+				}
+
 				// Add mod content
 				// Load mods
 				foreach(var mod in CodeMods)
@@ -90,6 +169,22 @@ SomeZipIDontLike.zip");
 				}
 				throw;
 			}
+		}
+
+		private static void LoadModFromMeta(ModMeta mod) {
+			if(!string.IsNullOrWhiteSpace(mod.DLL)) {
+				string dllPath = mod.DLL;
+				LoadModAssembly(mod, GetRemappedAssembly(dllPath, mod));
+			}
+			// Get mod content
+			//  - Consider modded folders when fetching any content
+			//  - Custom language files: vanilla stores in a big CSV, but for custom dialogue (and languages) we'll want seperate files (e.g. English.txt, French.txt)
+			//  - Custom solitaires too?
+			var content = Path.Combine(mod.PathDirectory, "Content");
+			if(Directory.Exists(content))
+				ModContentDirectories.Add(mod.PathDirectory);
+			loaded.Add(mod);
+			Logger.Log("Will load mod " + mod.Name + ".");
 		}
 
 		public static void PostLoad() {
@@ -113,7 +208,7 @@ SomeZipIDontLike.zip");
 			Logger.Log("Finished unloading.");
 		}
 
-		protected static void LoadZipMod(string zip) {
+		protected static void FindZipMod(string zip) {
 			Logger.Log("Unzipping zip mod: " + zip);
 			// Check that the zip exists
 			if(!File.Exists(zip)) // Relative path?
@@ -124,15 +219,15 @@ SomeZipIDontLike.zip");
 			var dest = zip.Substring(0, zip.Length - ".zip".Length) + zipExtractSuffix;
 			using(ZipFile file = new ZipFile(zip))
 				file.ExtractAll(dest);
-			LoadFolderMod(dest, zip);
+			FindFolderMod(dest, zip);
 		}
 
-		protected static void LoadFolderMod(string dir, string zipName = null) {
+		protected static void FindFolderMod(string dir, string zipName = null) {
 			// don't load zip mods again
 			if(string.IsNullOrEmpty(zipName) && dir.EndsWith("__quintessential_from_zip"))
 				return;
 			
-			Logger.Log("Loading mod from folder: " + dir);
+			Logger.Log("Finding mod in folder: " + dir);
 			// Check that the folder exists
 			if(!Directory.Exists(dir)) // Relative path?
 				dir = Path.Combine(PathMods, dir);
@@ -154,21 +249,22 @@ SomeZipIDontLike.zip");
 								meta.PathArchive = zipName;
 							meta.PostParse();
 							Mods.Add(meta);
-							Logger.Log($"Will load mod \"{meta.Name}\", version {meta.VersionString}.");
+							Logger.Log($"Queuing mod \"{meta.Name}\", version {meta.VersionString}.");
 						}
 					} catch(Exception e) {
 						Logger.Log($"Failed parsing quintessential.yaml in {dir}: {e}");
 					}
 				}
+			} else {
+				meta = new ModMeta();
+				meta.Name = "NoMetaMod:" + Path.GetFileName(dir);
+				meta.PathDirectory = dir;
+				if(!string.IsNullOrEmpty(zipName))
+					meta.PathArchive = zipName;
+				meta.PostParse();
+				Mods.Add(meta);
+				Logger.Log("Will load mod without metadata from " + dir + ".");
 			}
-
-			// Get mod content
-			//  - Consider modded folders when fetching any content
-			//  - Custom language files: vanilla stores in a big CSV, but for custom dialogue (and languages) we'll want seperate files (e.g. English.txt, French.txt)
-			//  - Custom solitaires too?
-			var content = Path.Combine(dir, "Content");
-			if(Directory.Exists(content))
-				ModContentDirectories.Add(dir);
 		}
 
 		protected static void LoadModAssembly(ModMeta meta, Assembly asm) {

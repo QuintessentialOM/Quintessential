@@ -12,6 +12,10 @@ namespace Quintessential {
 
         public string Mappings { get; set; }
 
+        public Dependency[] Dependencies { get; set; } = new Dependency[0];
+
+        public Dependency[] OptionalDependencies { get; set; } = new Dependency[0];
+
         [YamlIgnore]
         public string PathArchive { get; set; }
 
@@ -44,6 +48,30 @@ namespace Quintessential {
         public void PostParse() {
             if(!string.IsNullOrEmpty(DLL) && !string.IsNullOrEmpty(PathDirectory) && !File.Exists(DLL))
                 DLL = Path.Combine(PathDirectory, DLL.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar));
+        }
+
+        public class Dependency {
+
+            public string Name { get; set; }
+
+            [YamlIgnore]
+            public Version Version { get; set; } = new Version(1, 0);
+            private string _VersionString;
+
+            [YamlMember(Alias = "Version")]
+            public string VersionString {
+                get {
+                    return _VersionString;
+                }
+                set {
+                    _VersionString = value;
+                    int versionSplitIndex = value.IndexOf('-');
+                    if(versionSplitIndex == -1)
+                        Version = new Version(value);
+                    else
+                        Version = new Version(value.Substring(0, versionSplitIndex));
+                }
+            }
         }
     }
 }
