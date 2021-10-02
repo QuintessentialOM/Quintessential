@@ -127,6 +127,7 @@ SomeZipIDontLike.zip");
 
 				while(waiting.Count() > 0) {
 					var toRemove = new List<ModMeta>();
+					var removeFromMods = new List<ModMeta>();
 					foreach(var mod in waiting) {
 						// if deps are now loaded, load and remove from waiting list
 						bool willLoad = true;
@@ -147,7 +148,7 @@ SomeZipIDontLike.zip");
 									wontLoad = true;
 							if(wontLoad) {
 								Logger.Log("Not loading " + mod.Name + ": missing dependency.");
-								toRemove.Add(mod);
+								removeFromMods.Add(mod);
 							} else {
 								// check that outdated optional dependencies still exist
 								bool skipLoad = true;
@@ -163,7 +164,7 @@ SomeZipIDontLike.zip");
 					}
 					// if we don't load any mods, we have a circular dep, don't load any more
 					waiting.RemoveAll(m => toRemove.Contains(m));
-					Mods.RemoveAll(m => toRemove.Contains(m));
+					Mods.RemoveAll(m => removeFromMods.Contains(m));
 					if(toRemove.Count() == 0) {
 						foreach(var item in waiting)
 							Logger.Log("Not loading " + item.Name + ": circular dependency!");
