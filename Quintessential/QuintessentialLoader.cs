@@ -16,16 +16,17 @@ namespace Quintessential {
 		public static string PathLightning;
 		public static string PathMods;
 		public static string PathBlacklist;
+		public static string PathModSaves;
 
 		public static List<QuintessentialMod> CodeMods = new List<QuintessentialMod>();
 		public static List<ModMeta> Mods = new List<ModMeta>();
 		public static List<string> ModContentDirectories = new List<string>();
 
+		public static ModMeta QuintessentialModMeta;
+
 		private static List<string> blacklisted = new List<string>();
 		private static List<ModMeta> loaded = new List<ModMeta>();
 		private static List<ModMeta> waiting = new List<ModMeta>();
-
-		internal static QuintessentialSettings settings = new QuintessentialSettings();
 
 		private static readonly string zipExtractSuffix = "__quintessential_from_zip";
 
@@ -55,6 +56,17 @@ SomeZipIDontLike.zip");
 				// Find mods in Mods/
 				// Delete leftover quintessential extracted zips
 				CleanupExtractedZips();
+
+				// Add Quintessential mod & mod meta
+				QuintessentialModMeta = new ModMeta {
+					Name = "Quintessential",
+					Version = new Version(VersionString)
+				};
+				Mods.Add(QuintessentialModMeta);
+				var asMod = new Internal.QuintessentialAsMod();
+				asMod.Meta = QuintessentialModMeta;
+				asMod.Settings = new QuintessentialSettings();
+				CodeMods.Add(asMod);
 
 				// Unzip zips
 				string[] files = Directory.GetFiles(PathMods);
@@ -174,6 +186,8 @@ SomeZipIDontLike.zip");
 		}
 
 		private static void LoadModFromMeta(ModMeta mod) {
+			if(mod == QuintessentialModMeta)
+				return;
 			if(!string.IsNullOrWhiteSpace(mod.DLL)) {
 				string dllPath = mod.DLL;
 				LoadModAssembly(mod, GetRemappedAssembly(dllPath, mod));
@@ -191,6 +205,23 @@ SomeZipIDontLike.zip");
 
 		public static void PostLoad() {
 			Logger.Log("Starting post-init loading.");
+			// Read mod save data
+			PathModSaves = Path.Combine(class_161.method_402(), "ModSaveData");
+			Logger.Log("Mod settings directory: " + PathModSaves);
+			if(!Directory.Exists(PathModSaves))
+				Directory.CreateDirectory(PathModSaves);
+			foreach(var mod in CodeMods) {
+				var savePath = Path.Combine(PathModSaves, mod.Meta.Name + ".yaml");
+				if(File.Exists(savePath)) {
+					using(StreamReader reader = new StreamReader(savePath)) {
+						var settings = YamlHelper.Deserializer.Deserialize(reader, mod.SettingsType);
+						if(settings != null)
+							mod.Settings = settings;
+						else
+							Logger.Log("Loaded null settings for mod " + mod.Meta.Name);
+					}
+				}
+			}
 			foreach(var mod in CodeMods)
 				mod.PostLoad();
 			Logger.Log("Finished post-init loading.");
@@ -246,6 +277,7 @@ SomeZipIDontLike.zip");
 					try {
 						if(!reader.EndOfStream) {
 							meta = YamlHelper.Deserializer.Deserialize<ModMeta>(reader);
+							meta.Name = meta.Name.Trim().Replace(" ", "_");
 							meta.PathDirectory = dir;
 							if(!string.IsNullOrEmpty(zipName))
 								meta.PathArchive = zipName;
@@ -259,7 +291,7 @@ SomeZipIDontLike.zip");
 				}
 			} else {
 				meta = new ModMeta();
-				meta.Name = "NoMetaMod:" + Path.GetFileName(dir);
+				meta.Name = "NoMetaMod_" + Path.GetFileName(dir);
 				meta.PathDirectory = dir;
 				if(!string.IsNullOrEmpty(zipName))
 					meta.PathArchive = zipName;

@@ -27,6 +27,5 @@ namespace Quintessential {
                 .WithObjectFactory(type => type == objectType ? objectToBind : defaultObjectFactory.Create(type))
                 .Build();
         }
-
     }
 }

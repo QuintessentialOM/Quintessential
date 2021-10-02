@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Quintessential {
 
 	class ModsScreen : IScreen {
 
 		private const int modButtonWidth = 300;
-		ModMeta selected = null;
+		ModMeta selected = QuintessentialLoader.QuintessentialModMeta;
 
 		// ???
 		public bool method_1037() {
@@ -45,36 +42,31 @@ namespace Quintessential {
 			}
 			// draw mod buttons
 			int y = 40;
-			if(class_140.method_315("Quintessential", $"{QuintessentialLoader.VersionString} ({QuintessentialLoader.VersionNumber})", pos - new Vector2(-100, -size.Y + 140 + y), modButtonWidth, selected == null).method_824(true, true))
-				selected = null;
+			if(class_140.method_315("Quintessential", $"{QuintessentialLoader.VersionString} ({QuintessentialLoader.VersionNumber})", pos - new Vector2(-100, -size.Y + 140 + y), modButtonWidth, selected == QuintessentialLoader.QuintessentialModMeta).method_824(true, true))
+				selected = QuintessentialLoader.QuintessentialModMeta;
 			y += 100;
 			class_135.method_275(class_238.field_1989.field_102.field_822, Color.White, Bounds2.WithSize(pos - new Vector2(-100, -size.Y + 140 + 60), new Vector2(modButtonWidth, 3f)));
 			foreach(var mod in QuintessentialLoader.Mods) {
-				if(class_140.method_315(mod.Name, mod.Version.ToString(), pos - new Vector2(-100, -size.Y + 140 + y), modButtonWidth, selected == mod).method_824(true, true))
-					selected = mod;
-				y += 70;
+				if(mod != QuintessentialLoader.QuintessentialModMeta) {
+					if(class_140.method_315(mod.Name, mod.Version.ToString(), pos - new Vector2(-100, -size.Y + 140 + y), modButtonWidth, selected == mod).method_824(true, true))
+						selected = mod;
+					y += 70;
+				}
 			}
 			// draw mod options panel
 			class_135.method_272(class_238.field_1989.field_102.field_824, pos + new Vector2(modButtonWidth + 110, 76f));
-			if(selected == null)
-				DrawQuintessentialOptions(pos + new Vector2(modButtonWidth + 140, -10), size - new Vector2(160, 10));
-			else
-				DrawModOptions(pos + new Vector2(modButtonWidth + 140, -10), size - new Vector2(160, 10), selected);
+			DrawModOptions(pos + new Vector2(modButtonWidth + 140, -10), size - new Vector2(160, 10), selected);
 			
-		}
-
-		private void DrawQuintessentialOptions(Vector2 pos, Vector2 size) {
-			DrawModLabel("Quintessential", $"{QuintessentialLoader.VersionString} ({QuintessentialLoader.VersionNumber})", pos, size);
-			if(DrawModSettings(QuintessentialLoader.settings, pos, size))
-				QuintessentialLoader.settings.Apply();
 		}
 
 		private void DrawModOptions(Vector2 pos, Vector2 size, ModMeta mod) {
 			DrawModLabel(mod.Name, mod.Version.ToString(), pos, size);
 			foreach(var cmod in QuintessentialLoader.CodeMods)
 				if(cmod.Meta == mod)
-					if(DrawModSettings(cmod.Settings, pos, size))
+					if(DrawModSettings(cmod.Settings, pos, size)) {
 						cmod.ApplySettings();
+						SaveSettings(mod, cmod.Settings);
+					}
 		}
 
 		private void DrawModLabel(string name, string version, Vector2 pos, Vector2 bgSize) { 
@@ -85,6 +77,8 @@ namespace Quintessential {
 		private bool DrawModSettings(object settings, Vector2 pos, Vector2 bgSize) {
 			float y = 170;
 			bool settingsChanged = false;
+			if(settings == null)
+				return false;
 			foreach(var field in settings.GetType().GetFields()) {
 				string label = field.GetCustomAttributes(true).TakeWhile(att => att is SettingsLabel).Select(att => ((SettingsLabel)att).Label).FirstOrDefault() ?? field.Name;
 				if(field.FieldType == typeof(bool)) {
@@ -109,7 +103,7 @@ namespace Quintessential {
 			Bounds2 labelBounds = class_135.method_290(label, pos + new Vector2(45f, 13f), class_238.field_1990.field_2143, class_181.field_1718, (enum_0)0, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
 			if(enabled)
 				class_135.method_272(class_238.field_1989.field_101.field_773, boxBounds.Min);
-			if(/*this.field_2788 == (enum_138)0 &*/ (boxBounds.Contains(class_115.method_202()) || labelBounds.Contains(class_115.method_202()))) {
+			if(boxBounds.Contains(class_115.method_202()) || labelBounds.Contains(class_115.method_202())) {
 				class_135.method_272(class_238.field_1989.field_101.field_774, boxBounds.Min);
 				if(!class_115.method_206((enum_142)1))
 					return false;
@@ -118,6 +112,15 @@ namespace Quintessential {
 			} else
 				class_135.method_272(class_238.field_1989.field_101.field_772, boxBounds.Min);
 			return false;
+		}
+
+		private void SaveSettings(ModMeta mod, object settings) {
+			string name = mod.Name;
+			string path = Path.Combine(QuintessentialLoader.PathModSaves, name + ".yaml");
+			if(!Directory.Exists(QuintessentialLoader.PathModSaves))
+				Directory.CreateDirectory(QuintessentialLoader.PathModSaves);
+			using(StreamWriter writer = new StreamWriter(path))
+				YamlHelper.Serializer.Serialize(writer, settings, QuintessentialLoader.CodeMods.First(c => c.Meta == mod).SettingsType);
 		}
 	}
 }
