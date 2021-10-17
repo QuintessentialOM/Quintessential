@@ -105,7 +105,6 @@ namespace Quintessential {
 
 		private bool DrawCheckbox(Vector2 pos, string label, bool enabled) {
 			Bounds2 boxBounds = Bounds2.WithSize(pos, new Vector2(36f, 37f));
-			Bounds2.WithSize(pos, new Vector2(250f, 37f));
 			//var bounds = class_135.method_290(label, pos, class_238.field_1990.field_2145, Color.LightGray, (enum_0)0, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
 			Bounds2 labelBounds = class_135.method_290(label, pos + new Vector2(45f, 13f), class_238.field_1990.field_2143, class_181.field_1718, (enum_0)0, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
 			if(enabled)

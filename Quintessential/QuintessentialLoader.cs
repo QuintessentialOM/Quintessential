@@ -1,5 +1,6 @@
 ﻿using Ionic.Zip;
 using MonoMod.Utils;
+using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,9 +22,14 @@ namespace Quintessential {
 		public static List<QuintessentialMod> CodeMods = new List<QuintessentialMod>();
 		public static List<ModMeta> Mods = new List<ModMeta>();
 		public static List<string> ModContentDirectories = new List<string>();
+		public static List<string> ModPuzzleDirectories = new List<string>();
+
+		public static List<Campaign> AllCampaigns = new List<Campaign>();
+		public static Campaign VanillaCampaign;
 
 		public static ModMeta QuintessentialModMeta;
 
+		private static List<CampaignModel> ModCampaignModels = new List<CampaignModel>();
 		private static List<string> blacklisted = new List<string>();
 		private static List<ModMeta> loaded = new List<ModMeta>();
 		private static List<ModMeta> waiting = new List<ModMeta>();
@@ -200,6 +206,24 @@ SomeZipIDontLike.zip");
 			var content = Path.Combine(mod.PathDirectory, "Content");
 			if(Directory.Exists(content))
 				ModContentDirectories.Add(mod.PathDirectory);
+
+			var puzzles = Path.Combine(mod.PathDirectory, "Puzzles");
+			if(Directory.Exists(puzzles)) {
+				ModPuzzleDirectories.Add(puzzles);
+				// Look for name.campaign.yaml files in the folder
+				foreach(var item in Directory.GetFiles(puzzles)) {
+					string filename = Path.GetFileName(item);
+					if(filename.EndsWith(".campaign.yaml")) {
+						using(StreamReader reader = new StreamReader(item)) {
+							CampaignModel c = YamlHelper.Deserializer.Deserialize<CampaignModel>(reader);
+							Logger.Log($"Campaign {c.Title} ({c.Name}) has {c.Chapters.Count} chapters.");
+							c.Path = Path.GetDirectoryName(item);
+							ModCampaignModels.Add(c);
+						}
+					}
+				}
+			}
+
 			loaded.Add(mod);
 			Logger.Log("Will load mod " + mod.Name + ".");
 		}
@@ -349,6 +373,66 @@ SomeZipIDontLike.zip");
 				//OpusMutatum.OpusMutatum.DoRemap();
 			}
 			return Assembly.LoadFrom(asmPath);
+		}
+
+		public static void LoadCampaigns() {
+			VanillaCampaign = Campaigns.field_2330;
+			((patch_Campaign)(object)VanillaCampaign).QuintTitle = "Opus Magnum";
+			AllCampaigns.Add(VanillaCampaign);
+
+			for(int i = 0; i < ModCampaignModels.Count; i++) {
+				CampaignModel c = ModCampaignModels[i];
+				var campaign = new Campaign {
+					field_2309 = new CampaignChapter[c.Chapters.Count]
+				};
+
+				((patch_Campaign)(object)campaign).QuintTitle = c.Title;
+
+				for(int j = 0; j < c.Chapters.Count; j++) {
+					ChapterModel chapter = c.Chapters[j];
+					campaign.field_2309[j] = new CampaignChapter(
+						class_134.method_253(chapter.Title, string.Empty),
+						class_134.method_253(chapter.Subtitle, string.Empty),
+						class_134.method_253(chapter.Place, string.Empty),
+						chapter.Background != null ? class_235.method_615(chapter.Background) : Campaigns.field_2330.field_2309[j].field_2315,
+						Campaigns.field_2330.field_2309[j].field_2316,
+						Campaigns.field_2330.field_2309[j].field_2317,
+						Campaigns.field_2330.field_2309[j].field_2318,
+						Campaigns.field_2330.field_2309[j].field_2319,
+						Campaigns.field_2330.field_2309[j].field_2320,
+						false
+					);
+
+					foreach(var entry in chapter.Entries) {
+						Puzzle puzzle = Puzzle.method_1249(Path.Combine(c.Path, entry.Puzzle + ".puzzle"));
+						AddEntryToCampaign(campaign, j, entry.ID, class_134.method_253(entry.Title, string.Empty), (enum_129)0, struct_18.field_1431, puzzle, class_238.field_1992.field_972, class_238.field_1991.field_1832, string.IsNullOrEmpty(entry.Requires) ? (class_259)new class_174() : new class_243(entry.Requires));
+					}
+				}
+
+				for(int index = 0; index < campaign.field_2309.Length; ++index)
+					campaign.field_2309[index].field_2310 = index;
+
+				AllCampaigns.Add(campaign);
+			}
+		}
+
+		private static void AddEntryToCampaign(
+				Campaign campaign,
+				int chapter,
+				string entryId,
+				LocString entryTitle,
+				enum_129 type,
+				Maybe<class_215> param_4485,
+				Maybe<Puzzle> puzzle,
+				class_186 param_4487,
+				Sound clickSound,
+				class_259 requirement) {
+			if(puzzle.method_1085()) {
+				puzzle.method_1087().field_2767 = entryTitle;
+				puzzle.method_1087().field_2769 = param_4485;
+			}
+			CampaignItem campaignItem = new CampaignItem(entryId, entryTitle, type, puzzle, requirement, param_4487, clickSound);
+			campaign.field_2309[chapter].field_2314.Add(campaignItem);
 		}
 	}
 }
