@@ -207,7 +207,7 @@ SomeZipIDontLike.zip");
 		public static void PostLoad() {
 			Logger.Log("Starting post-init loading.");
 			// Read mod save data
-			PathModSaves = Path.Combine(class_161.method_402(), "ModSaveData");
+			PathModSaves = Path.Combine(class_161.method_402(), "ModSettings");
 			Logger.Log("Mod settings directory: " + PathModSaves);
 			if(!Directory.Exists(PathModSaves))
 				Directory.CreateDirectory(PathModSaves);
