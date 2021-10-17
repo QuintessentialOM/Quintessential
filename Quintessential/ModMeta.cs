@@ -8,7 +8,13 @@ namespace Quintessential {
 
 		public string Name { get; set; }
 
-		public string DLL { get; set; }
+        public string Title { get; set; }
+
+        public string Icon { get; set; }
+
+        public string Desc { get; set; }
+
+        public string DLL { get; set; }
 
         public string Mappings { get; set; }
 

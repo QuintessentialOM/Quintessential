@@ -56,22 +56,29 @@ namespace Quintessential {
 			// draw mod options panel
 			class_135.method_272(class_238.field_1989.field_102.field_824, pos + new Vector2(modButtonWidth + 110, 76f));
 			DrawModOptions(pos + new Vector2(modButtonWidth + 140, -10), size - new Vector2(160, 10), selected);
-			
 		}
 
 		private void DrawModOptions(Vector2 pos, Vector2 size, ModMeta mod) {
-			DrawModLabel(mod.Name, mod.Version.ToString(), pos, size);
+			float descHeight = DrawModLabel(mod, pos, size);
 			foreach(var cmod in QuintessentialLoader.CodeMods)
 				if(cmod.Meta == mod)
-					if(DrawModSettings(cmod.Settings, pos, size)) {
+					if(DrawModSettings(cmod.Settings, pos - new Vector2(0, descHeight), size)) {
 						cmod.ApplySettings();
 						SaveSettings(mod, cmod.Settings);
 					}
 		}
 
-		private void DrawModLabel(string name, string version, Vector2 pos, Vector2 bgSize) { 
-			class_135.method_290(name, pos + new Vector2(20, bgSize.Y - 99f), class_238.field_1990.field_2146, class_181.field_1718, (enum_0)0, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
-			class_135.method_290(version, pos + new Vector2(20, bgSize.Y - 120f), class_238.field_1990.field_2145, Color.LightGray, (enum_0)0, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
+		private float DrawModLabel(ModMeta mod, Vector2 pos, Vector2 bgSize) { 
+			class_135.method_290(mod.Title ?? mod.Name, pos + new Vector2(20, bgSize.Y - 99f), class_238.field_1990.field_2146, class_181.field_1718, (enum_0)0, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
+			string ver = mod.Version.ToString();
+			if(mod.Title != null)
+				ver = mod.Name + " - " + ver;
+			class_135.method_290(ver, pos + new Vector2(20, bgSize.Y - 130f), class_238.field_1990.field_2145, Color.LightGray, (enum_0)0, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
+			if(mod.Desc != null) {
+				var desc = class_135.method_290(mod.Desc, pos + new Vector2(20, bgSize.Y - 170f), class_238.field_1990.field_2145, class_181.field_1718, (enum_0)0, 1f, 0.6f, 460, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
+				return desc.Height + 80;
+			}
+			return 20;
 		}
 
 		private bool DrawModSettings(object settings, Vector2 pos, Vector2 bgSize) {
