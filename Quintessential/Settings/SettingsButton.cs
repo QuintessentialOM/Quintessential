@@ -1,4 +1,4 @@
-﻿namespace Quintessential {
+﻿namespace Quintessential.Settings {
 
 	/// <summary>
 	/// Settings fields of this type are displayed as a button on the Mods menu.

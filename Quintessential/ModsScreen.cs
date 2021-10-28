@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Quintessential.Settings;
+using System.IO;
 using System.Linq;
 
 namespace Quintessential {
@@ -96,6 +97,13 @@ namespace Quintessential {
 				} else if(field.FieldType == typeof(SettingsButton)) {
 					if(class_140.method_314(label, pos + new Vector2(20, bgSize.Y - y - 15)).method_824(true, true))
 						((SettingsButton)field.GetValue(settings))();
+					y += 20;
+				} else if(field.FieldType == typeof(Keybinding)) {
+					Keybinding key = (Keybinding)field.GetValue(settings);
+					Bounds2 labelBounds = class_135.method_290(label + ": " + (key.Control ? "Control + " : "") + (key.Alt ? "Alt + " : "") + (key.Shift ? "Shift + " : ""), pos + new Vector2(20, bgSize.Y - y - 15), class_238.field_1990.field_2143, class_181.field_1718, (enum_0)0, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
+					var text = !string.IsNullOrWhiteSpace(key.Key) ? key.Key : "None";
+					if(class_140.class_149.method_348(text, labelBounds.BottomRight + new Vector2(10, 0), new Vector2(50, (int)labelBounds.Height)).method_824(true, true))
+						GameLogic.field_2434.method_946(new ChangeKeybindScreen(key)/*MessageBoxScreen.method_1096(Bounds2.WithSize(new Vector2(0, 0), class_115.field_1433), false, "Please enter a new key:", key.Key ?? "", "Change Keybinding", str => key.Key = str)*/);
 					y += 20;
 				}
 				y += 40;
