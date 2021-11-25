@@ -9,12 +9,10 @@ namespace Quintessential {
 		private const int modButtonWidth = 300;
 		ModMeta selected = QuintessentialLoader.QuintessentialModMeta;
 
-		// ???
 		public bool method_1037() {
 			return false;
 		}
 
-		// on added (true) or removed (false)
 		public void method_47(bool param_4687) {
 			
 		}
@@ -96,10 +94,10 @@ namespace Quintessential {
 					y += 20;
 				} else if(field.FieldType == typeof(Keybinding)) {
 					Keybinding key = (Keybinding)field.GetValue(settings);
-					Bounds2 labelBounds = class_135.method_290(label + ": " + (key.Control ? "Control + " : "") + (key.Alt ? "Alt + " : "") + (key.Shift ? "Shift + " : ""), pos + new Vector2(20, bgSize.Y - y - 15), class_238.field_1990.field_2143, class_181.field_1718, (enum_0)0, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
+					Bounds2 labelBounds = class_135.method_290(label + ": " + key.ControlKeysText(), pos + new Vector2(20, bgSize.Y - y - 15), class_238.field_1990.field_2143, class_181.field_1718, (enum_0)0, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
 					var text = !string.IsNullOrWhiteSpace(key.Key) ? key.Key : "None";
 					if(class_140.class_149.method_348(text, labelBounds.BottomRight + new Vector2(10, 0), new Vector2(50, (int)labelBounds.Height)).method_824(true, true))
-						UI.OpenScreen(new ChangeKeybindScreen(key));
+						UI.OpenScreen(new ChangeKeybindScreen(key, label));
 					y += 20;
 				}
 				y += 40;

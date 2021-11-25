@@ -182,7 +182,7 @@ SomeZipIDontLike.zip");
 				// Load mods
 				foreach(var mod in CodeMods)
 					mod.Load();
-					Logger.Log($"Finished pre-init loading - {Mods.Count} mods loaded, {CodeMods.Count} assemblies loaded, {ModContentDirectories.Count} content directories found.");
+					Logger.Log($"Finished pre-init loading - {Mods.Count} mods loaded; {CodeMods.Count} assemblies, {ModContentDirectories.Count} content directories, and {ModCampaignModels.Count} custom campaigns found.");
 			} catch(Exception e) {
 				if(Logger.Setup) {
 					Logger.Log("Failed to pre-initialize!");
@@ -216,7 +216,7 @@ SomeZipIDontLike.zip");
 					if(filename.EndsWith(".campaign.yaml")) {
 						using(StreamReader reader = new StreamReader(item)) {
 							CampaignModel c = YamlHelper.Deserializer.Deserialize<CampaignModel>(reader);
-							Logger.Log($"Campaign {c.Title} ({c.Name}) has {c.Chapters.Count} chapters.");
+							Logger.Log($"Campaign \"{c.Title}\" ({c.Name}) has {c.Chapters.Count} chapters.");
 							c.Path = Path.GetDirectoryName(item);
 							ModCampaignModels.Add(c);
 						}
@@ -225,14 +225,14 @@ SomeZipIDontLike.zip");
 			}
 
 			loaded.Add(mod);
-			Logger.Log("Will load mod " + mod.Name + ".");
+			Logger.Log($"Will load mod \"{mod.Name}\".");
 		}
 
 		public static void PostLoad() {
 			Logger.Log("Starting post-init loading.");
 			// Read mod save data
 			PathModSaves = Path.Combine(class_161.method_402(), "ModSettings");
-			Logger.Log("Mod settings directory: " + PathModSaves);
+			Logger.Log($"Mod settings directory: \"{PathModSaves}\"");
 			if(!Directory.Exists(PathModSaves))
 				Directory.CreateDirectory(PathModSaves);
 			foreach(var mod in CodeMods) {
@@ -286,7 +286,7 @@ SomeZipIDontLike.zip");
 			if(string.IsNullOrEmpty(zipName) && dir.EndsWith("__quintessential_from_zip"))
 				return;
 			
-			Logger.Log("Finding mod in folder: " + dir);
+			Logger.Log($"Finding mod in folder: \"{dir}\"");
 			// Check that the folder exists
 			if(!Directory.Exists(dir)) // Relative path?
 				dir = Path.Combine(PathMods, dir);
@@ -323,7 +323,7 @@ SomeZipIDontLike.zip");
 					meta.PathArchive = zipName;
 				meta.PostParse();
 				Mods.Add(meta);
-				Logger.Log("Will load mod without metadata from " + dir + ".");
+				Logger.Log($"Will load mod without metadata from \"{dir}\".");
 			}
 		}
 
@@ -336,7 +336,7 @@ SomeZipIDontLike.zip");
 					types = e.Types.Where(t => t != null).ToArray();
 				}
 			} catch(Exception e) {
-				Logger.Log($"Failed reading assembly: {e}");
+				Logger.Log($"Failed reading assembly for {meta.Name}: {e}");
 				e.LogDetailed();
 				return;
 			}

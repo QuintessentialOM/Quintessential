@@ -35,11 +35,14 @@
 		#region Screen stack
 
 		public static void HandleCloseButton() {
-			// Close screen
-			GameLogic.field_2434.field_2464 = false;
-			GameLogic.field_2434.method_949();
+			CloseScreen();
 			// Play close sound
 			OMAssets.field_1991.field_1873.method_28(1f);
+		}
+
+		public static void CloseScreen() {
+			GameLogic.field_2434.field_2464 = false;
+			GameLogic.field_2434.method_949();
 		}
 
 		public static void InstantCloseScreen() {

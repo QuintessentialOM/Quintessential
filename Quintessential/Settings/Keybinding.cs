@@ -24,5 +24,22 @@ namespace Quintessential.Settings {
 		public bool Released() {
 			return IsControlKeysPressed() && Input.IsKeyReleased(Key);
 		}
+
+		public Keybinding Copy() {
+			Keybinding copy = new Keybinding();
+			copy.Key = Key;
+			copy.Shift = Shift;
+			copy.Control = Control;
+			copy.Alt = Alt;
+			return copy;
+		}
+
+		public string ControlKeysText() {
+			return (Control ? "Control + " : "") + (Alt ? "Alt + " : "") + (Shift ? "Shift + " : "");
+		}
+
+		public override string ToString() {
+			return ControlKeysText() + Key;
+		}
 	}
 }

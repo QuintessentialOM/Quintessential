@@ -5,13 +5,15 @@ namespace Quintessential.Settings {
 	class ChangeKeybindScreen : IScreen {
 
 		Keybinding Key;
+		string Label;
 
 		// SDL doesn't make an event when Control or Alt are pressed unless it makes a character (or maybe OM doesn't pick it up)
 		// So we just use this
 		public char[] BindableKeys = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-+_=/*!\"£$%^&()<>,.?{}[]:;@'~#|\\`¬¦".ToCharArray();
 
-		public ChangeKeybindScreen(Keybinding key) {
+		public ChangeKeybindScreen(Keybinding key, string label) {
 			Key = key;
+			Label = label;
 		}
 
 		public bool method_1037() {
@@ -26,7 +28,7 @@ namespace Quintessential.Settings {
 
 		public void method_50(float param_4686) {
 			// "Please enter a new key:"
-			class_135.method_290("Please enter a new key:", (Input.ScreenSize() / 2) + new Vector2(0, 170), class_238.field_1990.field_2146, class_181.field_1718, (enum_0)1, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
+			class_135.method_290("Please enter a new key for: " + Label, (Input.ScreenSize() / 2) + new Vector2(0, 170), class_238.field_1990.field_2146, class_181.field_1718, (enum_0)1, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
 			// display ctrl/shift
 			string preview = "";
 			bool shift = Input.IsShiftHeld();
@@ -54,12 +56,13 @@ namespace Quintessential.Settings {
 					key = bindable;
 			char upper = char.ToUpper(key);
 			if(upper != char.MinValue) {
+				Keybinding old = Key.Copy();
 				Key.Key = upper.ToString();
 				Key.Shift = shift;
 				Key.Control = ctrl;
 				Key.Alt = alt;
-				GameLogic.field_2434.field_2464 = false;
-				GameLogic.field_2434.method_949();
+				Logger.Log($"Changed keybind for \"{Label}\": from \"{old}\" to \"{Key}\".");
+				UI.CloseScreen();
 			}
 		}
 	}
