@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Quintessential {
 
@@ -7,7 +8,7 @@ namespace Quintessential {
 	using RenderHelper = class_195;
 	using PartTypes = class_191;
 
-	public class QApi {
+	public static class QApi {
 
 		public static readonly List<Pair<Predicate<Part>, PartRenderer>> PartRenderers = new List<Pair<Predicate<Part>, PartRenderer>>();
 		public static readonly List<Pair<PartType, PartType>> PanelParts = new List<Pair<PartType, PartType>>();
@@ -78,6 +79,42 @@ namespace Quintessential {
 	/// <param name="part">The part to be displayed.</param>
 	/// <param name="position">The position of the part.</param>
 	/// <param name="editor">The solution editor that the part is being displayed in.</param>
-	/// <param name="renderer">An object containing functions for rendering images, at different positions/rotations and lightmaps.</param>
-	public delegate void PartRenderer(Part part, Vector2 position, SolutionEditorBase editor, RenderHelper renderer);
+	/// <param name="helper">An object containing functions for rendering images, at different positions/rotations and lightmaps.</param>
+	public delegate void PartRenderer(Part part, Vector2 position, SolutionEditorBase editor, RenderHelper helper);
+
+	/// <summary>
+	/// A static class containing extensions that make PartRenderers easier to use.
+	/// </summary>
+	public static class PartRendererExtensions {
+
+		public static PartRenderer Then(this PartRenderer first, PartRenderer second) {
+			return (a, b, c, d) => {
+				first(a, b, c, d);
+				second(a, b, c, d);
+			};
+		}
+
+		public static PartRenderer WithOffsets(this PartRenderer renderer, params Vector2[] offsets) {
+			return (part, pos, editor, helper) => {
+				foreach(var offset in offsets)
+					renderer(part, pos + offset, editor, helper);
+			};
+		}
+
+		/*public static PartRenderer WithOffsets(this PartRenderer renderer, params HexIndex[] offsets) {
+			const double angle = (1/3) * Math.PI;
+			return renderer.WithOffsets(offsets.Select(off => new Vector2((float)(off.Q + Math.Cos(angle) * off.R), -(float)(Math.Sin(angle) * off.R))).ToArray());
+		}*/
+
+		public static PartRenderer OfTexture(class_256 texture, params HexIndex[] hexes) {
+			return (part, pos, editor, helper) => {
+				foreach(var hex in hexes)
+					helper.method_528(texture, hex, Vector2.Zero);
+			};
+		}
+
+		public static PartRenderer OfTexture(string texture, params HexIndex[] hexes) {
+			return OfTexture(class_235.method_615(texture), hexes);
+		}
+	}
 }
