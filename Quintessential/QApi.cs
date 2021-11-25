@@ -7,11 +7,14 @@ namespace Quintessential {
 	using PartType = class_139;
 	using RenderHelper = class_195;
 	using PartTypes = class_191;
+	using AtomTypes = class_175;
 
 	public static class QApi {
 
 		public static readonly List<Pair<Predicate<Part>, PartRenderer>> PartRenderers = new List<Pair<Predicate<Part>, PartRenderer>>();
 		public static readonly List<Pair<PartType, PartType>> PanelParts = new List<Pair<PartType, PartType>>();
+		public static readonly List<AtomType> ModAtomTypes = new List<AtomType>();
+		public static readonly List<Action<Sim, bool>> ToRunAfterCycle = new List<Action<Sim, bool>>();
 
 		public static void Init() {
 			
@@ -70,6 +73,26 @@ namespace Quintessential {
 		public static void AddPartType(PartType type, PartRenderer renderer) {
 			AddPartType(type);
 			AddPartTypesRenderer(renderer, part => part.method_1159() == type);
+		}
+
+		/// <summary>
+		/// Adds an atom type, adding it to the list of atom types and the molecule editor.
+		/// </summary>
+		/// <param name="type">The atom type to add.</param>
+		public static void AddAtomType(AtomType type) {
+			ModAtomTypes.Add(type);
+
+			Array.Resize(ref AtomTypes.field_1691, AtomTypes.field_1691.Length + 1);
+			var len = AtomTypes.field_1691.Length;
+			AtomTypes.field_1691[len - 1] = type;
+		}
+
+		/// <summary>
+		/// Runs the given action at the end of every half-cycle.
+		/// </summary>
+		/// <param name="runnable">An action to be run every half-cycle, given the sim and whether it is the start or end.</param>
+		public static void RunAfterCycle(Action<Sim, bool> runnable) {
+			ToRunAfterCycle.Add(runnable);
 		}
 	}
 
