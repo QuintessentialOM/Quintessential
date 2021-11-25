@@ -1,6 +1,7 @@
 ﻿using Quintessential;
 
 #pragma warning disable CS0626 // Method, operator, or accessor is marked external and has no attributes on it
+
 abstract class patch_SolutionEditorBase : SolutionEditorBase {
 
 	// renders parts

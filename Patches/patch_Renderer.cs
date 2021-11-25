@@ -2,6 +2,8 @@
 using System;
 using System.IO;
 
+#pragma warning disable CS0626 // Method, operator, or accessor is marked external and has no attributes on it
+
 class patch_Renderer {
 
 	// checks mods for textures before vanilla
