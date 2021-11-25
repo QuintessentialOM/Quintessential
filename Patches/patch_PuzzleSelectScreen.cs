@@ -36,15 +36,15 @@ class patch_PuzzleSelectScreen {
 					currentCampaign = System.Math.Abs((currentCampaign - 1) % QuintessentialLoader.AllCampaigns.Count);
 					Campaigns.field_2330 = QuintessentialLoader.AllCampaigns[currentCampaign];
 					Campaigns.field_2331[0] = QuintessentialLoader.AllCampaigns[currentCampaign];
-					GameLogic.field_2434.method_950(1);
-					GameLogic.field_2434.method_945(new PuzzleSelectScreen(), struct_18.field_1431, struct_18.field_1431);
+					UI.InstantCloseScreen();
+					UI.OpenScreen(new PuzzleSelectScreen());
 				} else if(rightBounds.Contains(class_115.method_202())) {
 					class_238.field_1991.field_1821.method_28(1f);
 					currentCampaign = (currentCampaign + 1) % QuintessentialLoader.AllCampaigns.Count;
 					Campaigns.field_2330 = QuintessentialLoader.AllCampaigns[currentCampaign];
 					Campaigns.field_2331[0] = QuintessentialLoader.AllCampaigns[currentCampaign];
-					GameLogic.field_2434.method_950(1);
-					GameLogic.field_2434.method_945(new PuzzleSelectScreen(), struct_18.field_1431, struct_18.field_1431);
+					UI.InstantCloseScreen();
+					UI.OpenScreen(new PuzzleSelectScreen());
 				}
 			}
 		}

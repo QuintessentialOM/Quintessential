@@ -29,27 +29,23 @@ namespace Quintessential {
 			Vector2 pos = (Input.ScreenSize() / 2 - size / 2).Rounded();
 			Vector2 bgPos = pos + new Vector2(78f, 88f);
 			Vector2 bgSize = size + new Vector2(-152f, -158f);
-			// background
-			class_135.method_268(class_238.field_1989.field_102.field_810, Color.White, bgPos, Bounds2.WithSize(bgPos, bgSize));
-			// frame
-			class_135.method_276(class_238.field_1989.field_102.field_817, Color.White, pos, size);
-			// label
-			class_140.method_317(class_134.method_253("Mods", string.Empty), pos + new Vector2(100f, size.Y - 99f), modButtonWidth, true, true);
-			// close button & close when clicking outside
-			if(class_140.method_323(pos, size, new Vector2(size.X - 104f, size.Y - 98f))) {
-				GameLogic.field_2434.field_2464 = false;
-				GameLogic.field_2434.method_949();
-				class_238.field_1991.field_1873.method_28(1f);
-			}
+
+			UI.DrawUiBackground(bgPos, bgSize);
+			UI.DrawUiFrame(pos, size);
+			UI.DrawHeader("Mods", pos + new Vector2(100f, size.Y - 99f), modButtonWidth, true, true);
+
+			if(UI.DrawAndCheckCloseButton(pos, size, new Vector2(104, 94)))
+				UI.HandleCloseButton();
+
 			// draw mod buttons
 			int y = 40;
-			if(class_140.method_315("Quintessential", $"{QuintessentialLoader.VersionString} ({QuintessentialLoader.VersionNumber})", pos - new Vector2(-100, -size.Y + 140 + y), modButtonWidth, selected == QuintessentialLoader.QuintessentialModMeta).method_824(true, true))
+			if(UI.DrawAndCheckSolutionButton("Quintessential", $"{QuintessentialLoader.VersionString} ({QuintessentialLoader.VersionNumber})", pos - new Vector2(-100, -size.Y + 140 + y), modButtonWidth, selected == QuintessentialLoader.QuintessentialModMeta))
 				selected = QuintessentialLoader.QuintessentialModMeta;
 			y += 100;
 			class_135.method_275(class_238.field_1989.field_102.field_822, Color.White, Bounds2.WithSize(pos - new Vector2(-100, -size.Y + 140 + 60), new Vector2(modButtonWidth, 3f)));
 			foreach(var mod in QuintessentialLoader.Mods) {
 				if(mod != QuintessentialLoader.QuintessentialModMeta) {
-					if(class_140.method_315(mod.Name, mod.Version.ToString(), pos - new Vector2(-100, -size.Y + 140 + y), modButtonWidth, selected == mod).method_824(true, true))
+					if(UI.DrawAndCheckSolutionButton(mod.Name, mod.Version.ToString(), pos - new Vector2(-100, -size.Y + 140 + y), modButtonWidth, selected == mod))
 						selected = mod;
 					y += 70;
 				}
@@ -103,7 +99,7 @@ namespace Quintessential {
 					Bounds2 labelBounds = class_135.method_290(label + ": " + (key.Control ? "Control + " : "") + (key.Alt ? "Alt + " : "") + (key.Shift ? "Shift + " : ""), pos + new Vector2(20, bgSize.Y - y - 15), class_238.field_1990.field_2143, class_181.field_1718, (enum_0)0, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
 					var text = !string.IsNullOrWhiteSpace(key.Key) ? key.Key : "None";
 					if(class_140.class_149.method_348(text, labelBounds.BottomRight + new Vector2(10, 0), new Vector2(50, (int)labelBounds.Height)).method_824(true, true))
-						GameLogic.field_2434.method_946(new ChangeKeybindScreen(key));
+						UI.OpenScreen(new ChangeKeybindScreen(key));
 					y += 20;
 				}
 				y += 40;

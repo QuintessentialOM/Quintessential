@@ -21,7 +21,7 @@ class patch_EscapeMenu {
 		Vector2 vector2_6 = vector2_5 + new Vector2(0.0f, -num * 2);
 		if(class_140.method_314(class_134.method_253("Mods", string.Empty), vector2_2 + vector2_6).method_824(true, true)) {
 			// show mod options
-			GameLogic.field_2434.method_945(new ModsScreen(), struct_18.field_1431, struct_18.field_1431);
+			UI.OpenScreen(new ModsScreen());
 		}
 	}
 }
