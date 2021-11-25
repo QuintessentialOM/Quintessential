@@ -1,5 +1,4 @@
 ﻿using SDL2;
-using YamlDotNet.Serialization;
 
 namespace Quintessential.Settings {
 	
@@ -10,9 +9,20 @@ namespace Quintessential.Settings {
 
 		public bool Shift = false, Control = false, Alt = false;
 
+		public bool IsControlKeysPressed() {
+			return (!Shift || Input.IsShiftHeld()) && (!Control || Input.IsControlHeld()) && (!Alt || Input.IsAltHeld());
+		}
+
 		public bool Pressed() {
-			return (!Shift || class_115.method_193(0)) && (!Control || class_115.method_193((enum_143)1)) && (!Alt || class_115.method_193((enum_143)2))
-				&& class_115.method_198(SDL.SDL_GetKeyFromName(Key));
+			return IsControlKeysPressed() && Input.IsKeyPressed(Key);
+		}
+
+		public bool Held() {
+			return IsControlKeysPressed() && Input.IsKeyHeld(Key);
+		}
+
+		public bool Released() {
+			return IsControlKeysPressed() && Input.IsKeyReleased(Key);
 		}
 	}
 }

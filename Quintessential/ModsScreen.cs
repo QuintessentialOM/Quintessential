@@ -26,7 +26,7 @@ namespace Quintessential {
 		// update & render
 		public void method_50(float param_4686) {
 			Vector2 size = new Vector2(1000f, 922f);
-			Vector2 pos = (class_115.field_1433/*screen size*/ / 2 - size / 2).Rounded();
+			Vector2 pos = (Input.ScreenSize() / 2 - size / 2).Rounded();
 			Vector2 bgPos = pos + new Vector2(78f, 88f);
 			Vector2 bgSize = size + new Vector2(-152f, -158f);
 			// background
@@ -103,7 +103,7 @@ namespace Quintessential {
 					Bounds2 labelBounds = class_135.method_290(label + ": " + (key.Control ? "Control + " : "") + (key.Alt ? "Alt + " : "") + (key.Shift ? "Shift + " : ""), pos + new Vector2(20, bgSize.Y - y - 15), class_238.field_1990.field_2143, class_181.field_1718, (enum_0)0, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
 					var text = !string.IsNullOrWhiteSpace(key.Key) ? key.Key : "None";
 					if(class_140.class_149.method_348(text, labelBounds.BottomRight + new Vector2(10, 0), new Vector2(50, (int)labelBounds.Height)).method_824(true, true))
-						GameLogic.field_2434.method_946(new ChangeKeybindScreen(key)/*MessageBoxScreen.method_1096(Bounds2.WithSize(new Vector2(0, 0), class_115.field_1433), false, "Please enter a new key:", key.Key ?? "", "Change Keybinding", str => key.Key = str)*/);
+						GameLogic.field_2434.method_946(new ChangeKeybindScreen(key));
 					y += 20;
 				}
 				y += 40;
@@ -113,13 +113,12 @@ namespace Quintessential {
 
 		private bool DrawCheckbox(Vector2 pos, string label, bool enabled) {
 			Bounds2 boxBounds = Bounds2.WithSize(pos, new Vector2(36f, 37f));
-			//var bounds = class_135.method_290(label, pos, class_238.field_1990.field_2145, Color.LightGray, (enum_0)0, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
 			Bounds2 labelBounds = class_135.method_290(label, pos + new Vector2(45f, 13f), class_238.field_1990.field_2143, class_181.field_1718, (enum_0)0, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
 			if(enabled)
 				class_135.method_272(class_238.field_1989.field_101.field_773, boxBounds.Min);
-			if(boxBounds.Contains(class_115.method_202()) || labelBounds.Contains(class_115.method_202())) {
+			if(boxBounds.Contains(Input.MousePos()) || labelBounds.Contains(Input.MousePos())) {
 				class_135.method_272(class_238.field_1989.field_101.field_774, boxBounds.Min);
-				if(!class_115.method_206((enum_142)1))
+				if(!Input.IsLeftClickPressed())
 					return false;
 				class_238.field_1991.field_1821.method_28(1f);
 				return true;

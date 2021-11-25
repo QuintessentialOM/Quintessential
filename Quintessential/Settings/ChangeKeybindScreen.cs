@@ -26,12 +26,12 @@ namespace Quintessential.Settings {
 
 		public void method_50(float param_4686) {
 			// "Please enter a new key:"
-			class_135.method_290("Please enter a new key:", (class_115.field_1433 / 2) + new Vector2(0, 170), class_238.field_1990.field_2146, class_181.field_1718, (enum_0)1, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
+			class_135.method_290("Please enter a new key:", (Input.ScreenSize() / 2) + new Vector2(0, 170), class_238.field_1990.field_2146, class_181.field_1718, (enum_0)1, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
 			// display ctrl/shift
 			string preview = "";
-			bool shift = class_115.method_193(0);
-			bool ctrl = class_115.method_193((enum_143)1);
-			bool alt = class_115.method_193((enum_143)2);
+			bool shift = Input.IsShiftHeld();
+			bool ctrl = Input.IsControlHeld();
+			bool alt = Input.IsAltHeld();
 			if(shift)
 				preview = "Shift + " + preview;
 			if(alt)
@@ -39,10 +39,10 @@ namespace Quintessential.Settings {
 			if(ctrl)
 				preview = "Control + " + preview;
 			if(!string.IsNullOrWhiteSpace(preview)) 
-				class_135.method_290(preview, class_115.field_1433 / 2, class_238.field_1990.field_2146, class_181.field_1718, (enum_0)1, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
+				class_135.method_290(preview, Input.ScreenSize() / 2, class_238.field_1990.field_2146, class_181.field_1718, (enum_0)1, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
 			// "press esc to CANCEL"
-			Bounds2 labelBounds = class_135.method_290("Press ESC to ", (class_115.field_1433 / 2) + new Vector2(0, -170), class_238.field_1990.field_2143, class_181.field_1718, (enum_0)1, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
-			if(class_115.method_198(SDL.enum_160.SDLK_ESCAPE) || class_140.class_149.method_348("CANCEL", labelBounds.BottomRight + new Vector2(10, 0), new Vector2(70, (int)labelBounds.Height + 10)).method_824(true, true)) {
+			Bounds2 labelBounds = class_135.method_290("Press ESC to ", (Input.ScreenSize() / 2) + new Vector2(0, -170), class_238.field_1990.field_2143, class_181.field_1718, (enum_0)1, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, true);
+			if(Input.IsSdlKeyPressed(SDL.enum_160.SDLK_ESCAPE) || class_140.class_149.method_348("CANCEL", labelBounds.BottomRight + new Vector2(10, 0), new Vector2(70, (int)labelBounds.Height + 10)).method_824(true, true)) {
 				GameLogic.field_2434.field_2464 = false;
 				GameLogic.field_2434.method_949();
 				class_238.field_1991.field_1873.method_28(1f);
@@ -50,7 +50,7 @@ namespace Quintessential.Settings {
 			// handle keypresses
 			char key = char.MinValue;
 			foreach(var bindable in BindableKeys)
-				if(class_115.method_198(SDL.SDL_GetKeyFromName(bindable.ToString())))
+				if(Input.IsKeyPressed(bindable.ToString()))
 					key = bindable;
 			char upper = char.ToUpper(key);
 			if(upper != char.MinValue) {
