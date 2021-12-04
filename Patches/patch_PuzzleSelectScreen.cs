@@ -15,8 +15,8 @@ class patch_PuzzleSelectScreen {
 			var dyn = new DynamicData(typeof(PuzzleSelectScreen), this);
 			float y1 = class_162.method_417(-220f, 0.0f, dyn.Get<float>("field_2937"));
 			// add campaign change buttons
-			Vector2 leftPos = new Vector2(class_115.field_1433.X / 2f - 305, 30 + y1);
-			Vector2 rightPos = new Vector2(class_115.field_1433.X / 2f + 269, 30 + y1);
+			Vector2 leftPos = new(class_115.field_1433.X / 2f - 305, 30 + y1);
+			Vector2 rightPos = new(class_115.field_1433.X / 2f + 269, 30 + y1);
 			Bounds2 leftBounds = Bounds2.WithSize(leftPos, new Vector2(36f, 37f));
 			Bounds2 rightBounds = Bounds2.WithSize(rightPos, new Vector2(36f, 37f));
 			if(leftBounds.Contains(Input.MousePos()))

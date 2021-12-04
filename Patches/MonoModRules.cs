@@ -30,7 +30,7 @@ namespace MonoMod {
 			MonoModRule.Modder.Log("Patching settings static init");
 			// Set "class_110.field_1012" (Steam support) to false
 			if(method.HasBody) {
-				ILCursor cursor = new ILCursor(new ILContext(method));
+				ILCursor cursor = new(new ILContext(method));
 				if(cursor.TryGotoNext(MoveType.Before,
 										instr => instr.MatchLdcI4(1),
 										instr => instr.MatchStsfld("class_110", "field_1012"))) {
@@ -50,7 +50,7 @@ namespace MonoMod {
 			MonoModRule.Modder.Log("Patching puzzle ids");
 			// Replace "SteamUser.GetSteamID().m_SteamID" with "0" (until a proper format is created)
 			if(method.HasBody) {
-				ILCursor cursor = new ILCursor(new ILContext(method));
+				ILCursor cursor = new(new ILContext(method));
 				if(cursor.TryGotoNext(MoveType.Before,
 										instr => instr.MatchCall("Steamworks.SteamUser", "GetSteamID"),
 										instr => instr.MatchLdfld("Steamworks.CSteamID", "m_SteamID"))) {
@@ -67,7 +67,7 @@ namespace MonoMod {
 		public static void PatchScoreManagerLoad(MethodDefinition method, CustomAttribute attrib) {
 			MonoModRule.Modder.Log("Patching ScoreManager loading");
 			if(method.HasBody) {
-				ILCursor cursor = new ILCursor(new ILContext(method));
+				ILCursor cursor = new(new ILContext(method));
 				if(cursor.TryGotoNext(MoveType.After, instr => instr.Match(OpCodes.Brfalse_S))
 					&& cursor.TryGotoNext(MoveType.After, instr => instr.Match(OpCodes.Brfalse_S))
 					&& cursor.TryGotoNext(MoveType.After, instr => instr.Match(OpCodes.Brfalse_S))) {
@@ -85,7 +85,7 @@ namespace MonoMod {
 		public static void PatchGifRecorderFrame(MethodDefinition method, CustomAttribute attrib) {
 			MonoModRule.Modder.Log("Patching GIF recorder frame rendering");
 			if(method.HasBody) {
-				ILCursor cursor = new ILCursor(new ILContext(method));
+				ILCursor cursor = new(new ILContext(method));
 				if(cursor.TryGotoNext(MoveType.After, instr => instr.MatchCall("class_135", "method_272"))) {
 					// "class_135.method_272(class_238.field_1989.field_81.field_613.field_632, new Vector2());"
 					TypeDefinition holder = MonoModRule.Modder.FindType("class_250").Resolve();

@@ -23,7 +23,7 @@ class ModsScreen : IScreen {
 
 	// update & render
 	public void method_50(float param_4686) {
-		Vector2 size = new Vector2(1000f, 922f);
+		Vector2 size = new(1000f, 922f);
 		Vector2 pos = (Input.ScreenSize() / 2 - size / 2).Rounded();
 		Vector2 bgPos = pos + new Vector2(78f, 88f);
 		Vector2 bgSize = size + new Vector2(-152f, -158f);
@@ -128,7 +128,7 @@ class ModsScreen : IScreen {
 		string path = Path.Combine(QuintessentialLoader.PathModSaves, name + ".yaml");
 		if(!Directory.Exists(QuintessentialLoader.PathModSaves))
 			Directory.CreateDirectory(QuintessentialLoader.PathModSaves);
-		using(StreamWriter writer = new StreamWriter(path))
+		using(StreamWriter writer = new(path))
 			YamlHelper.Serializer.Serialize(writer, settings, QuintessentialLoader.CodeMods.First(c => c.Meta == mod).SettingsType);
 	}
 }

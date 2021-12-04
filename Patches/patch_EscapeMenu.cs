@@ -13,9 +13,9 @@ class patch_EscapeMenu {
 			return;
 		orig_method_50(param_3782);
 		float num = 65f;
-		Vector2 vector2_1 = new Vector2(570f, 440f);
+		Vector2 vector2_1 = new(570f, 440f);
 		Vector2 vector2_2 = (class_115.field_1433 / 2 - vector2_1 / 2).Rounded();
-		Vector2 vector2_3 = new Vector2(161f, 256f);
+		Vector2 vector2_3 = new(161f, 256f);
 		Vector2 vector2_4 = vector2_3 + new Vector2(0.0f, -num);
 		Vector2 vector2_5 = vector2_4 + new Vector2(0.0f, -num);
 		Vector2 vector2_6 = vector2_5 + new Vector2(0.0f, -num * 2);

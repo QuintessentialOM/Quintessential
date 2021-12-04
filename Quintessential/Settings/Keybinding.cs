@@ -26,7 +26,7 @@ public class Keybinding {
 	}
 
 	public Keybinding Copy() {
-		Keybinding copy = new Keybinding();
+		Keybinding copy = new();
 		copy.Key = Key;
 		copy.Shift = Shift;
 		copy.Control = Control;

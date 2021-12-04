@@ -19,21 +19,21 @@ public class QuintessentialLoader {
 	public static string PathBlacklist;
 	public static string PathModSaves;
 
-	public static List<QuintessentialMod> CodeMods = new List<QuintessentialMod>();
-	public static List<ModMeta> Mods = new List<ModMeta>();
-	public static List<string> ModContentDirectories = new List<string>();
-	public static List<string> ModPuzzleDirectories = new List<string>();
+	public static List<QuintessentialMod> CodeMods = new();
+	public static List<ModMeta> Mods = new();
+	public static List<string> ModContentDirectories = new();
+	public static List<string> ModPuzzleDirectories = new();
 
-	public static List<Campaign> AllCampaigns = new List<Campaign>();
+	public static List<Campaign> AllCampaigns = new();
 	public static Campaign VanillaCampaign;
 
 	public static ModMeta QuintessentialModMeta;
 	public static QuintessentialMod QuintessentialAsMod;
 
-	private static List<CampaignModel> ModCampaignModels = new List<CampaignModel>();
-	private static List<string> blacklisted = new List<string>();
-	private static List<ModMeta> loaded = new List<ModMeta>();
-	private static List<ModMeta> waiting = new List<ModMeta>();
+	private static List<CampaignModel> ModCampaignModels = new();
+	private static List<string> blacklisted = new();
+	private static List<ModMeta> loaded = new();
+	private static List<ModMeta> waiting = new();
 
 	private static readonly string zipExtractSuffix = "__quintessential_from_zip";
 
@@ -97,7 +97,7 @@ SomeZipIDontLike.zip");
 
 			// Load mods
 			Func<ModMeta.Dependency, List<ModMeta>, bool> Contains = (dep, list) => list.Any(m => m.Name.Equals(dep.Name) && m.Version >= dep.Version);
-			List<ModMeta> rem = new List<ModMeta>();
+			List<ModMeta> rem = new();
 			foreach(var mod in Mods) {
 				// check dependencies
 				bool willLoad = true, wait = false;
@@ -216,7 +216,7 @@ SomeZipIDontLike.zip");
 			foreach(var item in Directory.GetFiles(puzzles)) {
 				string filename = Path.GetFileName(item);
 				if(filename.EndsWith(".campaign.yaml")) {
-					using(StreamReader reader = new StreamReader(item)) {
+					using(StreamReader reader = new(item)) {
 						CampaignModel c = YamlHelper.Deserializer.Deserialize<CampaignModel>(reader);
 						Logger.Log($"Campaign \"{c.Title}\" ({c.Name}) has {c.Chapters.Count} chapters.");
 						c.Path = Path.GetDirectoryName(item);
@@ -240,7 +240,7 @@ SomeZipIDontLike.zip");
 		foreach(var mod in CodeMods) {
 			var savePath = Path.Combine(PathModSaves, mod.Meta.Name + ".yaml");
 			if(File.Exists(savePath)) {
-				using(StreamReader reader = new StreamReader(savePath)) {
+				using(StreamReader reader = new(savePath)) {
 					var settings = YamlHelper.Deserializer.Deserialize(reader, mod.SettingsType);
 					if(settings != null) {
 						mod.Settings = settings;
@@ -278,7 +278,7 @@ SomeZipIDontLike.zip");
 			return;
 
 		var dest = zip.Substring(0, zip.Length - ".zip".Length) + zipExtractSuffix;
-		using(ZipFile file = new ZipFile(zip))
+		using(ZipFile file = new(zip))
 			file.ExtractAll(dest);
 		FindFolderMod(dest, zip);
 	}
@@ -301,7 +301,7 @@ SomeZipIDontLike.zip");
 		if(!File.Exists(metaPath))
 			metaPath = Path.Combine(dir, "quintessential.yml");
 		if(File.Exists(metaPath)) {
-			using(StreamReader reader = new StreamReader(metaPath)) {
+			using(StreamReader reader = new(metaPath)) {
 				try {
 					if(!reader.EndOfStream) {
 						meta = YamlHelper.Deserializer.Deserialize<ModMeta>(reader);
@@ -433,7 +433,7 @@ SomeZipIDontLike.zip");
 			puzzle.method_1087().field_2767 = entryTitle;
 			puzzle.method_1087().field_2769 = param_4485;
 		}
-		CampaignItem campaignItem = new CampaignItem(entryId, entryTitle, type, puzzle, requirement, param_4487, clickSound);
+		CampaignItem campaignItem = new(entryId, entryTitle, type, puzzle, requirement, param_4487, clickSound);
 		campaign.field_2309[chapter].field_2314.Add(campaignItem);
 	}
 }

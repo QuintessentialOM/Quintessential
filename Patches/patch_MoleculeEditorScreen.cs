@@ -8,7 +8,7 @@ class patch_MoleculeEditorScreen {
 	public void method_50(float param) {
 		orig_method_50(param);
 		// TODO: actually put them in the right place, and only appear on modded puzzles
-		Vector2 pos = new Vector2(410, 640);
+		Vector2 pos = new(410, 640);
 		foreach(var type in Quintessential.QApi.ModAtomTypes) {
 			method_1130(pos, type, true);
 			pos.Y += 100;

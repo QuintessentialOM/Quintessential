@@ -39,7 +39,7 @@ class patch_LocVignette {
 
             self.field_2091[lang] = new Vignette(text, Path.GetFileNameWithoutExtension(path1), lang);
             if(lang == Language.English) {
-                Vignette vignette = new Vignette(text, Path.GetFileNameWithoutExtension(path1), Language.Pseudo);
+                Vignette vignette = new(text, Path.GetFileNameWithoutExtension(path1), Language.Pseudo);
                 self.field_2091[Language.Pseudo] = vignette;
                 vignette.field_4124 = class_134.method_249(vignette.field_4124);
                 foreach(List<VignetteEvent> vignetteEventList in vignette.field_4125) {

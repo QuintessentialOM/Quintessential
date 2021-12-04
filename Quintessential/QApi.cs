@@ -10,10 +10,10 @@ using AtomTypes = class_175;
 
 public static class QApi {
 
-	public static readonly List<Pair<Predicate<Part>, PartRenderer>> PartRenderers = new List<Pair<Predicate<Part>, PartRenderer>>();
-	public static readonly List<Pair<PartType, PartType>> PanelParts = new List<Pair<PartType, PartType>>();
-	public static readonly List<AtomType> ModAtomTypes = new List<AtomType>();
-	public static readonly List<Action<Sim, bool>> ToRunAfterCycle = new List<Action<Sim, bool>>();
+	public static readonly List<Pair<Predicate<Part>, PartRenderer>> PartRenderers = new();
+	public static readonly List<Pair<PartType, PartType>> PanelParts = new();
+	public static readonly List<AtomType> ModAtomTypes = new();
+	public static readonly List<Action<Sim, bool>> ToRunAfterCycle = new();
 
 	public static void Init() {
 

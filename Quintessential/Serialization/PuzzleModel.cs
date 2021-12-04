@@ -30,7 +30,7 @@ public class PuzzleModel {
 	public ProductionInfoM ProductionInfo = null;
 
 	public static PuzzleModel FromPuzzle(Puzzle puzzle) {
-		PuzzleModel model = new PuzzleModel();
+		PuzzleModel model = new();
 		model.ID = puzzle.field_2766;
 		foreach(var @in in puzzle.field_2770)
 			model.Inputs.Add(new PuzzleIoM(@in));
