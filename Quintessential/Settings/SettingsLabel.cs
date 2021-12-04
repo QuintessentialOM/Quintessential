@@ -1,14 +1,13 @@
 ﻿using System;
 
-namespace Quintessential.Settings {
+namespace Quintessential.Settings;
 
-	[AttributeUsage(AttributeTargets.Field)]
-	public class SettingsLabel : Attribute {
+[AttributeUsage(AttributeTargets.Field)]
+public class SettingsLabel : Attribute {
 
-		public string Label;
+	public string Label;
 
-		public SettingsLabel(string label) {
-			Label = label;
-		}
+	public SettingsLabel(string label) {
+		Label = label;
 	}
 }

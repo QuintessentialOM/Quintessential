@@ -6,6 +6,10 @@
     <AssemblyName>Quintessential</AssemblyName>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <LangVersion>10</LangVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="YamlDotNet" Version="11.2.1" />
   </ItemGroup>

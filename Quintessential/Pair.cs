@@ -1,18 +1,17 @@
-﻿namespace Quintessential {
+﻿namespace Quintessential;
 
-	public class Pair<A, B> {
+public class Pair<A, B> {
 
-		public Pair(A left, B right) {
-			Left = left;
-			Right = right;
-		}
+	public Pair(A left, B right) {
+		Left = left;
+		Right = right;
+	}
 
-		public A Left {
-			get; set;
-		}
+	public A Left {
+		get; set;
+	}
 
-		public B Right {
-			get; set;
-		}
+	public B Right {
+		get; set;
 	}
 }

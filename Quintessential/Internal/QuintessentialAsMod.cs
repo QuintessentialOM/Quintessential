@@ -1,15 +1,14 @@
 ﻿using System;
 
-namespace Quintessential.Internal {
+namespace Quintessential.Internal;
 
-	public class QuintessentialAsMod : QuintessentialMod {
+public class QuintessentialAsMod : QuintessentialMod {
 
-		public override Type SettingsType => typeof(QuintessentialSettings);
+	public override Type SettingsType => typeof(QuintessentialSettings);
 
-		public override void Load() {}
+	public override void Load() { }
 
-		public override void PostLoad() {}
+	public override void PostLoad() { }
 
-		public override void Unload() {}
-	}
+	public override void Unload() { }
 }
