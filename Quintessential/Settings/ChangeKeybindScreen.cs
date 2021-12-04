@@ -6,14 +6,16 @@ namespace Quintessential.Settings {
 
 		Keybinding Key;
 		string Label;
+		QuintessentialMod ToSave;
 
 		// SDL doesn't make an event when Control or Alt are pressed unless it makes a character (or maybe OM doesn't pick it up)
 		// So we just use this
 		public char[] BindableKeys = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-+_=/*!\"£$%^&()<>,.?{}[]:;@'~#|\\`¬¦".ToCharArray();
 
-		public ChangeKeybindScreen(Keybinding key, string label) {
+		public ChangeKeybindScreen(Keybinding key, string label, QuintessentialMod save) {
 			Key = key;
 			Label = label;
+			ToSave = save;
 		}
 
 		public bool method_1037() {
@@ -59,6 +61,7 @@ namespace Quintessential.Settings {
 				Key.Control = ctrl;
 				Key.Alt = alt;
 				Logger.Log($"Changed keybind for \"{Label}\": from \"{old}\" to \"{Key}\".");
+				ModsScreen.SaveSettings(ToSave);
 				UI.CloseScreen();
 			}
 		}

@@ -57,10 +57,8 @@ namespace Quintessential {
 			float descHeight = DrawModLabel(mod, pos, size);
 			foreach(var cmod in QuintessentialLoader.CodeMods)
 				if(cmod.Meta == mod)
-					if(DrawModSettings(cmod.Settings, pos - new Vector2(0, descHeight), size)) {
-						cmod.ApplySettings();
-						SaveSettings(mod, cmod.Settings);
-					}
+					if(DrawModSettings(cmod, pos - new Vector2(0, descHeight), size))
+						SaveSettings(cmod);
 		}
 
 		private float DrawModLabel(ModMeta mod, Vector2 pos, Vector2 bgSize) { 
@@ -76,7 +74,8 @@ namespace Quintessential {
 			return 20;
 		}
 
-		private bool DrawModSettings(object settings, Vector2 pos, Vector2 bgSize) {
+		private bool DrawModSettings(QuintessentialMod mod, Vector2 pos, Vector2 bgSize) {
+			var settings = mod.Settings;
 			float y = 170;
 			bool settingsChanged = false;
 			if(settings == null)
@@ -97,7 +96,7 @@ namespace Quintessential {
 					Bounds2 labelBounds = UI.DrawText(label + ": " + key.ControlKeysText(), pos + new Vector2(20, bgSize.Y - y - 15), UI.SubTitle, class_181.field_1718, TextAlignment.Left);
 					var text = !string.IsNullOrWhiteSpace(key.Key) ? key.Key : "None";
 					if(UI.DrawAndCheckSimpleButton(text, labelBounds.BottomRight + new Vector2(10, 0), new Vector2(50, (int)labelBounds.Height)))
-						UI.OpenScreen(new ChangeKeybindScreen(key, label));
+						UI.OpenScreen(new ChangeKeybindScreen(key, label, mod));
 					y += 20;
 				}
 				y += 40;
@@ -121,7 +120,10 @@ namespace Quintessential {
 			return false;
 		}
 
-		private void SaveSettings(ModMeta mod, object settings) {
+		public static void SaveSettings(QuintessentialMod cmod) {
+			cmod.ApplySettings();
+			ModMeta mod = cmod.Meta;
+			var settings = cmod.Settings;
 			string name = mod.Name;
 			string path = Path.Combine(QuintessentialLoader.PathModSaves, name + ".yaml");
 			if(!Directory.Exists(QuintessentialLoader.PathModSaves))
