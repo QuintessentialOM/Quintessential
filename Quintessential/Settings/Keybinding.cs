@@ -9,6 +9,8 @@ namespace Quintessential.Settings {
 
 		public bool Shift = false, Control = false, Alt = false;
 
+		public Keybinding(){}
+
 		public bool IsControlKeysPressed() {
 			return (!Shift || Input.IsShiftHeld()) && (!Control || Input.IsControlHeld()) && (!Alt || Input.IsAltHeld());
 		}

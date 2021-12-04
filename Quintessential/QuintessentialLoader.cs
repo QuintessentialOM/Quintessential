@@ -28,6 +28,7 @@ namespace Quintessential {
 		public static Campaign VanillaCampaign;
 
 		public static ModMeta QuintessentialModMeta;
+		public static QuintessentialMod QuintessentialAsMod;
 
 		private static List<CampaignModel> ModCampaignModels = new List<CampaignModel>();
 		private static List<string> blacklisted = new List<string>();
@@ -69,10 +70,11 @@ SomeZipIDontLike.zip");
 					Version = new Version(VersionString)
 				};
 				Mods.Add(QuintessentialModMeta);
-				var asMod = new Internal.QuintessentialAsMod();
-				asMod.Meta = QuintessentialModMeta;
-				asMod.Settings = new QuintessentialSettings();
-				CodeMods.Add(asMod);
+				QuintessentialAsMod = new Internal.QuintessentialAsMod {
+					Meta = QuintessentialModMeta,
+					Settings = new QuintessentialSettings()
+				};
+				CodeMods.Add(QuintessentialAsMod);
 
 				// Unzip zips
 				string[] files = Directory.GetFiles(PathMods);

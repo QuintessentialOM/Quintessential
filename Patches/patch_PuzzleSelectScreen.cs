@@ -19,33 +19,34 @@ class patch_PuzzleSelectScreen {
 			Vector2 rightPos = new Vector2(class_115.field_1433.X / 2f + 269, 30 + y1);
 			Bounds2 leftBounds = Bounds2.WithSize(leftPos, new Vector2(36f, 37f));
 			Bounds2 rightBounds = Bounds2.WithSize(rightPos, new Vector2(36f, 37f));
-			if(leftBounds.Contains(class_115.method_202()))
+			if(leftBounds.Contains(Input.MousePos()))
 				class_135.method_271(class_238.field_1989.field_101.field_774, Color.White.WithAlpha(0.7f), leftPos);
 			else class_135.method_271(class_238.field_1989.field_101.field_772, Color.White.WithAlpha(0.7f), leftPos);
-			if(rightBounds.Contains(class_115.method_202()))
+			if(rightBounds.Contains(Input.MousePos()))
 				class_135.method_271(class_238.field_1989.field_101.field_774, Color.White.WithAlpha(0.7f), rightPos);
 			else class_135.method_271(class_238.field_1989.field_101.field_772, Color.White.WithAlpha(0.7f), rightPos);
-			class_135.method_272(class_238.field_1989.field_87.field_669, leftPos);
-			class_135.method_272(class_238.field_1989.field_87.field_668, rightPos);
+			UI.DrawTexture(class_238.field_1989.field_87.field_669, leftPos);
+			UI.DrawTexture(class_238.field_1989.field_87.field_668, rightPos);
 			// show the currently displayed campaign
-			class_135.method_290(((patch_Campaign)(object)QuintessentialLoader.AllCampaigns[currentCampaign]).QuintTitle, new Vector2(class_115.field_1433.X / 2f, 20 + y1), class_238.field_1990.field_2145, Color.LightGray, (enum_0)1, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), null, int.MaxValue, true, true);
+			UI.DrawText(((patch_Campaign)(object)QuintessentialLoader.AllCampaigns[currentCampaign]).QuintTitle, new Vector2(Input.ScreenSize().X / 2f, 20 + y1), UI.Text, Color.LightGray, TextAlignment.Centred);
 			// reopen the menu if clicked
-			if(class_115.method_206((enum_142)1)) {
-				if(leftBounds.Contains(class_115.method_202())) {
-					class_238.field_1991.field_1821.method_28(1f);
-					currentCampaign = System.Math.Abs((currentCampaign - 1) % QuintessentialLoader.AllCampaigns.Count);
-					Campaigns.field_2330 = QuintessentialLoader.AllCampaigns[currentCampaign];
-					Campaigns.field_2331[0] = QuintessentialLoader.AllCampaigns[currentCampaign];
-					UI.InstantCloseScreen();
-					UI.OpenScreen(new PuzzleSelectScreen());
-				} else if(rightBounds.Contains(class_115.method_202())) {
-					class_238.field_1991.field_1821.method_28(1f);
-					currentCampaign = (currentCampaign + 1) % QuintessentialLoader.AllCampaigns.Count;
-					Campaigns.field_2330 = QuintessentialLoader.AllCampaigns[currentCampaign];
-					Campaigns.field_2331[0] = QuintessentialLoader.AllCampaigns[currentCampaign];
-					UI.InstantCloseScreen();
-					UI.OpenScreen(new PuzzleSelectScreen());
-				}
+			bool keyLeft = (QuintessentialLoader.QuintessentialAsMod.Settings as QuintessentialSettings).SwitchCampaignLeft.Pressed();
+			bool keyRight = (QuintessentialLoader.QuintessentialAsMod.Settings as QuintessentialSettings).SwitchCampaignRight.Pressed();
+
+			if((leftBounds.Contains(Input.MousePos()) && Input.IsLeftClickPressed()) || keyLeft) {
+				class_238.field_1991.field_1821.method_28(1f);
+				currentCampaign = System.Math.Abs((currentCampaign - 1) % QuintessentialLoader.AllCampaigns.Count);
+				Campaigns.field_2330 = QuintessentialLoader.AllCampaigns[currentCampaign];
+				Campaigns.field_2331[0] = QuintessentialLoader.AllCampaigns[currentCampaign];
+				UI.InstantCloseScreen();
+				UI.OpenScreen(new PuzzleSelectScreen());
+			} else if((rightBounds.Contains(Input.MousePos()) && Input.IsLeftClickPressed()) || keyRight) {
+				class_238.field_1991.field_1821.method_28(1f);
+				currentCampaign = (currentCampaign + 1) % QuintessentialLoader.AllCampaigns.Count;
+				Campaigns.field_2330 = QuintessentialLoader.AllCampaigns[currentCampaign];
+				Campaigns.field_2331[0] = QuintessentialLoader.AllCampaigns[currentCampaign];
+				UI.InstantCloseScreen();
+				UI.OpenScreen(new PuzzleSelectScreen());
 			}
 		}
 	}
