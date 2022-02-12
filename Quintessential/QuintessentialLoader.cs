@@ -406,7 +406,16 @@ SomeZipIDontLike.zip");
 				);
 
 				foreach(var entry in chapter.Entries) {
-					Puzzle puzzle = Puzzle.method_1249(Path.Combine(c.Path, entry.Puzzle + ".puzzle"));
+					string baseName = Path.Combine(c.Path, entry.Puzzle);
+					Puzzle puzzle;
+					if(File.Exists(baseName + ".puzzle")) {
+						puzzle = Puzzle.method_1249(baseName + ".puzzle");
+					} else if(File.Exists(baseName + ".puzzle.yaml")) {
+						puzzle = PuzzleModel.FromModel(YamlHelper.Deserializer.Deserialize<PuzzleModel>(File.ReadAllText(baseName + ".puzzle.yaml")));
+					} else {
+						Logger.Log($"Puzzle \"{entry.Puzzle}\" from campaign \"{c.Title}\" doesn't exist, ignoring");
+						continue;
+					}
 					AddEntryToCampaign(campaign, j, entry.ID, class_134.method_253(entry.Title, string.Empty), (enum_129)0, struct_18.field_1431, puzzle, class_238.field_1992.field_972, class_238.field_1991.field_1832, string.IsNullOrEmpty(entry.Requires) ? (class_259)new class_174() : new class_243(entry.Requires));
 				}
 			}
