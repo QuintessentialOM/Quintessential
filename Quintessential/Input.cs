@@ -62,18 +62,35 @@ public static class Input {
 
 	// Not sure if there is functionality for other values, like "(enum_142) 0" or  "(enum_142) 4"
 
-	public static bool IsLeftClickHeld() {return OMInput.method_205((enum_142)1);}
-	public static bool IsLeftClickPressed() {return OMInput.method_206((enum_142)1);}
-	public static bool IsLeftClickReleased() {return OMInput.method_207((enum_142)1);}
-	
-	public static bool IsMiddleClickHeld() {return OMInput.method_205((enum_142)2);}
-	public static bool IsMiddleClickPressed() {return OMInput.method_206((enum_142)2);}
-	public static bool IsMiddleClickReleased() {return OMInput.method_207((enum_142)2);}
-	
-	public static bool IsRightClickHeld() {return OMInput.method_205((enum_142)3);}
-	public static bool IsRightClickPressed() {return OMInput.method_206((enum_142)3);}
-	public static bool IsRightClickReleased() {return OMInput.method_207((enum_142)3);}
+	public static bool IsLeftClickHeld() {
+		return OMInput.method_205((enum_142)1);
+	}
+	public static bool IsLeftClickPressed() {
+		return OMInput.method_206((enum_142)1);
+	}
+	public static bool IsLeftClickReleased() {
+		return OMInput.method_207((enum_142)1);
+	}
 
+	public static bool IsMiddleClickHeld() {
+		return OMInput.method_205((enum_142)2);
+	}
+	public static bool IsMiddleClickPressed() {
+		return OMInput.method_206((enum_142)2);
+	}
+	public static bool IsMiddleClickReleased() {
+		return OMInput.method_207((enum_142)2);
+	}
+
+	public static bool IsRightClickHeld() {
+		return OMInput.method_205((enum_142)3);
+	}
+	public static bool IsRightClickPressed() {
+		return OMInput.method_206((enum_142)3);
+	}
+	public static bool IsRightClickReleased() {
+		return OMInput.method_207((enum_142)3);
+	}
 
 	#endregion
 
