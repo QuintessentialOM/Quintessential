@@ -1,6 +1,9 @@
-﻿using Quintessential.Settings;
+﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+
+using Quintessential.Settings;
 
 namespace Quintessential;
 
@@ -8,6 +11,11 @@ class ModsScreen : IScreen {
 
 	private const int modButtonWidth = 300;
 	ModMeta selected = QuintessentialLoader.QuintessentialModMeta;
+
+	private struct DrawProgress {
+		public bool pressed;
+		public float curY;
+	}
 
 	public bool method_1037() {
 		return false;
@@ -76,12 +84,22 @@ class ModsScreen : IScreen {
 
 	private bool DrawModSettings(QuintessentialMod mod, Vector2 pos, Vector2 bgSize) {
 		var settings = mod.Settings;
-		float y = 170;
-		bool settingsChanged = false;
 		if(settings == null)
 			return false;
+		return DrawSettingsObject(mod, settings, pos, bgSize, 170).pressed;
+	}
+
+	private DrawProgress DrawSettingsObject(QuintessentialMod mod, object settings, Vector2 pos, Vector2 bgSize, float startY) {
+		float y = startY;
+		bool settingsChanged = false;
+		if(settings == null)
+			return new DrawProgress { pressed = false, curY = 0 };
 		foreach(var field in settings.GetType().GetFields()) {
-			string label = field.GetCustomAttributes(true).TakeWhile(att => att is SettingsLabel).Select(att => ((SettingsLabel)att).Label).FirstOrDefault() ?? field.Name;
+			if(field.IsStatic)
+				continue;
+
+			string label = FromAttr<SettingsLabel, string>(field, y => y.Label, field.Name);
+
 			if(field.FieldType == typeof(bool)) {
 				if(DrawCheckbox(pos + new Vector2(20, bgSize.Y - y), label, (bool)field.GetValue(settings))) {
 					field.SetValue(settings, !(bool)field.GetValue(settings));
@@ -98,10 +116,21 @@ class ModsScreen : IScreen {
 				if(UI.DrawAndCheckSimpleButton(text, labelBounds.BottomRight + new Vector2(10, 0), new Vector2(50, (int)labelBounds.Height)))
 					UI.OpenScreen(new ChangeKeybindScreen(key, label, mod));
 				y += 20;
+			} else if(typeof(SettingsGroup).IsAssignableFrom(field.FieldType)) {
+				SettingsGroup group = (SettingsGroup)field.GetValue(settings);
+				var textPos = pos + new Vector2(20, bgSize.Y - y + 5);
+				if(group.Enabled) {
+					UI.DrawText("*" + label + "*", textPos, UI.SubTitle, class_181.field_1718, TextAlignment.Left);
+					y += 25;
+					var progress = DrawSettingsObject(mod, field.GetValue(settings), pos + new Vector2(15, 0), bgSize, y);
+					settingsChanged |= progress.pressed;
+					y = progress.curY;
+					y += 10;
+				}
 			}
 			y += 40;
 		}
-		return settingsChanged;
+		return new DrawProgress { pressed = settingsChanged, curY = y };
 	}
 
 	private bool DrawCheckbox(Vector2 pos, string label, bool enabled) {
@@ -128,7 +157,18 @@ class ModsScreen : IScreen {
 		string path = Path.Combine(QuintessentialLoader.PathModSaves, name + ".yaml");
 		if(!Directory.Exists(QuintessentialLoader.PathModSaves))
 			Directory.CreateDirectory(QuintessentialLoader.PathModSaves);
-		using(StreamWriter writer = new(path))
-			YamlHelper.Serializer.Serialize(writer, settings, QuintessentialLoader.CodeMods.First(c => c.Meta == mod).SettingsType);
+
+		using StreamWriter writer = new(path);
+		YamlHelper.Serializer.Serialize(writer, settings, QuintessentialLoader.CodeMods.First(c => c.Meta == mod).SettingsType);
+	}
+
+	private U FromAttr<T, U>(FieldInfo from, Func<T, U> getter, U def) where T : Attribute {
+		T t = from.GetCustomAttributes(true)
+				.TakeWhile(att => att is T)
+				.Select(att => att as T)
+				.FirstOrDefault();
+		if(t == null)
+			return def;
+		else return getter(t);
 	}
 }

@@ -11,7 +11,7 @@ class patch_PuzzleSelectScreen {
 
 	public void method_50(float time) {
 		orig_method_50(time);
-		if(QuintessentialLoader.AllCampaigns.Count > 1) {
+		if(QuintessentialSettings.Instance.EnableCustomCampaigns && QuintessentialLoader.AllCampaigns.Count > 1) {
 			var dyn = new DynamicData(typeof(PuzzleSelectScreen), this);
 			float y1 = class_162.method_417(-220f, 0.0f, dyn.Get<float>("field_2937"));
 			// add campaign change buttons
@@ -30,8 +30,9 @@ class patch_PuzzleSelectScreen {
 			// show the currently displayed campaign
 			UI.DrawText(((patch_Campaign)(object)QuintessentialLoader.AllCampaigns[currentCampaign]).QuintTitle, new Vector2(Input.ScreenSize().X / 2f, 20 + y1), UI.Text, Color.LightGray, TextAlignment.Centred);
 			// reopen the menu if clicked
-			bool keyLeft = (QuintessentialLoader.QuintessentialAsMod.Settings as QuintessentialSettings).SwitchCampaignLeft.Pressed();
-			bool keyRight = (QuintessentialLoader.QuintessentialAsMod.Settings as QuintessentialSettings).SwitchCampaignRight.Pressed();
+			var settings = QuintessentialSettings.Instance.SwitcherSettings;
+			bool keyLeft = settings.SwitchCampaignLeft.Pressed();
+			bool keyRight = settings.SwitchCampaignRight.Pressed();
 
 			if((leftBounds.Contains(Input.MousePos()) && Input.IsLeftClickPressed()) || keyLeft) {
 				class_238.field_1991.field_1821.method_28(1f);
