@@ -10,9 +10,11 @@ public static class UI {
 
 	#region Constants
 
-	public static OMFont Title = OMAssets.field_1990.field_2146;
-	public static OMFont Text = OMAssets.field_1990.field_2145;
-	public static OMFont SubTitle = OMAssets.field_1990.field_2143;
+	public static readonly OMFont Title = OMAssets.field_1990.field_2146;
+	public static readonly OMFont Text = OMAssets.field_1990.field_2145;
+	public static readonly OMFont SubTitle = OMAssets.field_1990.field_2143;
+
+	public static readonly Color TextColor = class_181.field_1718;
 
 	#endregion
 

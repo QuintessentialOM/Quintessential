@@ -30,7 +30,7 @@ class ModsScreen : IScreen {
 	}
 
 	// update & render
-	public void method_50(float param_4686) {
+	public void method_50(float time) {
 		Vector2 size = new(1000f, 922f);
 		Vector2 pos = (Input.ScreenSize() / 2 - size / 2).Rounded();
 		Vector2 bgPos = pos + new Vector2(78f, 88f);
@@ -70,13 +70,13 @@ class ModsScreen : IScreen {
 	}
 
 	private float DrawModLabel(ModMeta mod, Vector2 pos, Vector2 bgSize) {
-		UI.DrawText(mod.Title ?? mod.Name, pos + new Vector2(20, bgSize.Y - 99f), UI.Title, class_181.field_1718, TextAlignment.Left);
+		UI.DrawText(mod.Title ?? mod.Name, pos + new Vector2(20, bgSize.Y - 99f), UI.Title, UI.TextColor, TextAlignment.Left);
 		string ver = mod.Version.ToString();
 		if(mod.Title != null)
 			ver = mod.Name + " - " + ver;
 		UI.DrawText(ver, pos + new Vector2(20, bgSize.Y - 130f), UI.Text, Color.LightGray, TextAlignment.Left);
 		if(mod.Desc != null) {
-			var desc = UI.DrawText(mod.Desc, pos + new Vector2(20, bgSize.Y - 170f), UI.Text, class_181.field_1718, TextAlignment.Left, maxWidth: 460);
+			var desc = UI.DrawText(mod.Desc, pos + new Vector2(20, bgSize.Y - 170f), UI.Text, UI.TextColor, TextAlignment.Left, maxWidth: 460);
 			return desc.Height + 80;
 		}
 		return 20;
@@ -98,7 +98,7 @@ class ModsScreen : IScreen {
 			if(field.IsStatic)
 				continue;
 
-			string label = FromAttr<SettingsLabel, string>(field, y => y.Label, field.Name);
+			string label = field.GetCustomAttribute<SettingsLabel>()?.Label ?? field.Name;
 
 			if(field.FieldType == typeof(bool)) {
 				if(DrawCheckbox(pos + new Vector2(20, bgSize.Y - y), label, (bool)field.GetValue(settings))) {
@@ -111,7 +111,7 @@ class ModsScreen : IScreen {
 				y += 20;
 			} else if(field.FieldType == typeof(Keybinding)) {
 				Keybinding key = (Keybinding)field.GetValue(settings);
-				Bounds2 labelBounds = UI.DrawText(label + ": " + key.ControlKeysText(), pos + new Vector2(20, bgSize.Y - y - 15), UI.SubTitle, class_181.field_1718, TextAlignment.Left);
+				Bounds2 labelBounds = UI.DrawText(label + ": " + key.ControlKeysText(), pos + new Vector2(20, bgSize.Y - y - 15), UI.SubTitle, UI.TextColor, TextAlignment.Left);
 				var text = !string.IsNullOrWhiteSpace(key.Key) ? key.Key : "None";
 				if(UI.DrawAndCheckSimpleButton(text, labelBounds.BottomRight + new Vector2(10, 0), new Vector2(50, (int)labelBounds.Height)))
 					UI.OpenScreen(new ChangeKeybindScreen(key, label, mod));
@@ -120,7 +120,7 @@ class ModsScreen : IScreen {
 				SettingsGroup group = (SettingsGroup)field.GetValue(settings);
 				var textPos = pos + new Vector2(20, bgSize.Y - y + 5);
 				if(group.Enabled) {
-					UI.DrawText("*" + label + "*", textPos, UI.SubTitle, class_181.field_1718, TextAlignment.Left);
+					UI.DrawText("*" + label + "*", textPos, UI.SubTitle, UI.TextColor, TextAlignment.Left);
 					y += 25;
 					var progress = DrawSettingsObject(mod, field.GetValue(settings), pos + new Vector2(15, 0), bgSize, y);
 					settingsChanged |= progress.pressed;
@@ -135,7 +135,7 @@ class ModsScreen : IScreen {
 
 	private bool DrawCheckbox(Vector2 pos, string label, bool enabled) {
 		Bounds2 boxBounds = Bounds2.WithSize(pos, new Vector2(36f, 37f));
-		Bounds2 labelBounds = UI.DrawText(label, pos + new Vector2(45f, 13f), UI.SubTitle, class_181.field_1718, TextAlignment.Left);
+		Bounds2 labelBounds = UI.DrawText(label, pos + new Vector2(45f, 13f), UI.SubTitle, UI.TextColor, TextAlignment.Left);
 		if(enabled)
 			UI.DrawTexture(class_238.field_1989.field_101.field_773, boxBounds.Min);
 		if(boxBounds.Contains(Input.MousePos()) || labelBounds.Contains(Input.MousePos())) {
@@ -160,15 +160,5 @@ class ModsScreen : IScreen {
 
 		using StreamWriter writer = new(path);
 		YamlHelper.Serializer.Serialize(writer, settings, QuintessentialLoader.CodeMods.First(c => c.Meta == mod).SettingsType);
-	}
-
-	private U FromAttr<T, U>(FieldInfo from, Func<T, U> getter, U def) where T : Attribute {
-		T t = from.GetCustomAttributes(true)
-				.TakeWhile(att => att is T)
-				.Select(att => att as T)
-				.FirstOrDefault();
-		if(t == null)
-			return def;
-		else return getter(t);
 	}
 }
