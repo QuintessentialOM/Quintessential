@@ -96,7 +96,8 @@ SomeZipIDontLike.zip");
 			}
 
 			// Load mods
-			Func<ModMeta.Dependency, List<ModMeta>, bool> Contains = (dep, list) => list.Any(m => m.Name.Equals(dep.Name) && m.Version >= dep.Version);
+			bool Contains(ModMeta.Dependency dep, List<ModMeta> list)
+				=> list.Any(m => m.Name.Equals(dep.Name) && m.Version >= dep.Version);
 			List<ModMeta> rem = new();
 			foreach(var mod in Mods) {
 				// check dependencies
@@ -216,12 +217,12 @@ SomeZipIDontLike.zip");
 			foreach(var item in Directory.GetFiles(puzzles)) {
 				string filename = Path.GetFileName(item);
 				if(filename.EndsWith(".campaign.yaml")) {
-					using(StreamReader reader = new(item)) {
-						CampaignModel c = YamlHelper.Deserializer.Deserialize<CampaignModel>(reader);
-						Logger.Log($"Campaign \"{c.Title}\" ({c.Name}) has {c.Chapters.Count} chapters.");
-						c.Path = Path.GetDirectoryName(item);
-						ModCampaignModels.Add(c);
-					}
+					using StreamReader reader = new(item);
+
+					CampaignModel c = YamlHelper.Deserializer.Deserialize<CampaignModel>(reader);
+					Logger.Log($"Campaign \"{c.Title}\" ({c.Name}) has {c.Chapters.Count} chapters.");
+					c.Path = Path.GetDirectoryName(item);
+					ModCampaignModels.Add(c);
 				}
 			}
 		}
@@ -240,14 +241,14 @@ SomeZipIDontLike.zip");
 		foreach(var mod in CodeMods) {
 			var savePath = Path.Combine(PathModSaves, mod.Meta.Name + ".yaml");
 			if(File.Exists(savePath)) {
-				using(StreamReader reader = new(savePath)) {
-					var settings = YamlHelper.Deserializer.Deserialize(reader, mod.SettingsType);
-					if(settings != null) {
-						mod.Settings = settings;
-						mod.ApplySettings();
-					} else
-						Logger.Log("Loaded null settings for mod " + mod.Meta.Name);
-				}
+				using StreamReader reader = new(savePath);
+
+				var settings = YamlHelper.Deserializer.Deserialize(reader, mod.SettingsType);
+				if(settings != null) {
+					mod.Settings = settings;
+					mod.ApplySettings();
+				} else
+					Logger.Log("Loaded null settings for mod " + mod.Meta.Name);
 			}
 		}
 		foreach(var mod in CodeMods)
@@ -301,26 +302,27 @@ SomeZipIDontLike.zip");
 		if(!File.Exists(metaPath))
 			metaPath = Path.Combine(dir, "quintessential.yml");
 		if(File.Exists(metaPath)) {
-			using(StreamReader reader = new(metaPath)) {
-				try {
-					if(!reader.EndOfStream) {
-						meta = YamlHelper.Deserializer.Deserialize<ModMeta>(reader);
-						meta.Name = meta.Name.Trim().Replace(" ", "_");
-						meta.PathDirectory = dir;
-						if(!string.IsNullOrEmpty(zipName))
-							meta.PathArchive = zipName;
-						meta.PostParse();
-						Mods.Add(meta);
-						Logger.Log($"Queuing mod \"{meta.Name}\", version {meta.VersionString}.");
-					}
-				} catch(Exception e) {
-					Logger.Log($"Failed parsing quintessential.yaml in {dir}: {e}");
+			using StreamReader reader = new(metaPath);
+
+			try {
+				if(!reader.EndOfStream) {
+					meta = YamlHelper.Deserializer.Deserialize<ModMeta>(reader);
+					meta.Name = meta.Name.Trim().Replace(" ", "_");
+					meta.PathDirectory = dir;
+					if(!string.IsNullOrEmpty(zipName))
+						meta.PathArchive = zipName;
+					meta.PostParse();
+					Mods.Add(meta);
+					Logger.Log($"Queuing mod \"{meta.Name}\", version {meta.VersionString}.");
 				}
+			} catch(Exception e) {
+				Logger.Log($"Failed parsing quintessential.yaml in {dir}: {e}");
 			}
 		} else {
-			meta = new ModMeta();
-			meta.Name = "NoMetaMod_" + Path.GetFileName(dir);
-			meta.PathDirectory = dir;
+			meta = new ModMeta {
+				Name = "NoMetaMod__" + Path.GetFileName(dir),
+				PathDirectory = dir
+			};
 			if(!string.IsNullOrEmpty(zipName))
 				meta.PathArchive = zipName;
 			meta.PostParse();
