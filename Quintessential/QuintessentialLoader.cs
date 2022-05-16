@@ -1,9 +1,9 @@
-﻿using Ionic.Zip;
-using MonoMod.Utils;
+﻿using MonoMod.Utils;
 using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using ICSharpCode.SharpZipLib.Zip;
 using System.Linq;
 using System.Reflection;
 
@@ -36,6 +36,8 @@ public class QuintessentialLoader {
 	private static List<ModMeta> waiting = new();
 
 	private static readonly string zipExtractSuffix = "__quintessential_from_zip";
+
+	private static FastZip zipExtractor = new FastZip();
 
 	public static void PreInit() {
 		try {
@@ -279,8 +281,7 @@ SomeZipIDontLike.zip");
 			return;
 
 		var dest = zip.Substring(0, zip.Length - ".zip".Length) + zipExtractSuffix;
-		using(ZipFile file = new(zip))
-			file.ExtractAll(dest);
+		zipExtractor.ExtractZip(zip, dest, "");
 		FindFolderMod(dest, zip);
 	}
 
