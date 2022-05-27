@@ -422,7 +422,6 @@ SomeZipIDontLike.zip");
 						continue;
 					}
 					puzzle.field_2766 = entry.ID;
-					puzzle.field_2767 = class_134.method_253(entry.ID, string.Empty);
 					// ensure all inputs/outputs have names
 					foreach(PuzzleInputOutput io in puzzle.field_2770.Union(puzzle.field_2771)) {
 						if(!io.field_2813.field_2639.method_1085()) {
