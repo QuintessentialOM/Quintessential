@@ -461,5 +461,7 @@ SomeZipIDontLike.zip");
 			string yaml = YamlHelper.Serializer.Serialize(m);
 			File.WriteAllText(Path.Combine(outDir, "X" + m.ID + ".yaml"), yaml);
 		}
+		Logger.Log($"Dumped puzzles to {outDir}");
+		UI.OpenScreen(new NoticeScreen("Puzzle Dumping", $"Saved puzzles to \"{outDir.Replace('\\', '/')}\""));
 	}
 }
