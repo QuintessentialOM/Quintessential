@@ -107,12 +107,14 @@ public class PuzzleModel {
 	public class MoleculeM {
 		public List<AtomM> Atoms = new();
 		public List<BondM> Bonds = new();
+		public string Name = "";
 
 		public MoleculeM(Molecule mol) {
 			foreach(var atom in mol.method_1100())
 				Atoms.Add(new AtomM(((patch_AtomType)(object)atom.Value.field_2275).QuintAtomType, new HexIndexM(atom.Key)));
 			foreach(var bond in mol.method_1101())
 				Bonds.Add(new BondM(bond));
+			Name = mol.field_2639.method_1090(null)?.method_620() ?? "";
 		}
 
 		public MoleculeM(){}
@@ -123,6 +125,8 @@ public class PuzzleModel {
 				ret.method_1105(item.FromModel(), item.Position.FromModel());
 			foreach(var item in Bonds)
 				ret.method_1111((BondType)item.BondBits(), item.A.FromModel(), item.B.FromModel());
+			if(!Name.Equals(""))
+				ret.field_2639 = class_134.method_253(Name, string.Empty);
 			return ret;
 		}
 	}

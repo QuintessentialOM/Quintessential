@@ -1,4 +1,6 @@
 ﻿using Ionic.Zip;
+using Mono.Cecil.Cil;
+
 using MonoMod.Utils;
 using Quintessential.Serialization;
 using System;
@@ -6,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 
 namespace Quintessential;
 
@@ -418,7 +421,19 @@ SomeZipIDontLike.zip");
 						Logger.Log($"Puzzle \"{entry.Puzzle}\" from campaign \"{c.Title}\" doesn't exist, ignoring");
 						continue;
 					}
+					puzzle.field_2766 = entry.ID;
+					puzzle.field_2767 = class_134.method_253(entry.ID, string.Empty);
+					// ensure all inputs/outputs have names
+					foreach(PuzzleInputOutput io in puzzle.field_2770.Union(puzzle.field_2771)) {
+						if(!io.field_2813.field_2639.method_1085()) {
+							Logger.Log(class_134.method_253("Molecule", string.Empty));
+							io.field_2813.field_2639 = class_134.method_253("Molecule", string.Empty);
+						}
+					}
+					// TODO: optimize
 					AddEntryToCampaign(campaign, j, entry.ID, class_134.method_253(entry.Title, string.Empty), (enum_129)0, struct_18.field_1431, puzzle, class_238.field_1992.field_972, class_238.field_1991.field_1832, string.IsNullOrEmpty(entry.Requires) ? (class_259)new class_174() : new class_243(entry.Requires));
+					Array.Resize(ref Puzzles.field_2816, Puzzles.field_2816.Length + 1);
+					Puzzles.field_2816[Puzzles.field_2816.Length - 1] = puzzle;
 				}
 			}
 
@@ -441,7 +456,7 @@ SomeZipIDontLike.zip");
 			Sound clickSound,
 			class_259 requirement) {
 		if(puzzle.method_1085()) {
-			puzzle.method_1087().field_2767 = entryTitle;
+			//puzzle.method_1087().field_2767 = entryTitle;
 			puzzle.method_1087().field_2769 = param_4485;
 		}
 		CampaignItem campaignItem = new(entryId, entryTitle, type, puzzle, requirement, param_4487, clickSound);
