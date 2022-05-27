@@ -447,4 +447,19 @@ SomeZipIDontLike.zip");
 		CampaignItem campaignItem = new(entryId, entryTitle, type, puzzle, requirement, param_4487, clickSound);
 		campaign.field_2309[chapter].field_2314.Add(campaignItem);
 	}
+
+	internal static void DumpVanillaPuzzles() {
+		string outDir = Path.Combine(PathModSaves, "Quintessential", "DumpedPuzzles");
+		Directory.CreateDirectory(outDir);
+		foreach(var p in Puzzles.field_2816) {
+			PuzzleModel m = PuzzleModel.FromPuzzle(p);
+			string yaml = YamlHelper.Serializer.Serialize(m);
+			File.WriteAllText(Path.Combine(outDir, m.ID + ".yaml"), yaml);
+		}
+		foreach(var p in JournalVolumes.field_2572.SelectMany(k => k.field_2571)) {
+			PuzzleModel m = PuzzleModel.FromPuzzle(p);
+			string yaml = YamlHelper.Serializer.Serialize(m);
+			File.WriteAllText(Path.Combine(outDir, "X" + m.ID + ".yaml"), yaml);
+		}
+	}
 }

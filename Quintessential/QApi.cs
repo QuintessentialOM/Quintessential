@@ -93,6 +93,20 @@ public static class QApi {
 	public static void RunAfterCycle(Action<Sim, bool> runnable) {
 		ToRunAfterCycle.Add(runnable);
 	}
+
+	/// <summary>
+	/// Returns the settings of the given type for the first registered mod, or null if no registered mod has settings of that type.
+	/// </summary>
+	/// <typeparam name="T">The type of settings to get.</typeparam>
+	/// <returns></returns>
+	public static T GetSettingsByType<T>() {
+		foreach(var mod in QuintessentialLoader.CodeMods) {
+			if(mod.Settings is T settings) {
+				return settings;
+			}
+		}
+		return default;
+	}
 }
 
 /// <summary>
