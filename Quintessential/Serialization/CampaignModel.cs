@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 
+using YamlDotNet.Serialization;
+
 namespace Quintessential.Serialization;
 
 public class CampaignModel {
@@ -10,7 +12,7 @@ public class CampaignModel {
 
 	public IList<ChapterModel> Chapters { get; set; }
 
-	[YamlDotNet.Serialization.YamlIgnore]
+	[YamlIgnore]
 	public string Path = "";
 }
 

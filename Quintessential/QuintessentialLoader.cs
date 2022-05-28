@@ -1,9 +1,4 @@
-﻿using Ionic.Zip;
-using Mono.Cecil.Cil;
-
-using MonoMod.Utils;
-using Quintessential.Serialization;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -11,7 +6,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Resources;
-using System.Xml.Linq;
+
+using Ionic.Zip;
+
+using MonoMod.Utils;
+
+using Quintessential.Serialization;
 
 namespace Quintessential;
 
@@ -37,6 +37,8 @@ public class QuintessentialLoader {
 	public static QuintessentialMod QuintessentialAsMod;
 
 	private static List<CampaignModel> ModCampaignModels = new();
+	private static List<JournalModel> ModJournalModels = new();
+
 	private static List<string> blacklisted = new();
 	private static List<ModMeta> loaded = new();
 	private static List<ModMeta> waiting = new();
@@ -240,7 +242,7 @@ SomeZipIDontLike.zip");
 		var puzzles = Path.Combine(mod.PathDirectory, "Puzzles");
 		if(Directory.Exists(puzzles)) {
 			ModPuzzleDirectories.Add(puzzles);
-			// Look for name.campaign.yaml files in the folder
+			// Look for name.campaign.yaml and name.journal.yaml files in the folder
 			foreach(var item in Directory.GetFiles(puzzles)) {
 				string filename = Path.GetFileName(item);
 				if(filename.EndsWith(".campaign.yaml")) {
@@ -250,6 +252,23 @@ SomeZipIDontLike.zip");
 					Logger.Log($"Campaign \"{c.Title}\" ({c.Name}) has {c.Chapters.Count} chapters.");
 					c.Path = Path.GetDirectoryName(item);
 					ModCampaignModels.Add(c);
+				}
+				if(filename.EndsWith(".journal.yaml")) {
+					using StreamReader reader = new(item);
+
+					JournalModel c = YamlHelper.Deserializer.Deserialize<JournalModel>(reader);
+					Logger.Log($"Journal \"{c.Title}\" has {c.Chapters.Count} chapters.");
+					bool valid = true;
+					foreach(var chapter in c.Chapters) {
+						if(chapter.Puzzles.Count != 5) {
+							Logger.Log($"Journal chapter \"{chapter.Title}\" in \"{c.Title}\" doesn't have 5 puzzles; skipping journal.");
+							valid = false; break;
+						}
+					}
+					if(valid) {
+						c.Path = Path.GetDirectoryName(item);
+						ModJournalModels.Add(c);
+					}
 				}
 			}
 		}
