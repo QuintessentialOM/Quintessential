@@ -11,22 +11,36 @@ class patch_Renderer {
 	public static extern bool orig_method_1339(class_256 param_5118);
 
 	public static bool method_1339(class_256 textureInfo) {
-		if(textureInfo.field_2062.method_1085() /*Exists*/ && textureInfo.field_2062.method_1087()/*Get*/.StartsWith("Content")) {
-			Maybe<string> origPath = textureInfo.field_2062;
-			for(int i = QuintessentialLoader.ModContentDirectories.Count - 1; i >= 0; i--) {
-				string dir = QuintessentialLoader.ModContentDirectories[i];
-				try {
-					textureInfo.field_2062 = Path.Combine(dir, origPath.method_1087());
-					return orig_method_1339(textureInfo);
-				} catch(Exception e) {
-					if(!e.Message.StartsWith("Texture file not found!"))
-						throw;
-				} finally {
-					textureInfo.field_2062 = origPath;
+		string origPath = null;
+		if(textureInfo.field_2062.method_1085() /*Exists*/) {
+			origPath = textureInfo.field_2062.method_1087();
+			if(textureInfo.field_2062.method_1087() /*Get*/.StartsWith("Content")) {
+				for(int i = QuintessentialLoader.ModContentDirectories.Count - 1; i >= 0; i--) {
+					string dir = QuintessentialLoader.ModContentDirectories[i];
+					try {
+						textureInfo.field_2062 = Path.Combine(dir, origPath);
+						return orig_method_1339(textureInfo);
+					} catch(Exception e) {
+						if(!e.Message.StartsWith("Texture file not found!"))
+							throw;
+					} finally {
+						textureInfo.field_2062 = origPath;
+					}
 				}
 			}
+		}
+		try {
+			return orig_method_1339(textureInfo);
+		} catch(Exception e) {
+			if(!e.Message.StartsWith("Texture file not found!"))
+				throw;
+		}
+		// none match -> use missing texture
+		try {
+			textureInfo.field_2062 = Path.Combine(QuintessentialLoader.ModContentDirectories[0], "Content", "Quintessential", "missing");
+			return orig_method_1339(textureInfo);
+		} finally {
 			textureInfo.field_2062 = origPath;
 		}
-		return orig_method_1339(textureInfo);
 	}
 }

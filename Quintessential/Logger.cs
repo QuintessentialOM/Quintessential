@@ -21,10 +21,10 @@ public static class Logger {
 	}
 
 	public static void Log(string text) {
-		File.AppendAllText(LogPath, $"({DateTime.Now}) {text}\n");
+		File.AppendAllText(LogPath, $"({DateTime.Now}) {text ?? "null"}\n");
 	}
 
 	public static void Log(object e) {
-		Log(e.ToString());
+		Log(e?.ToString());
 	}
 }

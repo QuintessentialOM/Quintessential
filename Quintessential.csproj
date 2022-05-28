@@ -11,6 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Content\missing.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="YamlDotNet" Version="11.2.1" />
   </ItemGroup>
 
@@ -40,6 +44,10 @@
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Opus Magnum\MonoMod.Utils.dll</HintPath>
       <CopyLocal>False</CopyLocal>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Content\missing.png" />
   </ItemGroup>
 
 </Project>

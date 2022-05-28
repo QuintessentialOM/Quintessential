@@ -4,10 +4,13 @@ using Mono.Cecil.Cil;
 using MonoMod.Utils;
 using Quintessential.Serialization;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Resources;
 using System.Xml.Linq;
 
 namespace Quintessential;
@@ -39,6 +42,7 @@ public class QuintessentialLoader {
 	private static List<ModMeta> waiting = new();
 
 	private static readonly string zipExtractSuffix = "__quintessential_from_zip";
+	private static readonly string quintAssetFolder = "__quintessential_assets";
 
 	public static void PreInit() {
 		try {
@@ -64,8 +68,8 @@ SomeZipIDontLike.zip");
 			}
 
 			// Find mods in Mods/
-			// Delete leftover quintessential extracted zips
-			CleanupExtractedZips();
+			// Delete leftover quintessential extracted zips and assets
+			CleanupExtractedData();
 
 			// Add Quintessential mod & mod meta
 			QuintessentialModMeta = new ModMeta {
@@ -79,6 +83,25 @@ SomeZipIDontLike.zip");
 			};
 			CodeMods.Add(QuintessentialAsMod);
 
+			// Extract bundled assets
+			Logger.Log("Extracting Quintessential resources...");
+			string outDir = Path.Combine(PathMods, quintAssetFolder, "Content", "Quintessential");
+			Directory.CreateDirectory(outDir);
+			ResourceManager manager = new("Lightning.g", typeof(Renderer).Assembly);
+			var set = manager.GetResourceSet(CultureInfo.InvariantCulture, true, true);
+			foreach(object item in set) {
+				if(item is DictionaryEntry de) {
+					string name = (string)de.Key;
+					using Stream content = (Stream)de.Value;
+					if(name.StartsWith("content/") || name.StartsWith("Content/"))
+						name = name.Substring("content/".Length);
+					using var toStream = File.OpenWrite(Path.Combine(outDir, name));
+					content.CopyTo(toStream);
+				}
+			}
+			ModContentDirectories.Add(Path.Combine(PathMods, quintAssetFolder));
+
+			Logger.Log("Finding mods to load...");
 			// Unzip zips
 			string[] files = Directory.GetFiles(PathMods);
 			foreach(var file in files) {
@@ -99,6 +122,7 @@ SomeZipIDontLike.zip");
 			}
 
 			// Load mods
+			Logger.Log("Loading mods...");
 			bool Contains(ModMeta.Dependency dep, List<ModMeta> list)
 				=> list.Any(m => m.Name.Equals(dep.Name) && m.Version >= dep.Version);
 			List<ModMeta> rem = new();
@@ -288,8 +312,8 @@ SomeZipIDontLike.zip");
 	}
 
 	protected static void FindFolderMod(string dir, string zipName = null) {
-		// don't load zip mods again
-		if(string.IsNullOrEmpty(zipName) && dir.EndsWith("__quintessential_from_zip"))
+		// don't load zip mods again, ignore quintessential assets
+		if(dir.EndsWith(quintAssetFolder) || (string.IsNullOrEmpty(zipName) && dir.EndsWith(zipExtractSuffix)))
 			return;
 
 		Logger.Log($"Finding mod in folder: \"{dir}\"");
@@ -359,10 +383,10 @@ SomeZipIDontLike.zip");
 		}
 	}
 
-	protected static void CleanupExtractedZips() {
+	protected static void CleanupExtractedData() {
 		string[] folders = Directory.GetDirectories(PathMods);
 		foreach(var folder in folders)
-			if(folder.EndsWith(zipExtractSuffix))
+			if(folder.EndsWith(zipExtractSuffix) || folder.EndsWith(quintAssetFolder))
 				Directory.Delete(folder, true);
 	}
 
