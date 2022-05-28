@@ -449,7 +449,6 @@ SomeZipIDontLike.zip");
 					// ensure all inputs/outputs have names
 					foreach(PuzzleInputOutput io in puzzle.field_2770.Union(puzzle.field_2771)) {
 						if(!io.field_2813.field_2639.method_1085()) {
-							Logger.Log(class_134.method_253("Molecule", string.Empty));
 							io.field_2813.field_2639 = class_134.method_253("Molecule", string.Empty);
 						}
 					}
