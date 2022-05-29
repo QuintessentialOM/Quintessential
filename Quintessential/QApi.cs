@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Reflection;
 using System.Collections.Generic;
+using System.IO;
+using MonoMod.Utils;
 
 namespace Quintessential;
 
@@ -8,16 +11,253 @@ using RenderHelper = class_195;
 using PartTypes = class_191;
 using AtomTypes = class_175;
 
+public enum OMSound : int
+{
+	click_button,
+	click_deselect,
+	click_select,
+	click_story,
+	close_enter,
+	close_leave,
+	code_button,
+	code_failure,
+	code_success,
+	fanfare_solving1,
+	fanfare_solving2,
+	fanfare_solving3,
+	fanfare_solving4,
+	fanfare_solving5,
+	fanfare_solving6,
+	fanfare_story1,
+	fanfare_story2,
+	glyph_animismus,
+	glyph_bonding,
+	glyph_calcification,
+	glyph_dispersion,
+	glyph_disposal,
+	glyph_duplication,
+	glyph_projection,
+	glyph_purification,
+	glyph_triplex1,
+	glyph_triplex2,
+	glyph_triplex3,
+	glyph_unbonding,
+	glyph_unification,
+	instruction_pickup,
+	instruction_place,
+	instruction_remove,
+	piece_modify,
+	piece_pickup,
+	piece_place,
+	piece_remove,
+	piece_rotate,
+	release_button,
+	sim_error,
+	sim_start,
+	sim_step,
+	sim_stop,
+	solitaire_end,
+	solitaire_match,
+	solitaire_select,
+	solitaire_start,
+	solution,
+	title,
+	ui_complete,
+	ui_fade,
+	ui_modal,
+	ui_modal_close,
+	ui_paper,
+	ui_paper_back,
+	ui_transition,
+	ui_transition_back,
+	ui_unlock,
+}
+
 public static class QApi {
+	public static void Init()
+	{
+
+	}
+
+	#region Sound APIs
+	private static readonly List<Sound> AllSounds = new();
+	private static readonly Dictionary<OMSound, Sound> OMSounds = new()
+	{
+		{ OMSound.click_button, class_238.field_1991.field_1821 },
+		{ OMSound.click_deselect, class_238.field_1991.field_1822 },
+		{ OMSound.click_select, class_238.field_1991.field_1823 },
+		{ OMSound.click_story, class_238.field_1991.field_1824 },
+		{ OMSound.close_enter, class_238.field_1991.field_1825 },
+		{ OMSound.close_leave, class_238.field_1991.field_1826 },
+		{ OMSound.code_button, class_238.field_1991.field_1827 },
+		{ OMSound.code_failure, class_238.field_1991.field_1828 },
+		{ OMSound.code_success, class_238.field_1991.field_1829 },
+		{ OMSound.fanfare_solving1, class_238.field_1991.field_1830 },
+		{ OMSound.fanfare_solving2, class_238.field_1991.field_1831 },
+		{ OMSound.fanfare_solving3, class_238.field_1991.field_1832 },
+		{ OMSound.fanfare_solving4, class_238.field_1991.field_1833 },
+		{ OMSound.fanfare_solving5, class_238.field_1991.field_1834 },
+		{ OMSound.fanfare_solving6, class_238.field_1991.field_1835 },
+		{ OMSound.fanfare_story1, class_238.field_1991.field_1836 },
+		{ OMSound.fanfare_story2, class_238.field_1991.field_1837 },
+		{ OMSound.glyph_animismus, class_238.field_1991.field_1838 },
+		{ OMSound.glyph_bonding, class_238.field_1991.field_1839 },
+		{ OMSound.glyph_calcification, class_238.field_1991.field_1840 },
+		{ OMSound.glyph_dispersion, class_238.field_1991.field_1841 },
+		{ OMSound.glyph_disposal, class_238.field_1991.field_1842 },
+		{ OMSound.glyph_duplication, class_238.field_1991.field_1843 },
+		{ OMSound.glyph_projection, class_238.field_1991.field_1844 },
+		{ OMSound.glyph_purification, class_238.field_1991.field_1845 },
+		{ OMSound.glyph_triplex1, class_238.field_1991.field_1846 },
+		{ OMSound.glyph_triplex2, class_238.field_1991.field_1847 },
+		{ OMSound.glyph_triplex3, class_238.field_1991.field_1848 },
+		{ OMSound.glyph_unbonding, class_238.field_1991.field_1849 },
+		{ OMSound.glyph_unification, class_238.field_1991.field_1850 },
+		{ OMSound.instruction_pickup, class_238.field_1991.field_1851 },
+		{ OMSound.instruction_place, class_238.field_1991.field_1852 },
+		{ OMSound.instruction_remove, class_238.field_1991.field_1853 },
+		{ OMSound.piece_modify, class_238.field_1991.field_1854 },
+		{ OMSound.piece_pickup, class_238.field_1991.field_1855 },
+		{ OMSound.piece_place, class_238.field_1991.field_1856 },
+		{ OMSound.piece_remove, class_238.field_1991.field_1857 },
+		{ OMSound.piece_rotate, class_238.field_1991.field_1858 },
+		{ OMSound.release_button, class_238.field_1991.field_1859 },
+		{ OMSound.sim_error, class_238.field_1991.field_1860 },
+		{ OMSound.sim_start, class_238.field_1991.field_1861 },
+		{ OMSound.sim_step, class_238.field_1991.field_1862 },
+		{ OMSound.sim_stop, class_238.field_1991.field_1863 },
+		{ OMSound.solitaire_end, class_238.field_1991.field_1864 },
+		{ OMSound.solitaire_match, class_238.field_1991.field_1865 },
+		{ OMSound.solitaire_select, class_238.field_1991.field_1866 },
+		{ OMSound.solitaire_start, class_238.field_1991.field_1867 },
+		{ OMSound.solution, class_238.field_1991.field_1868 },
+		{ OMSound.title, class_238.field_1991.field_1869 },
+		{ OMSound.ui_complete, class_238.field_1991.field_1870 },
+		{ OMSound.ui_fade, class_238.field_1991.field_1871 },
+		{ OMSound.ui_modal, class_238.field_1991.field_1872 },
+		{ OMSound.ui_modal_close, class_238.field_1991.field_1873 },
+		{ OMSound.ui_paper, class_238.field_1991.field_1874 },
+		{ OMSound.ui_paper_back, class_238.field_1991.field_1875 },
+		{ OMSound.ui_transition, class_238.field_1991.field_1876 },
+		{ OMSound.ui_transition_back, class_238.field_1991.field_1877 },
+		{ OMSound.ui_unlock, class_238.field_1991.field_1878 },
+	};
+
+	public static void resetSounds() { foreach (var sound in AllSounds) sound.field_4062 = false; }
+
+	/// <summary>
+	/// Loads a .wav file from disk. Returns the new Sound.
+	/// </summary>
+	/// <param name="path">The file path to the sound.</param>
+	/// <param name="maxVolume">The maximum volume of the sound, between 0.0f and 1.0f inclusive.</param>
+	public static Sound loadSound(string path, float maxVolume = 1f)
+	{
+		string filePath = Path.Combine("Content", path) + ".wav";
+		string maxVolumeStr = maxVolume.ToString();
+		//load sound
+		for (int i = QuintessentialLoader.ModContentDirectories.Count - 1; i >= 0; i--)
+		{
+			string dir = Path.Combine(QuintessentialLoader.ModContentDirectories[i], "Content");
+			string str = Path.Combine(dir, path) + ".wav";
+			if (File.Exists(str))
+			{
+				filePath = str;
+				break;
+			}
+		}
+		var sound = new Sound()
+		{
+			field_4060 = maxVolumeStr,
+			field_4061 = class_158.method_375(filePath)
+		};
+		//add volume entry to class_11.field_52
+		var volumeDictField = typeof(class_11).GetField("field_52", BindingFlags.Static | BindingFlags.NonPublic);
+		Dictionary<string, float> volumeDict = (Dictionary<string, float>)volumeDictField.GetValue(null);
+		if (!volumeDict.ContainsKey(maxVolumeStr))
+		{
+			volumeDict.Add(maxVolumeStr, maxVolume);
+			volumeDictField.SetValue(null, volumeDict);
+		}
+		//add sound to AllSounds, so method_504 can reset field_4062 when required
+		AllSounds.Add(sound);
+
+		return sound;
+	}
+
+	/// <summary>
+	/// Returns the vanilla Sound associated with the OMSoundID.
+	/// </summary>
+	/// <param name="id">The ID of the sound.</param>
+	public static Sound fetchSound(OMSound id) { return OMSounds[id]; }
+
+	/// <summary>
+	/// Plays a Sound with the specified volume.
+	/// </summary>
+	/// <param name="sound">The sound to play.</param>
+	/// <param name="volume">Desired volume, between 0.0f (muted) and 1.0f (full volume).</param>
+	public static void playSound(Sound sound, float volume=1f) { class_11.method_28(sound, volume); }
+
+	/// <summary>
+	/// Plays a Sound with the volume multiplied by the result of QAPI.getVolumeFactor(sim).
+	/// </summary>
+	/// <param name="sound">The sound to play.</param>
+	/// <param name="sim">The current Sim.</param>
+	public static void playSound(Sound sound, Sim sim = null) { class_11.method_28(sound, getVolumeFactor(sim)); }
+
+	/// <summary>
+	/// Plays a Sound with the volume multiplied by the result of QAPI.getVolumeFactor(seb).
+	/// </summary>
+	/// <param name="sound">The sound to play.</param>
+	/// <param name="seb">The current SolutionEditorBase.</param>
+	public static void playSound(Sound sound, SolutionEditorBase seb = null) { class_11.method_28(sound, getVolumeFactor(seb)); }
+
+	/// <summary>
+	/// Returns a volume factor depending on the gameplay situation:
+	/// - If we are recording a GIF, return 0.0f.
+	/// - If we are simulating a solution in Quick mode, return 0.5f.
+	/// - Otherwise, return 1.0f.
+	/// </summary>
+	/// <param name="sim">The current Sim.</param>
+	public static float getVolumeFactor(Sim sim) { return getVolumeFactor(sim, null); }
+
+	/// <summary>
+	/// Returns a volume factor depending on the gameplay situation:
+	/// - If we are recording a GIF, return 0.0f.
+	/// - If we are simulating a solution in Quick mode, return 0.5f.
+	/// - Otherwise, return 1.0f.
+	/// </summary>
+	/// <param name="seb">The current SolutionEditorBase.</param>
+	public static float getVolumeFactor(SolutionEditorBase seb) { return getVolumeFactor(null, seb); }
+
+	private static float getVolumeFactor(Sim sim = null, SolutionEditorBase seb = null)
+	{
+		if (sim != null) seb = new DynamicData(sim).Get<SolutionEditorBase>("field_3818");
+		if (seb != null)
+		{
+			if (seb is class_194) // GIF recording, so mute
+			{
+				return 0.0f;
+			}
+			else if (seb is SolutionEditorScreen)
+			{
+				var seb_dyn = new DynamicData(seb);
+				bool isQuickMode = seb_dyn.Get<Maybe<int>>("field_4030").method_1085();
+				return isQuickMode ? 0.5f : 1f;
+			}
+		}
+		return 1f;
+	}
+	#endregion
+
+
 
 	public static readonly List<Pair<Predicate<Part>, PartRenderer>> PartRenderers = new();
 	public static readonly List<Pair<PartType, PartType>> PanelParts = new();
 	public static readonly List<AtomType> ModAtomTypes = new();
 	public static readonly List<Action<Sim, bool>> ToRunAfterCycle = new();
 
-	public static void Init() {
 
-	}
+
 
 	/// <summary>
 	/// Adds a part type to the end of a part panel section, making it accessible for placement.
