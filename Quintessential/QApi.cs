@@ -30,12 +30,9 @@ public static class QApi
 	/// </summary>
 	/// <param name="filePath">The filepath for the file, where 'Content' is treated as the root directory.</param>
 	/// <param name="fileType">The extension (e.g. ".wav") for the file.</param>
-	public static string fetchPath(string filePath, string fileType = null)
+	public static string fetchPath(string filePath, string fileType = "")
 	{
-		if (fileType != null)
-		{
-			filePath = Path.Combine(filePath, fileType);
-		}
+		filePath = Path.Combine(filePath, fileType);
 		string path = Path.Combine("Content", filePath);
 		for (int i = QuintessentialLoader.ModContentDirectories.Count - 1; i >= 0; i--)
 		{
