@@ -11,6 +11,7 @@ using RenderHelper = class_195;
 using PartTypes = class_191;
 using AtomTypes = class_175;
 using Song = class_186;
+using Texture = class_256;
 using ThrowError = class_266;
 
 public static class QApi
@@ -141,7 +142,6 @@ public static class QApi
 		return default;
 	}
 
-
 	#region Sound APIs
 	private static Dictionary<string, Sound> AllSounds = new()
 	{
@@ -213,7 +213,7 @@ public static class QApi
 		}
 	}
 
-	public static void addSoundVolumeEntry(string path, float maxVolume)
+	private static void addSoundVolumeEntry(string path, float maxVolume)
 	{
 		var volumeDictField = typeof(class_11).GetField("field_52", BindingFlags.Static | BindingFlags.NonPublic);
 		Dictionary<string, float> volumeDict = (Dictionary<string, float>)volumeDictField.GetValue(null);
@@ -240,7 +240,7 @@ public static class QApi
 	}
 
 	/// <summary>
-	/// Returns the Sound associated with the filepath.
+	/// Returns the Sound associated with the file path.
 	/// </summary>
 	/// <param name="path">The file path to the sound.</param>
 	public static Sound fetchSound(string path)
@@ -359,6 +359,31 @@ public static class QApi
 		return AllSongs[path];
 	}
 	#endregion
+
+	#region Misc APIs
+	/// <summary>
+	/// Loads a .png or .psd texture from disk. Returns the new Texture.
+	/// </summary>
+	/// <param name="path">The file path to the texture.</param>
+	public static Texture loadTexture(string path)
+	{
+		return class_235.method_615(path);
+	}
+
+	/// <summary>
+	/// Adds an actor that can be referenced in vignettes and cutscenes.
+	/// </summary>
+	/// <param name="nameInVignette">Name as it appears in a vignette text file (e.g. "Anataeus (Shabby)").</param>
+	/// <param name="nameInGame">Name as it appears in-game (e.g. "Anataeus Vaya").</param>
+	/// <param name="color">Border color for dialogue boxes.</param>
+	/// <param name="smallPortrait">Texture for puzzle dialogues.</param>
+	/// <param name="largePortrait">Texture for cinematic cutscenes.</param>
+	/// <param name="isOnLeft">True if the character's portrait should be mirrored and if it should be placed on the left side in puzzle dialogues.</param>
+	public static void addVignetteActor(string nameInVignette, string nameInGame, Color color, Texture smallPortrait = null, Texture largePortrait = null, bool isOnLeft = false)
+	{
+		class_172.field_1670.Add(nameInVignette, new class_230(class_134.method_253(nameInGame, string.Empty), largePortrait, smallPortrait, color, isOnLeft));
+	}
+	#endregion
 }
 
 /// <summary>
@@ -404,81 +429,4 @@ public static class PartRendererExtensions {
 	public static PartRenderer OfTexture(string texture, params HexIndex[] hexes) {
 		return OfTexture(class_235.method_615(texture), hexes);
 	}
-}
-
-public enum OMSound : int
-{
-	click_button,
-	click_deselect,
-	click_select,
-	click_story,
-	close_enter,
-	close_leave,
-	code_button,
-	code_failure,
-	code_success,
-	fanfare_solving1,
-	fanfare_solving2,
-	fanfare_solving3,
-	fanfare_solving4,
-	fanfare_solving5,
-	fanfare_solving6,
-	fanfare_story1,
-	fanfare_story2,
-	glyph_animismus,
-	glyph_bonding,
-	glyph_calcification,
-	glyph_dispersion,
-	glyph_disposal,
-	glyph_duplication,
-	glyph_projection,
-	glyph_purification,
-	glyph_triplex1,
-	glyph_triplex2,
-	glyph_triplex3,
-	glyph_unbonding,
-	glyph_unification,
-	instruction_pickup,
-	instruction_place,
-	instruction_remove,
-	piece_modify,
-	piece_pickup,
-	piece_place,
-	piece_remove,
-	piece_rotate,
-	release_button,
-	sim_error,
-	sim_start,
-	sim_step,
-	sim_stop,
-	solitaire_end,
-	solitaire_match,
-	solitaire_select,
-	solitaire_start,
-	solution,
-	title,
-	ui_complete,
-	ui_fade,
-	ui_modal,
-	ui_modal_close,
-	ui_paper,
-	ui_paper_back,
-	ui_transition,
-	ui_transition_back,
-	ui_unlock,
-}
-
-public enum OMSong : int
-{
-	Map,
-	Solitaire,
-	Solving1,
-	Solving2,
-	Solving3,
-	Solving4,
-	Solving5,
-	Solving6,
-	Story1,
-	Story2,
-	Title,
 }

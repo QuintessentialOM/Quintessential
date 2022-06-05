@@ -14,6 +14,7 @@ using MonoMod.Utils;
 using Quintessential.Serialization;
 
 namespace Quintessential;
+using Texture = class_256;
 
 public class QuintessentialLoader {
 
@@ -36,6 +37,7 @@ public class QuintessentialLoader {
 	public static ModMeta QuintessentialModMeta;
 	public static QuintessentialMod QuintessentialAsMod;
 
+	private static List<VignetteActorModel> ModVignetteActors = new();
 	private static List<CampaignModel> ModCampaignModels = new();
 	private static List<JournalModel> ModJournalModels = new();
 
@@ -242,20 +244,28 @@ SomeZipIDontLike.zip");
 		var puzzles = Path.Combine(mod.PathDirectory, "Puzzles");
 		if(Directory.Exists(puzzles)) {
 			ModPuzzleDirectories.Add(puzzles);
+			Logger.Log("DEBUG: Searching in " + puzzles);
 			// Look for name.campaign.yaml and name.journal.yaml files in the folder
 			foreach(var item in Directory.GetFiles(puzzles)) {
 				string filename = Path.GetFileName(item);
-				if(filename.EndsWith(".campaign.yaml")) {
-					using StreamReader reader = new(item);
-
+				Logger.Log("    Looking at " + filename);
+				using StreamReader reader = new(item);
+				if (filename.EndsWith(".vignetteCast.yaml"))
+				{
+					VignetteCastModel c = YamlHelper.Deserializer.Deserialize<VignetteCastModel>(reader);
+					Logger.Log($"    Adding {c.Cast.Count} vignette actors.");
+					c.Path = Path.GetDirectoryName(item);
+					ModVignetteActors.AddRange(c.Cast);
+				}
+				if (filename.EndsWith(".campaign.yaml"))
+				{
 					CampaignModel c = YamlHelper.Deserializer.Deserialize<CampaignModel>(reader);
 					Logger.Log($"Campaign \"{c.Title}\" ({c.Name}) has {c.Chapters.Count} chapters.");
 					c.Path = Path.GetDirectoryName(item);
 					ModCampaignModels.Add(c);
 				}
-				if(filename.EndsWith(".journal.yaml")) {
-					using StreamReader reader = new(item);
-
+				if (filename.EndsWith(".journal.yaml"))
+				{
 					JournalModel c = YamlHelper.Deserializer.Deserialize<JournalModel>(reader);
 					Logger.Log($"Journal \"{c.Title}\" has {c.Chapters.Count} chapters.");
 					bool valid = true;
@@ -425,6 +435,23 @@ SomeZipIDontLike.zip");
 		return Assembly.LoadFrom(asmPath);
 	}
 
+	public static void LoadVignetteActors()
+	{
+		foreach (var a in ModVignetteActors)
+		{
+			Texture smallPortrait = null;
+			Texture largePortrait = null;
+			if (!string.IsNullOrEmpty(a.smallPortrait))
+			{
+				smallPortrait = QApi.loadTexture(a.smallPortrait);
+			}
+			if (!string.IsNullOrEmpty(a.largePortrait))
+			{
+				largePortrait = QApi.loadTexture(a.largePortrait);
+			}
+			QApi.addVignetteActor(a.nameInVignette, a.nameInGame, Color.FromHex(a.color), smallPortrait, largePortrait, a.isOnLeft);
+		}
+	}
 	public static void LoadCampaigns() {
 		VanillaCampaign = Campaigns.field_2330;
 		((patch_Campaign)(object)VanillaCampaign).QuintTitle = "Opus Magnum";
