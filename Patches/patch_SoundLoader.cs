@@ -1,5 +1,4 @@
-﻿using System.IO;
-using MonoMod;
+﻿using MonoMod;
 using Quintessential;
 using Song = class_186;
 
@@ -14,7 +13,7 @@ class patch_SoundLoader
 		string filePath = QApi.fetchPath(path, ".wav");
 		return new Sound()
 		{
-			field_4060 = Path.GetFileNameWithoutExtension(path),
+			field_4060 = path,
 			field_4061 = class_158.method_375(filePath)
 		};
 	}

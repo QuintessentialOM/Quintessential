@@ -143,72 +143,85 @@ public static class QApi
 
 
 	#region Sound APIs
-	private static readonly List<Sound> AllSounds = new();
-	private static readonly Dictionary<OMSound, Sound> OMSounds = new()
+	private static Dictionary<string, Sound> AllSounds = new()
 	{
-		{ OMSound.click_button			, class_238.field_1991.field_1821 },
-		{ OMSound.click_deselect		, class_238.field_1991.field_1822 },
-		{ OMSound.click_select			, class_238.field_1991.field_1823 },
-		{ OMSound.click_story			, class_238.field_1991.field_1824 },
-		{ OMSound.close_enter			, class_238.field_1991.field_1825 },
-		{ OMSound.close_leave			, class_238.field_1991.field_1826 },
-		{ OMSound.code_button			, class_238.field_1991.field_1827 },
-		{ OMSound.code_failure			, class_238.field_1991.field_1828 },
-		{ OMSound.code_success			, class_238.field_1991.field_1829 },
-		{ OMSound.fanfare_solving1		, class_238.field_1991.field_1830 },
-		{ OMSound.fanfare_solving2		, class_238.field_1991.field_1831 },
-		{ OMSound.fanfare_solving3		, class_238.field_1991.field_1832 },
-		{ OMSound.fanfare_solving4		, class_238.field_1991.field_1833 },
-		{ OMSound.fanfare_solving5		, class_238.field_1991.field_1834 },
-		{ OMSound.fanfare_solving6		, class_238.field_1991.field_1835 },
-		{ OMSound.fanfare_story1		, class_238.field_1991.field_1836 },
-		{ OMSound.fanfare_story2		, class_238.field_1991.field_1837 },
-		{ OMSound.glyph_animismus		, class_238.field_1991.field_1838 },
-		{ OMSound.glyph_bonding			, class_238.field_1991.field_1839 },
-		{ OMSound.glyph_calcification	, class_238.field_1991.field_1840 },
-		{ OMSound.glyph_dispersion		, class_238.field_1991.field_1841 },
-		{ OMSound.glyph_disposal		, class_238.field_1991.field_1842 },
-		{ OMSound.glyph_duplication		, class_238.field_1991.field_1843 },
-		{ OMSound.glyph_projection		, class_238.field_1991.field_1844 },
-		{ OMSound.glyph_purification	, class_238.field_1991.field_1845 },
-		{ OMSound.glyph_triplex1		, class_238.field_1991.field_1846 },
-		{ OMSound.glyph_triplex2		, class_238.field_1991.field_1847 },
-		{ OMSound.glyph_triplex3		, class_238.field_1991.field_1848 },
-		{ OMSound.glyph_unbonding		, class_238.field_1991.field_1849 },
-		{ OMSound.glyph_unification		, class_238.field_1991.field_1850 },
-		{ OMSound.instruction_pickup	, class_238.field_1991.field_1851 },
-		{ OMSound.instruction_place		, class_238.field_1991.field_1852 },
-		{ OMSound.instruction_remove	, class_238.field_1991.field_1853 },
-		{ OMSound.piece_modify			, class_238.field_1991.field_1854 },
-		{ OMSound.piece_pickup			, class_238.field_1991.field_1855 },
-		{ OMSound.piece_place			, class_238.field_1991.field_1856 },
-		{ OMSound.piece_remove			, class_238.field_1991.field_1857 },
-		{ OMSound.piece_rotate			, class_238.field_1991.field_1858 },
-		{ OMSound.release_button		, class_238.field_1991.field_1859 },
-		{ OMSound.sim_error				, class_238.field_1991.field_1860 },
-		{ OMSound.sim_start				, class_238.field_1991.field_1861 },
-		{ OMSound.sim_step				, class_238.field_1991.field_1862 },
-		{ OMSound.sim_stop				, class_238.field_1991.field_1863 },
-		{ OMSound.solitaire_end			, class_238.field_1991.field_1864 },
-		{ OMSound.solitaire_match		, class_238.field_1991.field_1865 },
-		{ OMSound.solitaire_select		, class_238.field_1991.field_1866 },
-		{ OMSound.solitaire_start		, class_238.field_1991.field_1867 },
-		{ OMSound.solution				, class_238.field_1991.field_1868 },
-		{ OMSound.title					, class_238.field_1991.field_1869 },
-		{ OMSound.ui_complete			, class_238.field_1991.field_1870 },
-		{ OMSound.ui_fade				, class_238.field_1991.field_1871 },
-		{ OMSound.ui_modal				, class_238.field_1991.field_1872 },
-		{ OMSound.ui_modal_close		, class_238.field_1991.field_1873 },
-		{ OMSound.ui_paper				, class_238.field_1991.field_1874 },
-		{ OMSound.ui_paper_back			, class_238.field_1991.field_1875 },
-		{ OMSound.ui_transition			, class_238.field_1991.field_1876 },
-		{ OMSound.ui_transition_back	, class_238.field_1991.field_1877 },
-		{ OMSound.ui_unlock				, class_238.field_1991.field_1878 },
+		{ "sounds/click_button"			, class_238.field_1991.field_1821 },
+		{ "sounds/click_deselect"		, class_238.field_1991.field_1822 },
+		{ "sounds/click_select"			, class_238.field_1991.field_1823 },
+		{ "sounds/click_story"			, class_238.field_1991.field_1824 },
+		{ "sounds/close_enter"			, class_238.field_1991.field_1825 },
+		{ "sounds/close_leave"			, class_238.field_1991.field_1826 },
+		{ "sounds/code_button"			, class_238.field_1991.field_1827 },
+		{ "sounds/code_failure"			, class_238.field_1991.field_1828 },
+		{ "sounds/code_success"			, class_238.field_1991.field_1829 },
+		{ "sounds/fanfare_solving1"		, class_238.field_1991.field_1830 },
+		{ "sounds/fanfare_solving2"		, class_238.field_1991.field_1831 },
+		{ "sounds/fanfare_solving3"		, class_238.field_1991.field_1832 },
+		{ "sounds/fanfare_solving4"		, class_238.field_1991.field_1833 },
+		{ "sounds/fanfare_solving5"		, class_238.field_1991.field_1834 },
+		{ "sounds/fanfare_solving6"		, class_238.field_1991.field_1835 },
+		{ "sounds/fanfare_story1"		, class_238.field_1991.field_1836 },
+		{ "sounds/fanfare_story2"		, class_238.field_1991.field_1837 },
+		{ "sounds/glyph_animismus"		, class_238.field_1991.field_1838 },
+		{ "sounds/glyph_bonding"		, class_238.field_1991.field_1839 },
+		{ "sounds/glyph_calcification"	, class_238.field_1991.field_1840 },
+		{ "sounds/glyph_dispersion"		, class_238.field_1991.field_1841 },
+		{ "sounds/glyph_disposal"		, class_238.field_1991.field_1842 },
+		{ "sounds/glyph_duplication"	, class_238.field_1991.field_1843 },
+		{ "sounds/glyph_projection"		, class_238.field_1991.field_1844 },
+		{ "sounds/glyph_purification"	, class_238.field_1991.field_1845 },
+		{ "sounds/glyph_triplex1"		, class_238.field_1991.field_1846 },
+		{ "sounds/glyph_triplex2"		, class_238.field_1991.field_1847 },
+		{ "sounds/glyph_triplex3"		, class_238.field_1991.field_1848 },
+		{ "sounds/glyph_unbonding"		, class_238.field_1991.field_1849 },
+		{ "sounds/glyph_unification"	, class_238.field_1991.field_1850 },
+		{ "sounds/instruction_pickup"	, class_238.field_1991.field_1851 },
+		{ "sounds/instruction_place"	, class_238.field_1991.field_1852 },
+		{ "sounds/instruction_remove"	, class_238.field_1991.field_1853 },
+		{ "sounds/piece_modify"			, class_238.field_1991.field_1854 },
+		{ "sounds/piece_pickup"			, class_238.field_1991.field_1855 },
+		{ "sounds/piece_place"			, class_238.field_1991.field_1856 },
+		{ "sounds/piece_remove"			, class_238.field_1991.field_1857 },
+		{ "sounds/piece_rotate"			, class_238.field_1991.field_1858 },
+		{ "sounds/release_button"		, class_238.field_1991.field_1859 },
+		{ "sounds/sim_error"			, class_238.field_1991.field_1860 },
+		{ "sounds/sim_start"			, class_238.field_1991.field_1861 },
+		{ "sounds/sim_step"				, class_238.field_1991.field_1862 },
+		{ "sounds/sim_stop"				, class_238.field_1991.field_1863 },
+		{ "sounds/solitaire_end"		, class_238.field_1991.field_1864 },
+		{ "sounds/solitaire_match"		, class_238.field_1991.field_1865 },
+		{ "sounds/solitaire_select"		, class_238.field_1991.field_1866 },
+		{ "sounds/solitaire_start"		, class_238.field_1991.field_1867 },
+		{ "sounds/solution"				, class_238.field_1991.field_1868 },
+		{ "sounds/title"				, class_238.field_1991.field_1869 },
+		{ "sounds/ui_complete"			, class_238.field_1991.field_1870 },
+		{ "sounds/ui_fade"				, class_238.field_1991.field_1871 },
+		{ "sounds/ui_modal"				, class_238.field_1991.field_1872 },
+		{ "sounds/ui_modal_close"		, class_238.field_1991.field_1873 },
+		{ "sounds/ui_paper"				, class_238.field_1991.field_1874 },
+		{ "sounds/ui_paper_back"		, class_238.field_1991.field_1875 },
+		{ "sounds/ui_transition"		, class_238.field_1991.field_1876 },
+		{ "sounds/ui_transition_back"	, class_238.field_1991.field_1877 },
+		{ "sounds/ui_unlock"			, class_238.field_1991.field_1878 },
 	};
 
 	public static void resetSounds()
 	{
-		foreach (var sound in AllSounds) sound.field_4062 = false;
+		foreach (var kvp in AllSounds)
+		{
+			kvp.Value.field_4062 = false;
+		}
+	}
+
+	public static void addSoundVolumeEntry(string path, float maxVolume)
+	{
+		var volumeDictField = typeof(class_11).GetField("field_52", BindingFlags.Static | BindingFlags.NonPublic);
+		Dictionary<string, float> volumeDict = (Dictionary<string, float>)volumeDictField.GetValue(null);
+		if (!volumeDict.ContainsKey(path))
+		{
+			volumeDict.Add(path, maxVolume);
+			volumeDictField.SetValue(null, volumeDict);
+		}
 	}
 
 	/// <summary>
@@ -221,29 +234,18 @@ public static class QApi
 		//load sound
 		string maxVolumeStr = maxVolume.ToString();
 		var sound = class_235.method_616(path);
-		sound.field_4060 = maxVolumeStr;
-
-		//add volume entry to class_11.field_52
-		var volumeDictField = typeof(class_11).GetField("field_52", BindingFlags.Static | BindingFlags.NonPublic);
-		Dictionary<string, float> volumeDict = (Dictionary<string, float>)volumeDictField.GetValue(null);
-		if (!volumeDict.ContainsKey(maxVolumeStr))
-		{
-			volumeDict.Add(maxVolumeStr, maxVolume);
-			volumeDictField.SetValue(null, volumeDict);
-		}
-		//add sound to AllSounds, so method_504 can reset field_4062 when required
-		AllSounds.Add(sound);
-
+		addSoundVolumeEntry(sound.field_4060, maxVolume);
+		AllSounds.Add(path,sound);
 		return sound;
 	}
 
 	/// <summary>
-	/// Returns the vanilla Sound associated with the OMSoundID.
+	/// Returns the Sound associated with the filepath.
 	/// </summary>
-	/// <param name="id">The ID of the sound.</param>
-	public static Sound fetchSound(OMSound id)
+	/// <param name="path">The file path to the sound.</param>
+	public static Sound fetchSound(string path)
 	{
-		return OMSounds[id];
+		return AllSounds[path];
 	}
 
 	/// <summary>
@@ -273,7 +275,7 @@ public static class QApi
 	/// <param name="seb">The current SolutionEditorBase.</param>
 	public static void playSound(Sound sound, SolutionEditorBase seb = null)
 	{
-		class_11.method_28(sound, getVolumeFactor(seb));
+		class_11.method_28(sound, getVolumeFactor(null, seb));
 	}
 
 	/// <summary>
@@ -324,19 +326,19 @@ public static class QApi
 	#endregion
 
 	#region Song APIs
-	private static readonly Dictionary<OMSong, Song> OMSongs = new()
+	private static Dictionary<string, Song> AllSongs = new()
 	{
-		{OMSong.Map         ,class_238.field_1992.field_968},
-		{OMSong.Solitaire   ,class_238.field_1992.field_969},
-		{OMSong.Solving1    ,class_238.field_1992.field_970},
-		{OMSong.Solving2    ,class_238.field_1992.field_971},
-		{OMSong.Solving3    ,class_238.field_1992.field_972},
-		{OMSong.Solving4    ,class_238.field_1992.field_973},
-		{OMSong.Solving5    ,class_238.field_1992.field_974},
-		{OMSong.Solving6    ,class_238.field_1992.field_975},
-		{OMSong.Story1      ,class_238.field_1992.field_976},
-		{OMSong.Story2      ,class_238.field_1992.field_977},
-		{OMSong.Title       ,class_238.field_1992.field_978},
+		{"music/Map"         ,class_238.field_1992.field_968},
+		{"music/Solitaire"   ,class_238.field_1992.field_969},
+		{"music/Solving1"    ,class_238.field_1992.field_970},
+		{"music/Solving2"    ,class_238.field_1992.field_971},
+		{"music/Solving3"    ,class_238.field_1992.field_972},
+		{"music/Solving4"    ,class_238.field_1992.field_973},
+		{"music/Solving5"    ,class_238.field_1992.field_974},
+		{"music/Solving6"    ,class_238.field_1992.field_975},
+		{"music/Story1"      ,class_238.field_1992.field_976},
+		{"music/Story2"      ,class_238.field_1992.field_977},
+		{"music/Title"       ,class_238.field_1992.field_978},
 	};
 
 	/// <summary>
@@ -349,12 +351,12 @@ public static class QApi
 	}
 
 	/// <summary>
-	/// Returns the vanilla Song associated with the OMSongID.
+	/// Returns the Song associated with the file path.
 	/// </summary>
-	/// <param name="id">The ID of the song.</param>
-	public static Song fetchSong(OMSong id)
+	/// <param name="path">The file path to the song.</param>
+	public static Song fetchSong(string path)
 	{
-		return OMSongs[id];
+		return AllSongs[path];
 	}
 	#endregion
 }
