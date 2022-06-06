@@ -504,34 +504,80 @@ SomeZipIDontLike.zip");
 				);
 
 				foreach(var entry in chapter.Entries) {
-					string baseName = Path.Combine(c.Path, entry.Puzzle);
-					Puzzle puzzle;
-					if(File.Exists(baseName + ".puzzle")) {
-						puzzle = Puzzle.method_1249(baseName + ".puzzle");
-					} else if(File.Exists(baseName + ".puzzle.yaml")) {
-						puzzle = PuzzleModel.FromModel(YamlHelper.Deserializer.Deserialize<PuzzleModel>(File.ReadAllText(baseName + ".puzzle.yaml")));
-					} else {
-						Logger.Log($"Puzzle \"{entry.Puzzle}\" from campaign \"{c.Title}\" doesn't exist, ignoring");
+					string baseName;
+
+					//determine entry type, then load relevant data
+					enum_129 entryType;
+					Maybe<Puzzle> maybePuzzle = struct_18.field_1431;
+					if (!string.IsNullOrEmpty(entry.Puzzle))
+					{
+						baseName = Path.Combine(c.Path, entry.Puzzle);
+						entryType = 0;
+						Puzzle puzzle;
+						if (File.Exists(baseName + ".puzzle"))
+						{
+							puzzle = Puzzle.method_1249(baseName + ".puzzle");
+						}
+						else if (File.Exists(baseName + ".puzzle.yaml"))
+						{
+							puzzle = PuzzleModel.FromModel(YamlHelper.Deserializer.Deserialize<PuzzleModel>(File.ReadAllText(baseName + ".puzzle.yaml")));
+						}
+						else
+						{
+							Logger.Log($"Puzzle \"{entry.Puzzle}\" from campaign \"{c.Title}\" doesn't exist, ignoring");
+							continue;
+						}
+						puzzle.field_2766 = entry.ID;
+						// ensure all inputs/outputs have names
+						foreach (PuzzleInputOutput io in puzzle.field_2770.Union(puzzle.field_2771))
+						{
+							if (!io.field_2813.field_2639.method_1085())
+							{
+								io.field_2813.field_2639 = class_134.method_253("Molecule", string.Empty);
+							}
+						}
+						maybePuzzle = puzzle;
+					} else if (entry.Cutscene)
+					{
+						entryType = (enum_129) 1;
+						// need to implement a way to load custom backgrounds and location names for a cutscene
+						// and then pass that information to the cutscene drawing function somehow
+						// refer to method_50 in class_252
+					}
+					else
+					{
+						Logger.Log($"Invalid entry \"{entry.ID}\" from campaign \"{c.Title}\", ignoring");
 						continue;
 					}
-					puzzle.field_2766 = entry.ID;
-					// ensure all inputs/outputs have names
-					foreach(PuzzleInputOutput io in puzzle.field_2770.Union(puzzle.field_2771)) {
-						if(!io.field_2813.field_2639.method_1085()) {
-							io.field_2813.field_2639 = class_134.method_253("Molecule", string.Empty);
-						}
-					}
-					// TODO: optimize
+					// implement other entry types later, and modify other code so we can do solitaires, letters, etc. more easily
 
-					enum_129 type = 0; // implement other types later, and modify other code so we can do solitaires, letters, etc. more easily
-					Maybe<class_215> tutorialScreen = struct_18.field_1431; // implement later - refer to method_558()
+					Maybe<class_215> tutorialScreen = struct_18.field_1431; // implement later - refer to method_558
 					string songPath = string.IsNullOrEmpty(entry.Song) ? "music/Solving3" : entry.Song;
 					string fanfarePath = string.IsNullOrEmpty(entry.Fanfare) ? "sounds/fanfare_solving3" : entry.Fanfare;
-					class_259 requirement = string.IsNullOrEmpty(entry.Requires) ? (class_259)new class_174() : new class_243(entry.Requires); // reimplement later
 
-					AddEntryToCampaign(campaign, j, entry.ID, class_134.method_253(entry.Title, string.Empty), type, tutorialScreen, puzzle, QApi.fetchSong(songPath), QApi.fetchSound(fanfarePath), requirement);
-					Array.Resize(ref Puzzles.field_2816, Puzzles.field_2816.Length + 1);
-					Puzzles.field_2816[Puzzles.field_2816.Length - 1] = puzzle;
+					class_259 requirement;
+					int n = -1;
+					if (string.IsNullOrEmpty(entry.Requires))
+					{
+						requirement = new class_174();
+					}
+					else if (int.TryParse(entry.Requires, out n))
+					{
+						requirement = new class_265(n);
+					}
+					else
+					{
+						requirement = new class_243(entry.Requires);
+					}
+
+					// TODO: optimize
+					AddEntryToCampaign(campaign, j, entry.ID, class_134.method_253(entry.Title, string.Empty), entryType, tutorialScreen, maybePuzzle, QApi.fetchSong(songPath), QApi.fetchSound(fanfarePath), requirement);
+					if (maybePuzzle.method_1085())
+					{
+						Array.Resize(ref Puzzles.field_2816, Puzzles.field_2816.Length + 1);
+						Puzzles.field_2816[Puzzles.field_2816.Length - 1] = maybePuzzle.method_1087();
+					}
+					
 				}
 			}
 
