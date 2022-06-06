@@ -50,7 +50,7 @@ public static class QApi
 		{
 			return path;
 		}
-		throw new ThrowError("QApi.fetchPath: the file ' " + filePath + " ' does not exist in any mod's content directory!");
+		throw new ThrowError($"QApi.fetchPath: the file \"{filePath}\" does not exist in any mod's content directory!");
 	}
 
 	/// <summary>
@@ -245,7 +245,14 @@ public static class QApi
 	/// <param name="path">The file path to the sound.</param>
 	public static Sound fetchSound(string path)
 	{
-		return AllSounds[path];
+		if (AllSounds.ContainsKey(path))
+		{
+			return AllSounds[path];
+		}
+		else
+		{
+			throw new ThrowError($"QApi.fetchSound: can't find \"{path}\" - did you forget to load it?");
+		}
 	}
 
 	/// <summary>
@@ -358,7 +365,14 @@ public static class QApi
 	/// <param name="path">The file path to the song.</param>
 	public static Song fetchSong(string path)
 	{
-		return AllSongs[path];
+		if (AllSongs.ContainsKey(path))
+		{
+			return AllSongs[path];
+		}
+		else
+		{
+			throw new ThrowError($"QApi.fetchSong: can't find \"{path}\" - did you forget to load it?");
+		}
 	}
 	#endregion
 
