@@ -347,6 +347,8 @@ public static class QApi
 	/// <param name="path">The file path to the song.</param>
 	public static Song loadSong(string path)
 	{
+		var s = class_235.method_617(path);
+		AllSongs.Add(path, s);
 		return class_235.method_617(path);
 	}
 

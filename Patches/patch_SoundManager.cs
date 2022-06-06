@@ -22,6 +22,10 @@ class patch_SoundManager
 			newVolumeDict.Add("sounds/" + kvp.Key, kvp.Value);
 		}
 		volumeDictField.SetValue(null, newVolumeDict);
+		//load mod sounds and songs
+		//yes i know class_102.method_129 loads the vanilla songs, but too bad, i'm doing it here
+		QuintessentialLoader.LoadSounds();
+		QuintessentialLoader.LoadSongs();
 	}
 
 	public extern void orig_method_540();

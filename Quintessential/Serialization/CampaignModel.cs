@@ -6,9 +6,7 @@ namespace Quintessential.Serialization;
 
 public class CampaignModel {
 
-	public string Name { get; set; }
-
-	public string Title { get; set; }
+	public string Name, Title;
 
 	public IList<ChapterModel> Chapters { get; set; }
 
@@ -18,28 +16,16 @@ public class CampaignModel {
 
 public class ChapterModel {
 
-	public string Title { get; set; }
-
-	public string Subtitle { get; set; }
-
-	public string Place { get; set; }
-
-	public string Background { get; set; }
+	public string Title, Subtitle, Place, Background;
 
 	// TODO: wheel icons
 
-	public IList<EntryModel> Entries { get; set; }
+	public IList<EntryModel> Entries;
 }
 
 public class EntryModel {
 
 	// TODO: multiple requirements, solitaires and documents, tutorials
 
-	public string ID { get; set; }
-
-	public string Title { get; set; }
-
-	public string Puzzle { get; set; }
-
-	public string Requires { get; set; }
+	public string ID, Title, Song, Fanfare, Puzzle, Requires;
 }

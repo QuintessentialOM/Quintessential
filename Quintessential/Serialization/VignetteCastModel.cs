@@ -6,9 +6,6 @@ namespace Quintessential.Serialization;
 public class VignetteCastModel {
 
 	public List<VignetteActorModel> Cast = new();
-
-	[YamlIgnore]
-	public string Path = "";
 }
 public class VignetteActorModel
 {

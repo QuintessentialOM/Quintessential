@@ -15,6 +15,7 @@ using Quintessential.Serialization;
 
 namespace Quintessential;
 using Texture = class_256;
+using Song = class_186;
 
 public class QuintessentialLoader {
 
@@ -37,6 +38,8 @@ public class QuintessentialLoader {
 	public static ModMeta QuintessentialModMeta;
 	public static QuintessentialMod QuintessentialAsMod;
 
+	private static List<SoundModel> ModSounds = new();
+	private static List<SongModel> ModSongs = new();
 	private static List<VignetteActorModel> ModVignetteActors = new();
 	private static List<CampaignModel> ModCampaignModels = new();
 	private static List<JournalModel> ModJournalModels = new();
@@ -254,8 +257,14 @@ SomeZipIDontLike.zip");
 				{
 					VignetteCastModel c = YamlHelper.Deserializer.Deserialize<VignetteCastModel>(reader);
 					Logger.Log($"    Adding {c.Cast.Count} vignette actors.");
-					c.Path = Path.GetDirectoryName(item);
 					ModVignetteActors.AddRange(c.Cast);
+				}
+				if (filename.EndsWith(".sounds.yaml"))
+				{
+					SoundsModel c = YamlHelper.Deserializer.Deserialize<SoundsModel>(reader);
+					Logger.Log($"    Adding {c.Sounds.Count} sounds and {c.Songs.Count} songs.");
+					ModSounds.AddRange(c.Sounds);
+					ModSongs.AddRange(c.Songs);
 				}
 				if (filename.EndsWith(".campaign.yaml"))
 				{
@@ -452,6 +461,20 @@ SomeZipIDontLike.zip");
 			QApi.addVignetteActor(a.nameInVignette, a.nameInGame, Color.FromHex(a.color), smallPortrait, largePortrait, a.isOnLeft);
 		}
 	}
+	public static void LoadSounds()
+	{
+		foreach (var s in ModSounds)
+		{
+			QApi.loadSound(s.Path, s.Volume);
+		}
+	}
+	public static void LoadSongs()
+	{
+		foreach (var s in ModSongs)
+		{
+			QApi.loadSong(s.Path);
+		}
+	}
 	public static void LoadCampaigns() {
 		VanillaCampaign = Campaigns.field_2330;
 		((patch_Campaign)(object)VanillaCampaign).QuintTitle = "Opus Magnum";
@@ -499,7 +522,14 @@ SomeZipIDontLike.zip");
 						}
 					}
 					// TODO: optimize
-					AddEntryToCampaign(campaign, j, entry.ID, class_134.method_253(entry.Title, string.Empty), (enum_129)0, struct_18.field_1431, puzzle, class_238.field_1992.field_972, class_238.field_1991.field_1832, string.IsNullOrEmpty(entry.Requires) ? (class_259)new class_174() : new class_243(entry.Requires));
+
+					enum_129 type = 0; // implement other types later, and modify other code so we can do solitaires, letters, etc. more easily
+					Maybe<class_215> tutorialScreen = struct_18.field_1431; // implement later - refer to method_558()
+					string songPath = string.IsNullOrEmpty(entry.Song) ? "music/Solving3" : entry.Song;
+					string fanfarePath = string.IsNullOrEmpty(entry.Fanfare) ? "sounds/fanfare_solving3" : entry.Fanfare;
+					class_259 requirement = string.IsNullOrEmpty(entry.Requires) ? (class_259)new class_174() : new class_243(entry.Requires); // reimplement later
+
+					AddEntryToCampaign(campaign, j, entry.ID, class_134.method_253(entry.Title, string.Empty), type, tutorialScreen, puzzle, QApi.fetchSong(songPath), QApi.fetchSound(fanfarePath), requirement);
 					Array.Resize(ref Puzzles.field_2816, Puzzles.field_2816.Length + 1);
 					Puzzles.field_2816[Puzzles.field_2816.Length - 1] = puzzle;
 				}
@@ -520,7 +550,7 @@ SomeZipIDontLike.zip");
 			enum_129 type,
 			Maybe<class_215> param_4485,
 			Maybe<Puzzle> puzzle,
-			class_186 param_4487,
+			Song param_4487,
 			Sound clickSound,
 			class_259 requirement) {
 		if(puzzle.method_1085()) {
