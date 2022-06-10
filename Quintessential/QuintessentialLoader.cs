@@ -304,6 +304,12 @@ SomeZipIDontLike.zip");
 		Logger.Log("Starting puzzle content loading.");
 		foreach(var mod in CodeMods)
 			mod.LoadPuzzleContent();
+
+		// debug
+		QApi.AddPuzzlePermission("MyCoolPart", "Glyph of Coolness");
+		QApi.AddPuzzlePermission("GlyphIrridation", "Glyph of Irridation");
+		QApi.AddPuzzlePermission("ArmScissor", "Scissor Arms");
+
 		Logger.Log("Finished puzzle content loading.");
 	}
 

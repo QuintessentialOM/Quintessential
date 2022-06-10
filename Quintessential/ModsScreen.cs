@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -133,7 +132,8 @@ class ModsScreen : IScreen {
 		return new DrawProgress { pressed = settingsChanged, curY = y };
 	}
 
-	private bool DrawCheckbox(Vector2 pos, string label, bool enabled) {
+	// TODO: move to UI
+	public static bool DrawCheckbox(Vector2 pos, string label, bool enabled) {
 		Bounds2 boxBounds = Bounds2.WithSize(pos, new Vector2(36f, 37f));
 		Bounds2 labelBounds = UI.DrawText(label, pos + new Vector2(45f, 13f), UI.SubTitle, UI.TextColor, TextAlignment.Left);
 		if(enabled)
