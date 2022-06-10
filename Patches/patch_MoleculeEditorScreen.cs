@@ -12,7 +12,7 @@ class patch_MoleculeEditorScreen {
 		// find the correct position to put the atoms
 		Vector2 uiSize = new(1516f, 922f);
 		Vector2 corner = (Input.ScreenSize() / 2 - uiSize / 2 + new Vector2(-2f, -11f)).Rounded();
-		Vector2 atomSize = new Vector2(95f, -90f);
+		Vector2 atomSize = new(95f, -90f);
 		Vector2 atomPos = corner + new Vector2(169f, 754f); // vanilla atoms
 		atomPos.X += atomSize.X * 3;
 		foreach(var type in QApi.ModAtomTypes) {

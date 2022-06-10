@@ -45,6 +45,7 @@ public class PuzzleModel {
 			model.Highlights.Add(new HexIndexM(item));
 		if(puzzle.field_2779.method_1085())
 			model.ProductionInfo = new ProductionInfoM(puzzle.field_2779.method_1087());
+		model.CustomPermissions = ((patch_Puzzle)(object)puzzle).CustomPermissions;
 		return model;
 	}
 
@@ -59,6 +60,7 @@ public class PuzzleModel {
 		ret.field_2774 = model.Highlights.Select(k => k.FromModel()).ToArray();
 		if(model.ProductionInfo != null && model.ProductionInfo.Chambers.Count > 0)
 			ret.field_2779 = model.ProductionInfo.FromModel();
+		((patch_Puzzle)(object)ret).CustomPermissions = model.CustomPermissions;
 		return ret;
 	}
 
