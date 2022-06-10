@@ -89,16 +89,14 @@ SomeZipIDontLike.zip");
 			Logger.Log("Extracting Quintessential resources...");
 			string outDir = Path.Combine(PathMods, quintAssetFolder, "Content", "Quintessential");
 			Directory.CreateDirectory(outDir);
-			ResourceManager manager = new("Lightning.g", typeof(Renderer).Assembly);
+			ResourceManager manager = new("Properties.Resources", typeof(Renderer).Assembly);
 			var set = manager.GetResourceSet(CultureInfo.InvariantCulture, true, true);
-			foreach(object item in set) {
-				if(item is DictionaryEntry de) {
+			foreach(object item in set){
+				if(item is DictionaryEntry de){
 					string name = (string)de.Key;
-					using Stream content = (Stream)de.Value;
-					if(name.StartsWith("content/") || name.StartsWith("Content/"))
-						name = name.Substring("content/".Length);
 					using var toStream = File.OpenWrite(Path.Combine(outDir, name));
-					content.CopyTo(toStream);
+					byte[] content = (byte[])de.Value;
+					toStream.Write(content, 0, content.Length);
 				}
 			}
 			ModContentDirectories.Add(Path.Combine(PathMods, quintAssetFolder));
