@@ -41,6 +41,7 @@ public class QuintessentialLoader {
 	private static List<SoundModel> ModSounds = new();
 	private static List<SongModel> ModSongs = new();
 	private static List<VignetteActorModel> ModVignetteActors = new();
+	private static List<LocationModel> ModLocations = new();
 	private static List<CampaignModel> ModCampaignModels = new();
 	private static List<JournalModel> ModJournalModels = new();
 
@@ -236,6 +237,11 @@ SomeZipIDontLike.zip");
 			string dllPath = mod.DLL;
 			LoadModAssembly(mod, GetRemappedAssembly(dllPath, mod));
 		}
+		//helper function
+		string AddS(int amount)
+		{
+			return amount == 1 ? "" : "s";
+		}
 		// Get mod content
 		//  - Consider modded folders when fetching any content
 		//  - Custom language files: vanilla stores in a big CSV, but for custom dialogue (and languages) we'll want seperate files (e.g. English.txt, French.txt)
@@ -249,34 +255,47 @@ SomeZipIDontLike.zip");
 			ModPuzzleDirectories.Add(puzzles);
 			Logger.Log("DEBUG: Searching in " + puzzles);
 			// Look for name.campaign.yaml and name.journal.yaml files in the folder
-			foreach(var item in Directory.GetFiles(puzzles)) {
+			foreach (var item in Directory.GetFiles(puzzles)) {
 				string filename = Path.GetFileName(item);
 				Logger.Log("    Looking at " + filename);
 				using StreamReader reader = new(item);
-				if (filename.EndsWith(".vignetteCast.yaml"))
+
+				if (filename.EndsWith(".resources.yaml"))
 				{
-					VignetteCastModel c = YamlHelper.Deserializer.Deserialize<VignetteCastModel>(reader);
-					Logger.Log($"    Adding {c.Cast.Count} vignette actors.");
-					ModVignetteActors.AddRange(c.Cast);
-				}
-				if (filename.EndsWith(".sounds.yaml"))
-				{
-					SoundsModel c = YamlHelper.Deserializer.Deserialize<SoundsModel>(reader);
-					Logger.Log($"    Adding {c.Sounds.Count} sounds and {c.Songs.Count} songs.");
-					ModSounds.AddRange(c.Sounds);
-					ModSongs.AddRange(c.Songs);
+					ResourcesModel c = YamlHelper.Deserializer.Deserialize<ResourcesModel>(reader);
+					if (c.Characters.Count > 0)
+					{
+						Logger.Log($"    Adding {c.Characters.Count} vignette actor{AddS(c.Characters.Count)}.");
+						ModVignetteActors.AddRange(c.Characters);
+					}
+					if (c.Sounds.Count > 0)
+					{
+						Logger.Log($"    Adding {c.Sounds.Count} sound{AddS(c.Sounds.Count)}.");
+						ModSounds.AddRange(c.Sounds);
+					}
+					if (c.Songs.Count > 0)
+					{
+						Logger.Log($"    Adding {c.Songs.Count} song{AddS(c.Songs.Count)}.");
+						ModSongs.AddRange(c.Songs);
+					}
+					if (c.Locations.Count > 0)
+					{
+						Logger.Log($"    Adding {c.Locations.Count} cutscene locations{AddS(c.Locations.Count)}.");
+						ModLocations.AddRange(c.Locations);
+					}
+
 				}
 				if (filename.EndsWith(".campaign.yaml"))
 				{
 					CampaignModel c = YamlHelper.Deserializer.Deserialize<CampaignModel>(reader);
-					Logger.Log($"Campaign \"{c.Title}\" ({c.Name}) has {c.Chapters.Count} chapters.");
+					Logger.Log($"Campaign \"{c.Title}\" ({c.Name}) has {c.Chapters.Count} chapter{AddS(c.Chapters.Count)}.");
 					c.Path = Path.GetDirectoryName(item);
 					ModCampaignModels.Add(c);
 				}
 				if (filename.EndsWith(".journal.yaml"))
 				{
 					JournalModel c = YamlHelper.Deserializer.Deserialize<JournalModel>(reader);
-					Logger.Log($"Journal \"{c.Title}\" has {c.Chapters.Count} chapters.");
+					Logger.Log($"Journal \"{c.Title}\" has {c.Chapters.Count} chapter{AddS(c.Chapters.Count)}.");
 					bool valid = true;
 					foreach(var chapter in c.Chapters) {
 						if(chapter.Puzzles.Count != 5) {
@@ -450,15 +469,15 @@ SomeZipIDontLike.zip");
 		{
 			Texture smallPortrait = null;
 			Texture largePortrait = null;
-			if (!string.IsNullOrEmpty(a.smallPortrait))
+			if (!string.IsNullOrEmpty(a.SmallPortrait))
 			{
-				smallPortrait = QApi.loadTexture(a.smallPortrait);
+				smallPortrait = QApi.loadTexture(a.SmallPortrait);
 			}
-			if (!string.IsNullOrEmpty(a.largePortrait))
+			if (!string.IsNullOrEmpty(a.LargePortrait))
 			{
-				largePortrait = QApi.loadTexture(a.largePortrait);
+				largePortrait = QApi.loadTexture(a.LargePortrait);
 			}
-			QApi.addVignetteActor(a.nameInVignette, a.nameInGame, Color.FromHex(a.color), smallPortrait, largePortrait, a.isOnLeft);
+			QApi.addVignetteActor(a.ID, a.Name, Color.FromHex(a.Color), smallPortrait, largePortrait, a.IsOnLeft);
 		}
 	}
 	public static void LoadSounds()
