@@ -24,8 +24,9 @@ class patch_SoundManager
 		}
 		volumeDictField.SetValue(null, newVolumeDict);
 
-		//prep sound dictionary
+		//prep sound dictionary and load mod sounds
 		QApi.initializeSoundDictionary();
+		QuintessentialLoader.LoadSounds();
 	}
 
 	public extern void orig_method_540();

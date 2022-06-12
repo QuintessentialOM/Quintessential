@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Resources;
+using Texture = class_256;
 
 using Ionic.Zip;
 
@@ -30,14 +31,8 @@ public class QuintessentialLoader {
 	public static List<string> ModContentDirectories = new();
 	public static List<string> ModPuzzleDirectories = new();
 
-	public static List<Campaign> AllCampaigns = new();
-	public static Campaign VanillaCampaign;
-
 	public static ModMeta QuintessentialModMeta;
 	public static QuintessentialMod QuintessentialAsMod;
-
-	private static List<CampaignModel> ModCampaignModels = new();
-	private static List<JournalModel> ModJournalModels = new();
 
 	private static List<string> blacklisted = new();
 	private static List<ModMeta> loaded = new();
@@ -46,6 +41,7 @@ public class QuintessentialLoader {
 	private static readonly string zipExtractSuffix = "__quintessential_from_zip";
 	private static readonly string quintAssetFolder = "__quintessential_assets";
 
+	#region main methods
 	public static void PreInit() {
 		try {
 			PathLightning = Path.GetDirectoryName(typeof(GameLogic).Assembly.Location);
@@ -240,36 +236,8 @@ SomeZipIDontLike.zip");
 		var puzzles = Path.Combine(mod.PathDirectory, "Puzzles");
 		if(Directory.Exists(puzzles)) {
 			ModPuzzleDirectories.Add(puzzles);
-			// Look for name.campaign.yaml and name.journal.yaml files in the folder
-			foreach(var item in Directory.GetFiles(puzzles)) {
-				string filename = Path.GetFileName(item);
-				if(filename.EndsWith(".campaign.yaml")) {
-					using StreamReader reader = new(item);
-
-					CampaignModel c = YamlHelper.Deserializer.Deserialize<CampaignModel>(reader);
-					Logger.Log($"Campaign \"{c.Title}\" ({c.Name}) has {c.Chapters.Count} chapters.");
-					c.Path = Path.GetDirectoryName(item);
-					ModCampaignModels.Add(c);
-				}
-				if(filename.EndsWith(".journal.yaml")) {
-					using StreamReader reader = new(item);
-
-					JournalModel c = YamlHelper.Deserializer.Deserialize<JournalModel>(reader);
-					Logger.Log($"Journal \"{c.Title}\" has {c.Chapters.Count} chapters.");
-					bool valid = true;
-					foreach(var chapter in c.Chapters) {
-						if(chapter.Puzzles.Count != 5) {
-							Logger.Log($"Journal chapter \"{chapter.Title}\" in \"{c.Title}\" doesn't have 5 puzzles; skipping journal.");
-							valid = false; break;
-						}
-					}
-					if(valid) {
-						c.Path = Path.GetDirectoryName(item);
-						ModJournalModels.Add(c);
-					}
-				}
-			}
-		}
+			LoadModPuzzlesFromMeta(puzzles);
+		};
 
 		loaded.Add(mod);
 		Logger.Log($"Will load mod \"{mod.Name}\".");
@@ -319,7 +287,9 @@ SomeZipIDontLike.zip");
 			mod.Unload();
 		Logger.Log("Finished unloading.");
 	}
+	#endregion
 
+	#region Misc Helper Methods
 	protected static void FindZipMod(string zip) {
 		Logger.Log("Unzipping zip mod: " + zip);
 		// Check that the zip exists
@@ -428,7 +398,98 @@ SomeZipIDontLike.zip");
 		}
 		return Assembly.LoadFrom(asmPath);
 	}
+	#endregion
 
+	#region methods related to Custom Campaigns
+	public static List<Campaign> AllCampaigns = new();
+	public static Campaign VanillaCampaign;
+	private static List<CampaignModel> ModCampaignModels = new();
+	private static List<JournalModel> ModJournalModels = new();
+	private static List<SoundModel> ModSounds = new();
+	private static List<SongModel> ModSongs = new();
+	private static List<VignetteActorModel> ModVignetteActors = new();
+	private static List<LocationModel> ModLocations = new();
+
+	public static void LoadSounds()
+	{
+		foreach (var s in ModSounds)
+		{
+			QApi.loadSound(s.Path, s.Volume);
+			Logger.Log($"  Added sound \"{s.Path}\"");
+		}
+	}
+	public static void LoadSongs()
+	{
+		foreach (var s in ModSongs)
+		{
+			QApi.loadSong(s.Path);
+			Logger.Log($"  Added song \"{s.Path}\"");
+		}
+	}
+	public static void LoadVignetteActors()
+	{
+		foreach (var a in ModVignetteActors)
+		{
+			Texture smallPortrait = null;
+			Texture largePortrait = null;
+			if (!string.IsNullOrEmpty(a.SmallPortrait))
+			{
+				smallPortrait = QApi.loadTexture(a.SmallPortrait);
+			}
+			if (!string.IsNullOrEmpty(a.LargePortrait))
+			{
+				largePortrait = QApi.loadTexture(a.LargePortrait);
+			}
+			QApi.addVignetteActor(a.ID, a.Name, Color.FromHex(a.Color), smallPortrait, largePortrait, a.IsOnLeft);
+			Logger.Log($"  Added actor \"{a.Name}\"");
+		}
+	}
+	public static void LoadLocations()
+	{
+		foreach (var l in ModLocations)
+		{
+			QApi.loadTexture(l.Path, true);
+			Logger.Log($"  Added background texture \"{l.Path}\"");
+		}
+	}
+	private static void LoadModPuzzlesFromMeta(string puzzles)
+	{
+		// Look for name.campaign.yaml and name.journal.yaml files in the folder
+		foreach (var item in Directory.GetFiles(puzzles))
+		{
+			string filename = Path.GetFileName(item);
+			if (filename.EndsWith(".campaign.yaml"))
+			{
+				using StreamReader reader = new(item);
+
+				CampaignModel c = YamlHelper.Deserializer.Deserialize<CampaignModel>(reader);
+				Logger.Log($"Campaign \"{c.Title}\" ({c.Name}) has {c.Chapters.Count} chapters.");
+				c.Path = Path.GetDirectoryName(item);
+				ModCampaignModels.Add(c);
+			}
+			if (filename.EndsWith(".journal.yaml"))
+			{
+				using StreamReader reader = new(item);
+
+				JournalModel c = YamlHelper.Deserializer.Deserialize<JournalModel>(reader);
+				Logger.Log($"Journal \"{c.Title}\" has {c.Chapters.Count} chapters.");
+				bool valid = true;
+				foreach (var chapter in c.Chapters)
+				{
+					if (chapter.Puzzles.Count != 5)
+					{
+						Logger.Log($"Journal chapter \"{chapter.Title}\" in \"{c.Title}\" doesn't have 5 puzzles; skipping journal.");
+						valid = false; break;
+					}
+				}
+				if (valid)
+				{
+					c.Path = Path.GetDirectoryName(item);
+					ModJournalModels.Add(c);
+				}
+			}
+		}
+	}
 	public static void LoadCampaigns() {
 		VanillaCampaign = Campaigns.field_2330;
 		((patch_Campaign)(object)VanillaCampaign).QuintTitle = "Opus Magnum";
@@ -524,4 +585,5 @@ SomeZipIDontLike.zip");
 		Logger.Log($"Dumped puzzles to {outDir}");
 		UI.OpenScreen(new NoticeScreen("Puzzle Dumping", $"Saved puzzles to \"{outDir.Replace('\\', '/')}\""));
 	}
+	#endregion
 }
