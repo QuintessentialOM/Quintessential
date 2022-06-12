@@ -50,8 +50,6 @@
     <Resource Include="Content\missing.png" />
   </ItemGroup>
 
-</Project>
-=======
   <ItemGroup>
     <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
