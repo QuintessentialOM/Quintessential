@@ -253,7 +253,6 @@ SomeZipIDontLike.zip");
 		var puzzles = Path.Combine(mod.PathDirectory, "Puzzles");
 		if(Directory.Exists(puzzles)) {
 			ModPuzzleDirectories.Add(puzzles);
-			Logger.Log("DEBUG: Searching in " + puzzles);
 			// Look for name.campaign.yaml and name.journal.yaml files in the folder
 			foreach (var item in Directory.GetFiles(puzzles)) {
 				string filename = Path.GetFileName(item);
@@ -280,7 +279,7 @@ SomeZipIDontLike.zip");
 					}
 					if (c.Locations.Count > 0)
 					{
-						Logger.Log($"    Adding {c.Locations.Count} cutscene locations{AddS(c.Locations.Count)}.");
+						Logger.Log($"    Adding {c.Locations.Count} cutscene location{AddS(c.Locations.Count)}.");
 						ModLocations.AddRange(c.Locations);
 					}
 
@@ -463,6 +462,22 @@ SomeZipIDontLike.zip");
 		return Assembly.LoadFrom(asmPath);
 	}
 
+	public static void LoadSounds()
+	{
+		foreach (var s in ModSounds)
+		{
+			QApi.loadSound(s.Path, s.Volume);
+			Logger.Log($"  Added sound \"{s.Path}\"");
+		}
+	}
+	public static void LoadSongs()
+	{
+		foreach (var s in ModSongs)
+		{
+			QApi.loadSong(s.Path);
+			Logger.Log($"  Added song \"{s.Path}\"");
+		}
+	}
 	public static void LoadVignetteActors()
 	{
 		foreach (var a in ModVignetteActors)
@@ -480,18 +495,12 @@ SomeZipIDontLike.zip");
 			QApi.addVignetteActor(a.ID, a.Name, Color.FromHex(a.Color), smallPortrait, largePortrait, a.IsOnLeft);
 		}
 	}
-	public static void LoadSounds()
+	public static void LoadLocations()
 	{
-		foreach (var s in ModSounds)
+		foreach (var l in ModLocations)
 		{
-			QApi.loadSound(s.Path, s.Volume);
-		}
-	}
-	public static void LoadSongs()
-	{
-		foreach (var s in ModSongs)
-		{
-			QApi.loadSong(s.Path);
+			QApi.loadBackground(l.Path);
+			Logger.Log($"  Added background texture \"{l.Path}\"");
 		}
 	}
 	public static void LoadCampaigns() {
@@ -556,12 +565,10 @@ SomeZipIDontLike.zip");
 							}
 						}
 						maybePuzzle = puzzle;
-					} else if (entry.Cutscene)
+					} else if (entry.Cutscene != null)
 					{
 						entryType = (enum_129) 1;
-						// need to implement a way to load custom backgrounds and location names for a cutscene
-						// and then pass that information to the cutscene drawing function somehow
-						// refer to method_50 in class_252
+						patch_CutsceneScreen.addCutsceneData(entry.ID, entry.Cutscene.Location, entry.Cutscene.Background, entry.Cutscene.SlowFade);
 					}
 					else
 					{

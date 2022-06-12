@@ -143,67 +143,75 @@ public static class QApi
 	}
 
 	#region Sound APIs
-	private static Dictionary<string, Sound> AllSounds = new()
+	private static Dictionary<string, Sound> AllSounds;
+	//for some reason i can't initialize AllSounds the same way i can initialize AllSongs
+	//the game crashes before it finishes loading
+	//so i initialize this way instead. yuck - mr_puzzel
+	public static void initializeSoundDictionary()
 	{
-		{ "sounds/click_button"			, class_238.field_1991.field_1821 },
-		{ "sounds/click_deselect"		, class_238.field_1991.field_1822 },
-		{ "sounds/click_select"			, class_238.field_1991.field_1823 },
-		{ "sounds/click_story"			, class_238.field_1991.field_1824 },
-		{ "sounds/close_enter"			, class_238.field_1991.field_1825 },
-		{ "sounds/close_leave"			, class_238.field_1991.field_1826 },
-		{ "sounds/code_button"			, class_238.field_1991.field_1827 },
-		{ "sounds/code_failure"			, class_238.field_1991.field_1828 },
-		{ "sounds/code_success"			, class_238.field_1991.field_1829 },
-		{ "sounds/fanfare_solving1"		, class_238.field_1991.field_1830 },
-		{ "sounds/fanfare_solving2"		, class_238.field_1991.field_1831 },
-		{ "sounds/fanfare_solving3"		, class_238.field_1991.field_1832 },
-		{ "sounds/fanfare_solving4"		, class_238.field_1991.field_1833 },
-		{ "sounds/fanfare_solving5"		, class_238.field_1991.field_1834 },
-		{ "sounds/fanfare_solving6"		, class_238.field_1991.field_1835 },
-		{ "sounds/fanfare_story1"		, class_238.field_1991.field_1836 },
-		{ "sounds/fanfare_story2"		, class_238.field_1991.field_1837 },
-		{ "sounds/glyph_animismus"		, class_238.field_1991.field_1838 },
-		{ "sounds/glyph_bonding"		, class_238.field_1991.field_1839 },
-		{ "sounds/glyph_calcification"	, class_238.field_1991.field_1840 },
-		{ "sounds/glyph_dispersion"		, class_238.field_1991.field_1841 },
-		{ "sounds/glyph_disposal"		, class_238.field_1991.field_1842 },
-		{ "sounds/glyph_duplication"	, class_238.field_1991.field_1843 },
-		{ "sounds/glyph_projection"		, class_238.field_1991.field_1844 },
-		{ "sounds/glyph_purification"	, class_238.field_1991.field_1845 },
-		{ "sounds/glyph_triplex1"		, class_238.field_1991.field_1846 },
-		{ "sounds/glyph_triplex2"		, class_238.field_1991.field_1847 },
-		{ "sounds/glyph_triplex3"		, class_238.field_1991.field_1848 },
-		{ "sounds/glyph_unbonding"		, class_238.field_1991.field_1849 },
-		{ "sounds/glyph_unification"	, class_238.field_1991.field_1850 },
-		{ "sounds/instruction_pickup"	, class_238.field_1991.field_1851 },
-		{ "sounds/instruction_place"	, class_238.field_1991.field_1852 },
-		{ "sounds/instruction_remove"	, class_238.field_1991.field_1853 },
-		{ "sounds/piece_modify"			, class_238.field_1991.field_1854 },
-		{ "sounds/piece_pickup"			, class_238.field_1991.field_1855 },
-		{ "sounds/piece_place"			, class_238.field_1991.field_1856 },
-		{ "sounds/piece_remove"			, class_238.field_1991.field_1857 },
-		{ "sounds/piece_rotate"			, class_238.field_1991.field_1858 },
-		{ "sounds/release_button"		, class_238.field_1991.field_1859 },
-		{ "sounds/sim_error"			, class_238.field_1991.field_1860 },
-		{ "sounds/sim_start"			, class_238.field_1991.field_1861 },
-		{ "sounds/sim_step"				, class_238.field_1991.field_1862 },
-		{ "sounds/sim_stop"				, class_238.field_1991.field_1863 },
-		{ "sounds/solitaire_end"		, class_238.field_1991.field_1864 },
-		{ "sounds/solitaire_match"		, class_238.field_1991.field_1865 },
-		{ "sounds/solitaire_select"		, class_238.field_1991.field_1866 },
-		{ "sounds/solitaire_start"		, class_238.field_1991.field_1867 },
-		{ "sounds/solution"				, class_238.field_1991.field_1868 },
-		{ "sounds/title"				, class_238.field_1991.field_1869 },
-		{ "sounds/ui_complete"			, class_238.field_1991.field_1870 },
-		{ "sounds/ui_fade"				, class_238.field_1991.field_1871 },
-		{ "sounds/ui_modal"				, class_238.field_1991.field_1872 },
-		{ "sounds/ui_modal_close"		, class_238.field_1991.field_1873 },
-		{ "sounds/ui_paper"				, class_238.field_1991.field_1874 },
-		{ "sounds/ui_paper_back"		, class_238.field_1991.field_1875 },
-		{ "sounds/ui_transition"		, class_238.field_1991.field_1876 },
-		{ "sounds/ui_transition_back"	, class_238.field_1991.field_1877 },
-		{ "sounds/ui_unlock"			, class_238.field_1991.field_1878 },
-	};
+		if (AllSounds != null) return;
+		AllSounds = new()
+		{
+			{ "sounds/click_button"         , class_238.field_1991.field_1821 },
+			{ "sounds/click_deselect"       , class_238.field_1991.field_1822 },
+			{ "sounds/click_select"         , class_238.field_1991.field_1823 },
+			{ "sounds/click_story"          , class_238.field_1991.field_1824 },
+			{ "sounds/close_enter"          , class_238.field_1991.field_1825 },
+			{ "sounds/close_leave"          , class_238.field_1991.field_1826 },
+			{ "sounds/code_button"          , class_238.field_1991.field_1827 },
+			{ "sounds/code_failure"         , class_238.field_1991.field_1828 },
+			{ "sounds/code_success"         , class_238.field_1991.field_1829 },
+			{ "sounds/fanfare_solving1"     , class_238.field_1991.field_1830 },
+			{ "sounds/fanfare_solving2"     , class_238.field_1991.field_1831 },
+			{ "sounds/fanfare_solving3"     , class_238.field_1991.field_1832 },
+			{ "sounds/fanfare_solving4"     , class_238.field_1991.field_1833 },
+			{ "sounds/fanfare_solving5"     , class_238.field_1991.field_1834 },
+			{ "sounds/fanfare_solving6"     , class_238.field_1991.field_1835 },
+			{ "sounds/fanfare_story1"       , class_238.field_1991.field_1836 },
+			{ "sounds/fanfare_story2"       , class_238.field_1991.field_1837 },
+			{ "sounds/glyph_animismus"      , class_238.field_1991.field_1838 },
+			{ "sounds/glyph_bonding"        , class_238.field_1991.field_1839 },
+			{ "sounds/glyph_calcification"  , class_238.field_1991.field_1840 },
+			{ "sounds/glyph_dispersion"     , class_238.field_1991.field_1841 },
+			{ "sounds/glyph_disposal"       , class_238.field_1991.field_1842 },
+			{ "sounds/glyph_duplication"    , class_238.field_1991.field_1843 },
+			{ "sounds/glyph_projection"     , class_238.field_1991.field_1844 },
+			{ "sounds/glyph_purification"   , class_238.field_1991.field_1845 },
+			{ "sounds/glyph_triplex1"       , class_238.field_1991.field_1846 },
+			{ "sounds/glyph_triplex2"       , class_238.field_1991.field_1847 },
+			{ "sounds/glyph_triplex3"       , class_238.field_1991.field_1848 },
+			{ "sounds/glyph_unbonding"      , class_238.field_1991.field_1849 },
+			{ "sounds/glyph_unification"    , class_238.field_1991.field_1850 },
+			{ "sounds/instruction_pickup"   , class_238.field_1991.field_1851 },
+			{ "sounds/instruction_place"    , class_238.field_1991.field_1852 },
+			{ "sounds/instruction_remove"   , class_238.field_1991.field_1853 },
+			{ "sounds/piece_modify"         , class_238.field_1991.field_1854 },
+			{ "sounds/piece_pickup"         , class_238.field_1991.field_1855 },
+			{ "sounds/piece_place"          , class_238.field_1991.field_1856 },
+			{ "sounds/piece_remove"         , class_238.field_1991.field_1857 },
+			{ "sounds/piece_rotate"         , class_238.field_1991.field_1858 },
+			{ "sounds/release_button"       , class_238.field_1991.field_1859 },
+			{ "sounds/sim_error"            , class_238.field_1991.field_1860 },
+			{ "sounds/sim_start"            , class_238.field_1991.field_1861 },
+			{ "sounds/sim_step"             , class_238.field_1991.field_1862 },
+			{ "sounds/sim_stop"             , class_238.field_1991.field_1863 },
+			{ "sounds/solitaire_end"        , class_238.field_1991.field_1864 },
+			{ "sounds/solitaire_match"      , class_238.field_1991.field_1865 },
+			{ "sounds/solitaire_select"     , class_238.field_1991.field_1866 },
+			{ "sounds/solitaire_start"      , class_238.field_1991.field_1867 },
+			{ "sounds/solution"             , class_238.field_1991.field_1868 },
+			{ "sounds/title"                , class_238.field_1991.field_1869 },
+			{ "sounds/ui_complete"          , class_238.field_1991.field_1870 },
+			{ "sounds/ui_fade"              , class_238.field_1991.field_1871 },
+			{ "sounds/ui_modal"             , class_238.field_1991.field_1872 },
+			{ "sounds/ui_modal_close"       , class_238.field_1991.field_1873 },
+			{ "sounds/ui_paper"             , class_238.field_1991.field_1874 },
+			{ "sounds/ui_paper_back"        , class_238.field_1991.field_1875 },
+			{ "sounds/ui_transition"        , class_238.field_1991.field_1876 },
+			{ "sounds/ui_transition_back"   , class_238.field_1991.field_1877 },
+			{ "sounds/ui_unlock"            , class_238.field_1991.field_1878 },
+		};
+	}
 
 	public static void resetSounds()
 	{
@@ -354,9 +362,9 @@ public static class QApi
 	/// <param name="path">The file path to the song.</param>
 	public static Song loadSong(string path)
 	{
-		var s = class_235.method_617(path);
-		AllSongs.Add(path, s);
-		return class_235.method_617(path);
+		var song = class_235.method_617(path);
+		AllSongs.Add(path, song);
+		return song;
 	}
 
 	/// <summary>
@@ -376,7 +384,18 @@ public static class QApi
 	}
 	#endregion
 
-	#region Misc APIs
+	#region Texture APIs
+	private static Dictionary<string, Texture> AllBackgrounds = new()
+	{
+		{"textures/cinematic/backgrounds/greathall_a",	class_238.field_1989.field_84.field_535.field_536},
+		{"textures/cinematic/backgrounds/greathall_b",	class_238.field_1989.field_84.field_535.field_537},
+		{"textures/cinematic/backgrounds/greathall_c",	class_238.field_1989.field_84.field_535.field_538},
+		{"textures/cinematic/backgrounds/tailor_a",		class_238.field_1989.field_84.field_535.field_539},
+		{"textures/cinematic/backgrounds/tailor_b",		class_238.field_1989.field_84.field_535.field_540},
+		{"textures/cinematic/backgrounds/tailor_c",		class_238.field_1989.field_84.field_535.field_541},
+		{"textures/cinematic/backgrounds/workshop",		class_238.field_1989.field_84.field_535.field_542},
+	};
+
 	/// <summary>
 	/// Loads a .png or .psd texture from disk. Returns the new Texture.
 	/// </summary>
@@ -386,6 +405,35 @@ public static class QApi
 		return class_235.method_615(path);
 	}
 
+	/// <summary>
+	/// Loads a .png or .psd background from disk. Returns the new Texture.
+	/// </summary>
+	/// <param name="path">The file path to the texture.</param>
+	public static Texture loadBackground(string path)
+	{
+		var texture = loadTexture(path);
+		AllBackgrounds.Add(path, texture);
+		return texture;
+	}
+
+	/// <summary>
+	/// Returns the Background Texture associated with the file path.
+	/// </summary>
+	/// <param name="path">The file path to the texture.</param>
+	public static Texture fetchBackground(string path)
+	{
+		if (AllBackgrounds.ContainsKey(path))
+		{
+			return AllBackgrounds[path];
+		}
+		else
+		{
+			throw new ThrowError($"QApi.fetchBackground: can't find \"{path}\" - did you forget to load it?");
+		}
+	}
+	#endregion
+
+	#region Misc APIs
 	/// <summary>
 	/// Adds an actor that can be referenced in vignettes and cutscenes.
 	/// </summary>

@@ -28,5 +28,13 @@ public class EntryModel {
 	// TODO: multiple requirements, solitaires and documents, tutorials
 
 	public string ID, Title, Song, Fanfare, Puzzle, Requires;
-	public bool Cutscene;
+	public CutsceneModel Cutscene;
+}
+public class CutsceneModel
+{
+
+	// TODO: multiple requirements, solitaires and documents, tutorials
+
+	public string Location, Background;
+	public bool SlowFade;
 }

@@ -30,5 +30,5 @@ public class VignetteActorModel
 
 public class LocationModel
 {
-	public string Name, Background;
+	public string Path;
 }
