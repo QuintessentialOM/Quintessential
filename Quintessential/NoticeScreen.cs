@@ -1,6 +1,4 @@
-﻿using SDL2;
-
-namespace Quintessential;
+﻿namespace Quintessential;
 
 /// <summary>
 /// Generic info popup screen.
@@ -30,7 +28,7 @@ public class NoticeScreen : IScreen {
 	public void method_50(float param_4686) {
 		UI.DrawText(Title, (Input.ScreenSize() / 2) + new Vector2(0, 120), UI.Title, Color.White, TextAlignment.Centred);
 		UI.DrawText(Tooltip, Input.ScreenSize() / 2, UI.SubTitle, class_181.field_1718, TextAlignment.Centred);
-		if(Input.IsSdlKeyPressed(SDL.enum_160.SDLK_ESCAPE) || UI.DrawAndCheckBoxButton("OK", (Input.ScreenSize() / 2) + new Vector2(-130, -160)))
+		if(UI.DrawAndCheckBoxButton("OK", (Input.ScreenSize() / 2) + new Vector2(-130, -160)))
 			UI.CloseScreen();
 	}
 }

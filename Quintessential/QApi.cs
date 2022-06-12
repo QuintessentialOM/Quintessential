@@ -14,8 +14,6 @@ public static class QApi {
 	public static readonly List<Pair<PartType, PartType>> PanelParts = new();
 	public static readonly List<AtomType> ModAtomTypes = new();
 	public static readonly List<Action<Sim, bool>> ToRunAfterCycle = new();
-	// ID, display name
-	public static readonly List<Pair<string, string>> CustomPermisions = new();
 
 	public static void Init() {
 
@@ -94,16 +92,6 @@ public static class QApi {
 	/// <param name="runnable">An action to be run every half-cycle, given the sim and whether it is the start or end.</param>
 	public static void RunAfterCycle(Action<Sim, bool> runnable) {
 		ToRunAfterCycle.Add(runnable);
-	}
-
-	/// <summary>
-	/// Adds a permission to the "More Options" section of the puzzle editor. These can be used by setting the `CustomPermissionCheck`
-	/// field of your part type and checking for your permission ID.
-	/// </summary>
-	/// <param name="id">The ID of the permission that is used during checks and saved to puzzle files.</param>
-	/// <param name="displayName">The name of the permission that is displayed in the UI, e.g. "Glyphs of Quintessence".</param>
-	public static void AddPuzzlePermission(string id, string displayName) {
-		CustomPermisions.Add(new(id, displayName));
 	}
 
 	/// <summary>
