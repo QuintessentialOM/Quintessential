@@ -10,6 +10,7 @@ using PartType = class_139;
 using RenderHelper = class_195;
 using PartTypes = class_191;
 using AtomTypes = class_175;
+using Song = class_186;
 using Texture = class_256;
 using ThrowError = class_266;
 
@@ -144,7 +145,7 @@ public static class QApi {
 	}
 
 	/// <summary>
-	/// Loads a .wav file from disk. Returns the new Sound.
+	/// Loads a .wav file from disk. Returns the new sound.
 	/// </summary>
 	/// <param name="path">The file path to the sound.</param>
 	/// <param name="maxVolume">The maximum volume of the sound, between 0.0f and 1.0f.</param>
@@ -159,7 +160,7 @@ public static class QApi {
 	}
 
 	/// <summary>
-	/// Returns an already-loaded Sound associated with the file path.
+	/// Returns an already-loaded sound associated with the file path.
 	/// </summary>
 	/// <param name="path">The file path to the sound.</param>
 	public static Sound fetchSound(string path)
@@ -248,6 +249,50 @@ public static class QApi {
 			}
 		}
 		return 1f;
+	}
+	#endregion
+
+	#region Song APIs
+	private static Dictionary<string, Song> SongBank = new()
+	{
+		{"music/Map"         ,class_238.field_1992.field_968},
+		{"music/Solitaire"   ,class_238.field_1992.field_969},
+		{"music/Solving1"    ,class_238.field_1992.field_970},
+		{"music/Solving2"    ,class_238.field_1992.field_971},
+		{"music/Solving3"    ,class_238.field_1992.field_972},
+		{"music/Solving4"    ,class_238.field_1992.field_973},
+		{"music/Solving5"    ,class_238.field_1992.field_974},
+		{"music/Solving6"    ,class_238.field_1992.field_975},
+		{"music/Story1"      ,class_238.field_1992.field_976},
+		{"music/Story2"      ,class_238.field_1992.field_977},
+		{"music/Title"       ,class_238.field_1992.field_978},
+	};
+
+	/// <summary>
+	/// Loads a .ogg file from disk. Returns the new song.
+	/// </summary>
+	/// <param name="path">The file path to the song.</param>
+	public static Song loadSong(string path)
+	{
+		var song = class_235.method_617(path);
+		SongBank.Add(path, song);
+		return song;
+	}
+
+	/// <summary>
+	/// Returns the already-loaded song associated with the file path.
+	/// </summary>
+	/// <param name="path">The file path to the song.</param>
+	public static Song fetchSong(string path)
+	{
+		if (SongBank.ContainsKey(path))
+		{
+			return SongBank[path];
+		}
+		else
+		{
+			throw new ThrowError($"QApi.fetchSong: can't find \"{path}\" - did you forget to load it?");
+		}
 	}
 	#endregion
 
