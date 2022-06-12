@@ -398,6 +398,21 @@ public static class QApi {
 	}
 	#endregion
 
+	#region Misc APIs
+	/// <summary>
+	/// Adds an actor that can be referenced in vignettes and cutscenes.
+	/// </summary>
+	/// <param name="ID">Name as it appears in a vignette text file (e.g. "Anataeus (Shabby)").</param>
+	/// <param name="name">Name as it appears in-game (e.g. "Anataeus Vaya").</param>
+	/// <param name="color">Border color for dialogue boxes.</param>
+	/// <param name="smallPortrait">Texture for puzzle dialogues.</param>
+	/// <param name="largePortrait">Texture for cinematic cutscenes.</param>
+	/// <param name="isOnLeft">True if the character's portrait should be mirrored and if it should be placed on the left side in puzzle dialogues.</param>
+	public static void addVignetteActor(string ID, string name, Color color, Texture smallPortrait = null, Texture largePortrait = null, bool isOnLeft = false)
+	{
+		class_172.field_1670.Add(ID, new class_230(class_134.method_253(name, string.Empty), largePortrait, smallPortrait, color, isOnLeft));
+	}
+
 	/// <summary>
 	/// Adds an atom type, adding it to the list of atom types and the molecule editor.
 	/// </summary>
@@ -441,6 +456,7 @@ public static class QApi {
 		}
 		return default;
 	}
+	#endregion
 }
 
 /// <summary>
