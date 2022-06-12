@@ -8,6 +8,7 @@ using PartType = class_139;
 using RenderHelper = class_195;
 using PartTypes = class_191;
 using AtomTypes = class_175;
+using Texture = class_256;
 using ThrowError = class_266;
 
 public static class QApi {
@@ -49,6 +50,51 @@ public static class QApi {
 		}
 		throw new ThrowError($"QApi.fetchPath: the file \"{filePath}\" does not exist in any mod's content directory!");
 	}
+
+	#region Texture APIs
+	private static Dictionary<string, Texture> TextureBank = new()
+	{
+		//not all textures - mainly backgrounds, letters, and icons useful for custom campaigns
+		{"textures/cinematic/backgrounds/greathall_a",  class_238.field_1989.field_84.field_535.field_536},
+		{"textures/cinematic/backgrounds/greathall_b",  class_238.field_1989.field_84.field_535.field_537},
+		{"textures/cinematic/backgrounds/greathall_c",  class_238.field_1989.field_84.field_535.field_538},
+		{"textures/cinematic/backgrounds/tailor_a",     class_238.field_1989.field_84.field_535.field_539},
+		{"textures/cinematic/backgrounds/tailor_b",     class_238.field_1989.field_84.field_535.field_540},
+		{"textures/cinematic/backgrounds/tailor_c",     class_238.field_1989.field_84.field_535.field_541},
+		{"textures/cinematic/backgrounds/workshop",     class_238.field_1989.field_84.field_535.field_542},
+	};
+
+	/// <summary>
+	/// Loads a .png or .psd texture from disk. Returns the new Texture.
+	/// </summary>
+	/// <param name="path">The file path to the texture.</param>
+	/// <param name="store">If true, stores the texture in the Texture Bank, which can be accessed using fetchTexture.</param>
+	public static Texture loadTexture(string path, bool store = false)
+	{
+		var texture = class_235.method_615(path);
+		if (store)
+		{
+			TextureBank.Add(path, texture);
+		}
+		return texture;
+	}
+
+	/// <summary>
+	/// Returns the texture associated with the file path from the Texture Bank.
+	/// </summary>
+	/// <param name="path">The file path to the texture.</param>
+	public static Texture fetchTexture(string path)
+	{
+		if (TextureBank.ContainsKey(path))
+		{
+			return TextureBank[path];
+		}
+		else
+		{
+			throw new ThrowError($"QApi.fetchTexture: can't find \"{path}\" in the Texture Bank - did you forget to store it?");
+		}
+	}
+	#endregion
 
 	#region Part APIs
 	/// <summary>
