@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 
 namespace Quintessential;
@@ -7,6 +8,7 @@ using PartType = class_139;
 using RenderHelper = class_195;
 using PartTypes = class_191;
 using AtomTypes = class_175;
+using ThrowError = class_266;
 
 public static class QApi {
 
@@ -18,9 +20,37 @@ public static class QApi {
 	public static readonly List<Pair<string, string>> CustomPermisions = new();
 
 	public static void Init() {
-
+		//
 	}
 
+	/// <summary>
+	/// Returns the filepath to the mod directory containing the specified file.
+	/// If fileType is not specified, then it is assumed that filePath includes the file extension.
+	/// </summary>
+	/// <param name="filePath">The filepath for the file, where 'Content' is treated as the root directory.</param>
+	/// <param name="fileType">The extension (e.g. ".wav") for the file.</param>
+	public static string fetchPath(string filePath, string fileType = "")
+	{
+		filePath = filePath + fileType;
+		string path = Path.Combine("Content", filePath);
+		for (int i = QuintessentialLoader.ModContentDirectories.Count - 1; i >= 0; i--)
+		{
+			string dir = Path.Combine(QuintessentialLoader.ModContentDirectories[i], "Content");
+			path = Path.Combine(dir, filePath);
+			if (File.Exists(path))
+			{
+				return path;
+			}
+		}
+		path = Path.Combine("Content", filePath);
+		if (File.Exists(path))
+		{
+			return path;
+		}
+		throw new ThrowError($"QApi.fetchPath: the file \"{filePath}\" does not exist in any mod's content directory!");
+	}
+
+	#region Part APIs
 	/// <summary>
 	/// Adds a part type to the end of a part panel section, making it accessible for placement.
 	/// This does not allow for adding inputs or outputs.
@@ -75,6 +105,7 @@ public static class QApi {
 		AddPartType(type);
 		AddPartTypesRenderer(renderer, part => part.method_1159() == type);
 	}
+	#endregion
 
 	/// <summary>
 	/// Adds an atom type, adding it to the list of atom types and the molecule editor.
