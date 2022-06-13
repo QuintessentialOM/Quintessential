@@ -17,6 +17,7 @@ public class CampaignModel {
 public class ChapterModel {
 
 	public string Title, Subtitle, Place, Background;
+	public bool IsLeftSide;
 
 	// TODO: wheel icons
 
@@ -27,7 +28,7 @@ public class EntryModel {
 
 	// TODO: multiple requirements, solitaires and documents, tutorials
 
-	public string ID, Title, Song, Fanfare, Puzzle, Requires;
+	public string ID, Title, Song, Fanfare, Puzzle, Solitaire, Requires;
 	public CutsceneModel Cutscene;
 }
 public class CutsceneModel

@@ -11,6 +11,7 @@ class patch_TextureLoader
 	public void method_52(Action<int, int> param_65)
 	{
 		orig_method_52(param_65);
+		QApi.initializeTextureDictionary();
 		QuintessentialLoader.LoadLocations();
 	}
 }

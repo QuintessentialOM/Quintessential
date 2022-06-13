@@ -15,6 +15,7 @@ class patch_SongManager
 		orig_method_129(param_132);
 
 		//load mod songs
+		QApi.initializeSongDictionary();
 		QuintessentialLoader.LoadSongs();
 	}
 }

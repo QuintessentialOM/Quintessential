@@ -544,7 +544,7 @@ SomeZipIDontLike.zip");
 					Campaigns.field_2330.field_2309[j].field_2318,
 					Campaigns.field_2330.field_2309[j].field_2319,
 					Campaigns.field_2330.field_2309[j].field_2320,
-					false
+					chapter.IsLeftSide
 				);
 
 				foreach (var entry in chapter.Entries)
@@ -554,7 +554,11 @@ SomeZipIDontLike.zip");
 					//determine entry type, then load relevant data
 					enum_129 entryType;
 					Maybe<Puzzle> maybePuzzle = struct_18.field_1431;
-					if (!string.IsNullOrEmpty(entry.Puzzle))
+					if (!string.IsNullOrEmpty(entry.Solitaire))
+					{
+						entryType = (enum_129) 3;
+					}
+					else if (!string.IsNullOrEmpty(entry.Puzzle))
 					{
 						baseName = Path.Combine(c.Path, entry.Puzzle);
 						entryType = 0;

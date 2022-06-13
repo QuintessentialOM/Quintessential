@@ -56,9 +56,6 @@ public static class QApi {
 
 	#region Sound APIs
 	private static Dictionary<string, Sound> SoundBank;
-	//for some reason i can't initialize SoundBank the same way i can initialize TextureBank
-	//the game crashes before it finishes loading
-	//so i initialize this way instead. yuck - mr_puzzel
 	public static void initializeSoundDictionary()
 	{
 		if (SoundBank != null) return;
@@ -253,20 +250,25 @@ public static class QApi {
 	#endregion
 
 	#region Song APIs
-	private static Dictionary<string, Song> SongBank = new()
+	private static Dictionary<string, Song> SongBank;
+	public static void initializeSongDictionary()
 	{
-		{"music/Map"         ,class_238.field_1992.field_968},
-		{"music/Solitaire"   ,class_238.field_1992.field_969},
-		{"music/Solving1"    ,class_238.field_1992.field_970},
-		{"music/Solving2"    ,class_238.field_1992.field_971},
-		{"music/Solving3"    ,class_238.field_1992.field_972},
-		{"music/Solving4"    ,class_238.field_1992.field_973},
-		{"music/Solving5"    ,class_238.field_1992.field_974},
-		{"music/Solving6"    ,class_238.field_1992.field_975},
-		{"music/Story1"      ,class_238.field_1992.field_976},
-		{"music/Story2"      ,class_238.field_1992.field_977},
-		{"music/Title"       ,class_238.field_1992.field_978},
-	};
+		if (SongBank != null) return;
+		SongBank = new()
+		{
+			{"music/Map"         ,class_238.field_1992.field_968},
+			{"music/Solitaire"   ,class_238.field_1992.field_969},
+			{"music/Solving1"    ,class_238.field_1992.field_970},
+			{"music/Solving2"    ,class_238.field_1992.field_971},
+			{"music/Solving3"    ,class_238.field_1992.field_972},
+			{"music/Solving4"    ,class_238.field_1992.field_973},
+			{"music/Solving5"    ,class_238.field_1992.field_974},
+			{"music/Solving6"    ,class_238.field_1992.field_975},
+			{"music/Story1"      ,class_238.field_1992.field_976},
+			{"music/Story2"      ,class_238.field_1992.field_977},
+			{"music/Title"       ,class_238.field_1992.field_978},
+		};
+	}
 
 	/// <summary>
 	/// Loads a .ogg file from disk. Returns the new song.
@@ -297,17 +299,28 @@ public static class QApi {
 	#endregion
 
 	#region Texture APIs
-	private static Dictionary<string, Texture> TextureBank = new()
+	private static Dictionary<string, Texture> TextureBank;
+	public static void initializeTextureDictionary()
 	{
-		//not all textures - mainly backgrounds, letters, and icons useful for custom campaigns
-		{"textures/cinematic/backgrounds/greathall_a",  class_238.field_1989.field_84.field_535.field_536},
-		{"textures/cinematic/backgrounds/greathall_b",  class_238.field_1989.field_84.field_535.field_537},
-		{"textures/cinematic/backgrounds/greathall_c",  class_238.field_1989.field_84.field_535.field_538},
-		{"textures/cinematic/backgrounds/tailor_a",     class_238.field_1989.field_84.field_535.field_539},
-		{"textures/cinematic/backgrounds/tailor_b",     class_238.field_1989.field_84.field_535.field_540},
-		{"textures/cinematic/backgrounds/tailor_c",     class_238.field_1989.field_84.field_535.field_541},
-		{"textures/cinematic/backgrounds/workshop",     class_238.field_1989.field_84.field_535.field_542},
-	};
+		if (TextureBank != null) return;
+		TextureBank = new()
+		{
+			{"textures/cinematic/backgrounds/greathall_a",  class_238.field_1989.field_84.field_535.field_536},
+			{"textures/cinematic/backgrounds/greathall_b",  class_238.field_1989.field_84.field_535.field_537},
+			{"textures/cinematic/backgrounds/greathall_c",  class_238.field_1989.field_84.field_535.field_538},
+			{"textures/cinematic/backgrounds/tailor_a",     class_238.field_1989.field_84.field_535.field_539},
+			{"textures/cinematic/backgrounds/tailor_b",     class_238.field_1989.field_84.field_535.field_540},
+			{"textures/cinematic/backgrounds/tailor_c",     class_238.field_1989.field_84.field_535.field_541},
+			{"textures/cinematic/backgrounds/workshop",     class_238.field_1989.field_84.field_535.field_542},
+			{"textures/puzzle_select/background_0",     class_238.field_1989.field_96.field_826},
+			{"textures/puzzle_select/background_1",     class_238.field_1989.field_96.field_827},
+			{"textures/puzzle_select/background_2",     class_238.field_1989.field_96.field_828},
+			{"textures/puzzle_select/background_3",     class_238.field_1989.field_96.field_829},
+			{"textures/puzzle_select/background_4",     class_238.field_1989.field_96.field_830},
+			{"textures/puzzle_select/background_5",     class_238.field_1989.field_96.field_831},
+			{"textures/puzzle_select/background_6",     class_238.field_1989.field_96.field_832},
+		};
+	}
 
 	/// <summary>
 	/// Loads a .png or .psd texture from disk. Returns the new Texture.
