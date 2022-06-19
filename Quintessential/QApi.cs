@@ -130,46 +130,52 @@ public static class QApi {
 		}
 	}
 
-	private static void addSoundVolumeEntry(string path, float maxVolume)
+	private static void setSoundVolumeEntry(string path, float maxVolume)
 	{
 		var volumeDictField = typeof(class_11).GetField("field_52", BindingFlags.Static | BindingFlags.NonPublic);
 		Dictionary<string, float> volumeDict = (Dictionary<string, float>)volumeDictField.GetValue(null);
-		if (!volumeDict.ContainsKey(path))
+		if (volumeDict.ContainsKey(path))
+		{
+			volumeDict[path] = maxVolume;
+		}
+		else
 		{
 			volumeDict.Add(path, maxVolume);
-			volumeDictField.SetValue(null, volumeDict);
 		}
+		volumeDictField.SetValue(null, volumeDict);
 	}
 
 	/// <summary>
-	/// Loads a .wav file from disk. Returns the new sound.
+	/// Returns the .wav sound with the given file path.
 	/// </summary>
 	/// <param name="path">The file path to the sound.</param>
-	/// <param name="maxVolume">The maximum volume of the sound, between 0.0f and 1.0f.</param>
-	public static Sound loadSound(string path, float maxVolume = 1f)
+	public static Sound loadSound(string path)
 	{
 		//load sound
-		string maxVolumeStr = maxVolume.ToString();
-		var sound = class_235.method_616(path);
-		addSoundVolumeEntry(sound.field_4060, maxVolume);
-		SoundBank.Add(path, sound);
+		Sound sound;
+		if (SoundBank.ContainsKey(path))
+		{
+			sound = SoundBank[path];
+		}
+		else
+		{
+			sound = class_235.method_616(path);
+			SoundBank.Add(path, sound);
+			setSoundVolumeEntry(path, 1f);
+		}
 		return sound;
 	}
 
 	/// <summary>
-	/// Returns an already-loaded sound associated with the file path.
+	/// Returns the .wav sound with the given file path while setting the max volume.
 	/// </summary>
 	/// <param name="path">The file path to the sound.</param>
-	public static Sound fetchSound(string path)
+	/// <param name="maxVolume">The maximum volume of the sound, between 0.0f and 1.0f.</param>
+	public static Sound loadSound(string path, float maxVolume)
 	{
-		if (SoundBank.ContainsKey(path))
-		{
-			return SoundBank[path];
-		}
-		else
-		{
-			throw new ThrowError($"QApi.fetchSound: can't find \"{path}\" - did you forget to load it?");
-		}
+		Sound sound = loadSound(path);
+		setSoundVolumeEntry(sound.field_4060, maxVolume);
+		return sound;
 	}
 
 	/// <summary>
@@ -183,50 +189,14 @@ public static class QApi {
 	}
 
 	/// <summary>
-	/// Plays a sound with the max volume multiplied by the result of QAPI.getVolumeFactor(sim).
-	/// </summary>
-	/// <param name="sound">The sound to play.</param>
-	/// <param name="sim">The current Sim.</param>
-	public static void playSound(Sound sound, Sim sim = null)
-	{
-		class_11.method_28(sound, getVolumeFactor(sim));
-	}
-
-	/// <summary>
-	/// Plays a sound with the max volume multiplied by the result of QAPI.getVolumeFactor(seb).
-	/// </summary>
-	/// <param name="sound">The sound to play.</param>
-	/// <param name="seb">The current SolutionEditorBase.</param>
-	public static void playSound(Sound sound, SolutionEditorBase seb = null)
-	{
-		class_11.method_28(sound, getVolumeFactor(null, seb));
-	}
-
-	/// <summary>
 	/// Returns a volume factor depending on the gameplay situation:
 	/// - If we are recording a GIF, return 0.0f.
 	/// - If we are simulating a solution in Quick mode, return 0.5f.
 	/// - Otherwise, return 1.0f.
 	/// </summary>
-	/// <param name="sim">The current Sim.</param>
-	public static float getVolumeFactor(Sim sim)
-	{
-		return getVolumeFactor(sim, null);
-	}
-
-	/// <summary>
-	/// Returns a volume factor depending on the gameplay situation:
-	/// - If we are recording a GIF, return 0.0f.
-	/// - If we are simulating a solution in Quick mode, return 0.5f.
-	/// - Otherwise, return 1.0f.
-	/// </summary>
+	/// <param name="sim">The current Sim. If specified, the 'seb' parameter is ignored.</param>
 	/// <param name="seb">The current SolutionEditorBase.</param>
-	public static float getVolumeFactor(SolutionEditorBase seb)
-	{
-		return getVolumeFactor(null, seb);
-	}
-
-	private static float getVolumeFactor(Sim sim = null, SolutionEditorBase seb = null)
+	public static float getVolumeFactor(Sim sim = null, SolutionEditorBase seb = null)
 	{
 		if (sim != null)
 		{
@@ -271,21 +241,10 @@ public static class QApi {
 	}
 
 	/// <summary>
-	/// Loads a .ogg file from disk. Returns the new song.
+	/// Returns the .ogg song with the given file path.
 	/// </summary>
 	/// <param name="path">The file path to the song.</param>
 	public static Song loadSong(string path)
-	{
-		var song = class_235.method_617(path);
-		SongBank.Add(path, song);
-		return song;
-	}
-
-	/// <summary>
-	/// Returns the already-loaded song associated with the file path.
-	/// </summary>
-	/// <param name="path">The file path to the song.</param>
-	public static Song fetchSong(string path)
 	{
 		if (SongBank.ContainsKey(path))
 		{
@@ -293,7 +252,9 @@ public static class QApi {
 		}
 		else
 		{
-			throw new ThrowError($"QApi.fetchSong: can't find \"{path}\" - did you forget to load it?");
+			var song = class_235.method_617(path);
+			SongBank.Add(path, song);
+			return song;
 		}
 	}
 	#endregion
@@ -303,6 +264,7 @@ public static class QApi {
 	public static void initializeTextureDictionary()
 	{
 		if (TextureBank != null) return;
+		//should probably update this so it contains ALL textures
 		TextureBank = new()
 		{
 			{"textures/cinematic/backgrounds/greathall_a",  class_238.field_1989.field_84.field_535.field_536},
@@ -323,25 +285,10 @@ public static class QApi {
 	}
 
 	/// <summary>
-	/// Loads a .png or .psd texture from disk. Returns the new Texture.
+	/// Returns the .png or .psd texture with the given file path.
 	/// </summary>
 	/// <param name="path">The file path to the texture.</param>
-	/// <param name="store">If true, stores the texture in the Texture Bank, which can be accessed using fetchTexture.</param>
-	public static Texture loadTexture(string path, bool store = false)
-	{
-		var texture = class_235.method_615(path);
-		if (store)
-		{
-			TextureBank.Add(path, texture);
-		}
-		return texture;
-	}
-
-	/// <summary>
-	/// Returns the texture associated with the file path from the Texture Bank.
-	/// </summary>
-	/// <param name="path">The file path to the texture.</param>
-	public static Texture fetchTexture(string path)
+	public static Texture loadTexture(string path)
 	{
 		if (TextureBank.ContainsKey(path))
 		{
@@ -349,7 +296,9 @@ public static class QApi {
 		}
 		else
 		{
-			throw new ThrowError($"QApi.fetchTexture: can't find \"{path}\" in the Texture Bank - did you forget to store it?");
+			var texture = class_235.method_615(path);
+			TextureBank.Add(path, texture);
+			return texture;
 		}
 	}
 	#endregion
@@ -420,10 +369,17 @@ public static class QApi {
 	/// <param name="color">Border color for dialogue boxes.</param>
 	/// <param name="smallPortrait">Texture for puzzle dialogues.</param>
 	/// <param name="largePortrait">Texture for cinematic cutscenes.</param>
-	/// <param name="isOnLeft">True if the character's portrait should be mirrored and if it should be placed on the left side in puzzle dialogues.</param>
+	/// <param name="isOnLeft">True if the character's portrait should be mirrored and placed on the left side in puzzle dialogues.</param>
 	public static void addVignetteActor(string ID, string name, Color color, Texture smallPortrait = null, Texture largePortrait = null, bool isOnLeft = false)
 	{
-		class_172.field_1670.Add(ID, new class_230(class_134.method_253(name, string.Empty), largePortrait, smallPortrait, color, isOnLeft));
+		if (!class_172.field_1670.ContainsKey(ID))
+		{
+			class_172.field_1670.Add(ID, new class_230(class_134.method_253(name, string.Empty), largePortrait, smallPortrait, color, isOnLeft));
+		}
+		else
+		{
+			Logger.Log($"QApi.addVignetteActor: There is already an actor with ID \"{ID}\", ignoring.");
+		}
 	}
 
 	/// <summary>

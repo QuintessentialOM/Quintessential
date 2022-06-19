@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Resources;
 using Texture = class_256;
+using Song = class_186;
 
 using Ionic.Zip;
 
@@ -448,7 +449,7 @@ SomeZipIDontLike.zip");
 	{
 		foreach (var l in ModLocations)
 		{
-			QApi.loadTexture(l.Path, true);
+			QApi.loadTexture(l.Path);
 			Logger.Log($"  Added background texture \"{l.Path}\"");
 		}
 	}
@@ -619,7 +620,7 @@ SomeZipIDontLike.zip");
 					}
 
 					// TODO: optimize
-					AddEntryToCampaign(campaign, j, entry.ID, class_134.method_253(entry.Title, string.Empty), entryType, tutorialScreen, maybePuzzle, QApi.fetchSong(songPath), QApi.fetchSound(fanfarePath), requirement);
+					AddEntryToCampaign(campaign, j, entry.ID, class_134.method_253(entry.Title, string.Empty), entryType, tutorialScreen, maybePuzzle, QApi.loadSong(songPath), QApi.loadSound(fanfarePath), requirement);
 					if (maybePuzzle.method_1085())
 					{
 						Array.Resize(ref Puzzles.field_2816, Puzzles.field_2816.Length + 1);

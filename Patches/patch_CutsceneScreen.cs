@@ -166,7 +166,7 @@ class patch_CutsceneScreen
 		}
 		if (CutsceneBackgrounds.ContainsKey(puzzleID))
 		{
-			background = QApi.fetchTexture(CutsceneBackgrounds[puzzleID]);
+			background = QApi.loadTexture(CutsceneBackgrounds[puzzleID]);
 		}
 		
 		Texture class256_1 = background;
