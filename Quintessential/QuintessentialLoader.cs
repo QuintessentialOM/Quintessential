@@ -532,6 +532,8 @@ SomeZipIDontLike.zip");
 			};
 
 			((patch_Campaign)(object)campaign).QuintTitle = c.Title;
+			((patch_Campaign)(object)campaign).Music = !string.IsNullOrEmpty(c.Music) ? c.Music : "music/Map";
+			
 
 			for(int j = 0; j < c.Chapters.Count; j++) {
 				ChapterModel chapter = c.Chapters[j];

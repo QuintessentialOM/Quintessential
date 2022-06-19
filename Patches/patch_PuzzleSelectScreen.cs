@@ -38,12 +38,16 @@ class patch_PuzzleSelectScreen {
 			bool incC = (rightBounds.Contains(Input.MousePos()) && Input.IsLeftClickPressed()) || keyRight;
 			if (decC || incC)
 			{
+				// fetch new campaign
 				int m = QuintessentialLoader.AllCampaigns.Count;
 				int k = incC ? 1 : -1;
 				class_238.field_1991.field_1821.method_28(1f);
 				currentCampaign = (currentCampaign + m + k) % m;
 				Campaigns.field_2330 = QuintessentialLoader.AllCampaigns[currentCampaign];
 				Campaigns.field_2331[0] = QuintessentialLoader.AllCampaigns[currentCampaign];
+				// update resources
+				class_238.field_1992.field_968 = QApi.loadSong(((patch_Campaign)(object)Campaigns.field_2330).Music);
+				// transition to new campaign
 				UI.InstantCloseScreen();
 				UI.OpenScreen(new PuzzleSelectScreen());
 			}

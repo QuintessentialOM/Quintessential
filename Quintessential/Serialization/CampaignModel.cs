@@ -6,7 +6,7 @@ namespace Quintessential.Serialization;
 
 public class CampaignModel {
 
-	public string Name, Title;
+	public string Name, Title, Music;
 
 	public IList<ChapterModel> Chapters { get; set; }
 

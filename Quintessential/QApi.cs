@@ -226,7 +226,7 @@ public static class QApi {
 		if (SongBank != null) return;
 		SongBank = new()
 		{
-			{"music/Map"         ,class_238.field_1992.field_968},
+			{"music/Map"         ,class_235.method_617("music/Map")},//loaded directly so we can easily change the menu music
 			{"music/Solitaire"   ,class_238.field_1992.field_969},
 			{"music/Solving1"    ,class_238.field_1992.field_970},
 			{"music/Solving2"    ,class_238.field_1992.field_971},
