@@ -6,10 +6,7 @@ namespace Quintessential.Serialization;
 
 public class CampaignModel {
 
-	public string Name { get; set; }
-
-	public string Title { get; set; }
-
+	public string Name, Title, Music, ButtonBase;
 	public IList<ChapterModel> Chapters { get; set; }
 
 	[YamlIgnore]
@@ -18,28 +15,29 @@ public class CampaignModel {
 
 public class ChapterModel {
 
-	public string Title { get; set; }
+	public string Title, Subtitle, Place, Background;
+	public bool IsLeftSide;
+	public ChapterButtonModel Button;
+	public IList<EntryModel> Entries;
+}
 
-	public string Subtitle { get; set; }
-
-	public string Place { get; set; }
-
-	public string Background { get; set; }
-
-	// TODO: wheel icons
-
-	public IList<EntryModel> Entries { get; set; }
+public class ChapterButtonModel
+{
+	public string Hover, Locked, Unlocked, Gem, Position;
 }
 
 public class EntryModel {
 
 	// TODO: multiple requirements, solitaires and documents, tutorials
 
-	public string ID { get; set; }
+	public string ID, Title, Song, Fanfare, Puzzle, Solitaire, Requires;
+	public CutsceneModel Cutscene;
+}
+public class CutsceneModel
+{
 
-	public string Title { get; set; }
+	// TODO: multiple requirements, solitaires and documents, tutorials
 
-	public string Puzzle { get; set; }
-
-	public string Requires { get; set; }
+	public string Location, Background;
+	public bool SlowFade;
 }

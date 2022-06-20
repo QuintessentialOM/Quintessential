@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Resources;
+using Texture = class_256;
+using Song = class_186;
 
 using Ionic.Zip;
 
@@ -30,14 +32,8 @@ public class QuintessentialLoader {
 	public static List<string> ModContentDirectories = new();
 	public static List<string> ModPuzzleDirectories = new();
 
-	public static List<Campaign> AllCampaigns = new();
-	public static Campaign VanillaCampaign;
-
 	public static ModMeta QuintessentialModMeta;
 	public static QuintessentialMod QuintessentialAsMod;
-
-	private static List<CampaignModel> ModCampaignModels = new();
-	private static List<JournalModel> ModJournalModels = new();
 
 	private static List<string> blacklisted = new();
 	private static List<ModMeta> loaded = new();
@@ -46,6 +42,7 @@ public class QuintessentialLoader {
 	private static readonly string zipExtractSuffix = "__quintessential_from_zip";
 	private static readonly string quintAssetFolder = "__quintessential_assets";
 
+	#region main methods
 	public static void PreInit() {
 		try {
 			PathLightning = Path.GetDirectoryName(typeof(GameLogic).Assembly.Location);
@@ -240,36 +237,8 @@ SomeZipIDontLike.zip");
 		var puzzles = Path.Combine(mod.PathDirectory, "Puzzles");
 		if(Directory.Exists(puzzles)) {
 			ModPuzzleDirectories.Add(puzzles);
-			// Look for name.campaign.yaml and name.journal.yaml files in the folder
-			foreach(var item in Directory.GetFiles(puzzles)) {
-				string filename = Path.GetFileName(item);
-				if(filename.EndsWith(".campaign.yaml")) {
-					using StreamReader reader = new(item);
-
-					CampaignModel c = YamlHelper.Deserializer.Deserialize<CampaignModel>(reader);
-					Logger.Log($"Campaign \"{c.Title}\" ({c.Name}) has {c.Chapters.Count} chapters.");
-					c.Path = Path.GetDirectoryName(item);
-					ModCampaignModels.Add(c);
-				}
-				if(filename.EndsWith(".journal.yaml")) {
-					using StreamReader reader = new(item);
-
-					JournalModel c = YamlHelper.Deserializer.Deserialize<JournalModel>(reader);
-					Logger.Log($"Journal \"{c.Title}\" has {c.Chapters.Count} chapters.");
-					bool valid = true;
-					foreach(var chapter in c.Chapters) {
-						if(chapter.Puzzles.Count != 5) {
-							Logger.Log($"Journal chapter \"{chapter.Title}\" in \"{c.Title}\" doesn't have 5 puzzles; skipping journal.");
-							valid = false; break;
-						}
-					}
-					if(valid) {
-						c.Path = Path.GetDirectoryName(item);
-						ModJournalModels.Add(c);
-					}
-				}
-			}
-		}
+			LoadModPuzzlesFromMeta(puzzles);
+		};
 
 		loaded.Add(mod);
 		Logger.Log($"Will load mod \"{mod.Name}\".");
@@ -319,7 +288,9 @@ SomeZipIDontLike.zip");
 			mod.Unload();
 		Logger.Log("Finished unloading.");
 	}
+	#endregion
 
+	#region Misc Helper Methods
 	protected static void FindZipMod(string zip) {
 		Logger.Log("Unzipping zip mod: " + zip);
 		// Check that the zip exists
@@ -428,10 +399,133 @@ SomeZipIDontLike.zip");
 		}
 		return Assembly.LoadFrom(asmPath);
 	}
+	#endregion
 
+	#region methods related to Custom Campaigns
+	public static List<Campaign> AllCampaigns = new();
+	public static Campaign VanillaCampaign;
+	private static List<CampaignModel> ModCampaignModels = new();
+	private static List<JournalModel> ModJournalModels = new();
+	private static List<SoundModel> ModSounds = new();
+	private static List<SongModel> ModSongs = new();
+	private static List<VignetteActorModel> ModVignetteActors = new();
+	private static List<LocationModel> ModLocations = new();
+
+	public static void LoadSounds()
+	{
+		foreach (var s in ModSounds)
+		{
+			QApi.loadSound(s.Path, s.Volume);
+			Logger.Log($"  Added sound \"{s.Path}\"");
+		}
+	}
+	public static void LoadSongs()
+	{
+		foreach (var s in ModSongs)
+		{
+			QApi.loadSong(s.Path);
+			Logger.Log($"  Added song \"{s.Path}\"");
+		}
+	}
+	public static void LoadVignetteActors()
+	{
+		foreach (var a in ModVignetteActors)
+		{
+			Texture smallPortrait = null;
+			Texture largePortrait = null;
+			if (!string.IsNullOrEmpty(a.SmallPortrait))
+			{
+				smallPortrait = QApi.loadTexture(a.SmallPortrait);
+			}
+			if (!string.IsNullOrEmpty(a.LargePortrait))
+			{
+				largePortrait = QApi.loadTexture(a.LargePortrait);
+			}
+			QApi.addVignetteActor(a.ID, a.Name, Color.FromHex(a.Color), smallPortrait, largePortrait, a.IsOnLeft);
+			Logger.Log($"  Added actor \"{a.Name}\"");
+		}
+	}
+	public static void LoadLocations()
+	{
+		foreach (var l in ModLocations)
+		{
+			QApi.loadTexture(l.Path);
+			Logger.Log($"  Added background texture \"{l.Path}\"");
+		}
+	}
+	private static void LoadModPuzzlesFromMeta(string puzzles)
+	{
+		//helper function
+		string AddS(int amount)
+		{
+			return amount == 1 ? "" : "s";
+		}
+		// Look for name.campaign.yaml and name.journal.yaml files in the folder
+		foreach (var item in Directory.GetFiles(puzzles))
+		{
+			string filename = Path.GetFileName(item);
+			Logger.Log("    Looking at " + filename);
+			using StreamReader reader = new(item);
+
+			if (filename.EndsWith(".resources.yaml"))
+			{
+				ResourcesModel c = YamlHelper.Deserializer.Deserialize<ResourcesModel>(reader);
+				if (c.Characters.Count > 0)
+				{
+					Logger.Log($"    Adding {c.Characters.Count} vignette actor{AddS(c.Characters.Count)}.");
+					ModVignetteActors.AddRange(c.Characters);
+				}
+				if (c.Sounds.Count > 0)
+				{
+					Logger.Log($"    Adding {c.Sounds.Count} sound{AddS(c.Sounds.Count)}.");
+					ModSounds.AddRange(c.Sounds);
+				}
+				if (c.Songs.Count > 0)
+				{
+					Logger.Log($"    Adding {c.Songs.Count} song{AddS(c.Songs.Count)}.");
+					ModSongs.AddRange(c.Songs);
+				}
+				if (c.Locations.Count > 0)
+				{
+					Logger.Log($"    Adding {c.Locations.Count} cutscene location{AddS(c.Locations.Count)}.");
+					ModLocations.AddRange(c.Locations);
+				}
+
+			}
+			if (filename.EndsWith(".campaign.yaml"))
+			{
+				CampaignModel c = YamlHelper.Deserializer.Deserialize<CampaignModel>(reader);
+				Logger.Log($"Campaign \"{c.Title}\" ({c.Name}) has {c.Chapters.Count} chapter{AddS(c.Chapters.Count)}.");
+				c.Path = Path.GetDirectoryName(item);
+				ModCampaignModels.Add(c);
+			}
+			if (filename.EndsWith(".journal.yaml"))
+			{
+				JournalModel c = YamlHelper.Deserializer.Deserialize<JournalModel>(reader);
+				Logger.Log($"Journal \"{c.Title}\" has {c.Chapters.Count} chapter{AddS(c.Chapters.Count)}.");
+				bool valid = true;
+				foreach (var chapter in c.Chapters)
+				{
+					if (chapter.Puzzles.Count != 5)
+					{
+						Logger.Log($"Journal chapter \"{chapter.Title}\" in \"{c.Title}\" doesn't have 5 puzzles; skipping journal.");
+						valid = false; break;
+					}
+				}
+				if (valid)
+				{
+					c.Path = Path.GetDirectoryName(item);
+					ModJournalModels.Add(c);
+				}
+			}
+		}
+	}
 	public static void LoadCampaigns() {
 		VanillaCampaign = Campaigns.field_2330;
 		((patch_Campaign)(object)VanillaCampaign).QuintTitle = "Opus Magnum";
+		((patch_Campaign)(object)VanillaCampaign).Music = "music/Map";
+		((patch_Campaign)(object)VanillaCampaign).ButtonBase = "textures/puzzle_select/chapter_base";
+
 		AllCampaigns.Add(VanillaCampaign);
 
 		for(int i = 0; i < ModCampaignModels.Count; i++) {
@@ -441,44 +535,142 @@ SomeZipIDontLike.zip");
 			};
 
 			((patch_Campaign)(object)campaign).QuintTitle = c.Title;
+			((patch_Campaign)(object)campaign).Music = !string.IsNullOrEmpty(c.Music) ? c.Music : ((patch_Campaign)(object)Campaigns.field_2330).Music;
+			((patch_Campaign)(object)campaign).ButtonBase = !string.IsNullOrEmpty(c.ButtonBase) ? c.ButtonBase : ((patch_Campaign)(object)Campaigns.field_2330).ButtonBase;
 
-			for(int j = 0; j < c.Chapters.Count; j++) {
+
+			for (int j = 0; j < c.Chapters.Count; j++) {
 				ChapterModel chapter = c.Chapters[j];
+
+				Texture bLocked = Campaigns.field_2330.field_2309[j].field_2316;
+				Texture bUnlocked = Campaigns.field_2330.field_2309[j].field_2317;
+				Texture bHover = Campaigns.field_2330.field_2309[j].field_2318;
+				Texture bGem = Campaigns.field_2330.field_2309[j].field_2319;
+				Vector2 bPosition = Campaigns.field_2330.field_2309[j].field_2320;
+				if (chapter.Button != null)
+				{
+					//helper function
+					Texture SafeLoadTexture(string path, Texture tex)
+					{
+						if (!string.IsNullOrEmpty(path))
+						{
+							tex = QApi.loadTexture(path);
+						}
+						return tex;
+					}
+					//attempt to load button textures
+					bLocked = SafeLoadTexture(chapter.Button.Locked, bLocked);
+					bUnlocked = SafeLoadTexture(chapter.Button.Unlocked, bUnlocked);
+					bHover = SafeLoadTexture(chapter.Button.Hover, bHover);
+					bGem = SafeLoadTexture(chapter.Button.Gem, bGem);
+					//attempt to load button position
+					if (!string.IsNullOrEmpty(chapter.Button.Position))
+					{
+						float x, y;
+						string pos = chapter.Button.Position;
+						if (float.TryParse(pos.Split(',')[0], out x) && float.TryParse(pos.Split(',')[1], out y))
+						{
+							bPosition = new Vector2(x, y);
+						}
+						else
+						{
+							Logger.Log($"Can't parse \"Button.Position\" in chapter {j} from campaign \"{c.Title}\", ignoring");
+						}
+					}
+				}
+
 				campaign.field_2309[j] = new CampaignChapter(
 					class_134.method_253(chapter.Title, string.Empty),
 					class_134.method_253(chapter.Subtitle, string.Empty),
 					class_134.method_253(chapter.Place, string.Empty),
 					chapter.Background != null ? class_235.method_615(chapter.Background) : Campaigns.field_2330.field_2309[j].field_2315,
-					Campaigns.field_2330.field_2309[j].field_2316,
-					Campaigns.field_2330.field_2309[j].field_2317,
-					Campaigns.field_2330.field_2309[j].field_2318,
-					Campaigns.field_2330.field_2309[j].field_2319,
-					Campaigns.field_2330.field_2309[j].field_2320,
-					false
+					bLocked,
+					bUnlocked,
+					bHover,
+					bGem,
+					bPosition,
+					chapter.IsLeftSide
 				);
 
-				foreach(var entry in chapter.Entries) {
-					string baseName = Path.Combine(c.Path, entry.Puzzle);
-					Puzzle puzzle;
-					if(File.Exists(baseName + ".puzzle")) {
-						puzzle = Puzzle.method_1249(baseName + ".puzzle");
-					} else if(File.Exists(baseName + ".puzzle.yaml")) {
-						puzzle = PuzzleModel.FromModel(YamlHelper.Deserializer.Deserialize<PuzzleModel>(File.ReadAllText(baseName + ".puzzle.yaml")));
-					} else {
-						Logger.Log($"Puzzle \"{entry.Puzzle}\" from campaign \"{c.Title}\" doesn't exist, ignoring");
+				foreach (var entry in chapter.Entries)
+				{
+					string baseName;
+
+					//determine entry type, then load relevant data
+					enum_129 entryType;
+					Maybe<Puzzle> maybePuzzle = struct_18.field_1431;
+					if (!string.IsNullOrEmpty(entry.Solitaire))
+					{
+						entryType = (enum_129) 3;
+					}
+					else if (!string.IsNullOrEmpty(entry.Puzzle))
+					{
+						baseName = Path.Combine(c.Path, entry.Puzzle);
+						entryType = 0;
+						Puzzle puzzle;
+						if (File.Exists(baseName + ".puzzle"))
+						{
+							puzzle = Puzzle.method_1249(baseName + ".puzzle");
+						}
+						else if (File.Exists(baseName + ".puzzle.yaml"))
+						{
+							puzzle = PuzzleModel.FromModel(YamlHelper.Deserializer.Deserialize<PuzzleModel>(File.ReadAllText(baseName + ".puzzle.yaml")));
+						}
+						else
+						{
+							Logger.Log($"Puzzle \"{entry.Puzzle}\" from campaign \"{c.Title}\" doesn't exist, ignoring");
+							continue;
+						}
+						puzzle.field_2766 = entry.ID;
+						// ensure all inputs/outputs have names
+						foreach (PuzzleInputOutput io in puzzle.field_2770.Union(puzzle.field_2771))
+						{
+							if (!io.field_2813.field_2639.method_1085())
+							{
+								io.field_2813.field_2639 = class_134.method_253("Molecule", string.Empty);
+							}
+						}
+						maybePuzzle = puzzle;
+					}
+					else if (entry.Cutscene != null)
+					{
+						entryType = (enum_129)1;
+						patch_CutsceneScreen.addCutsceneData(entry.ID, entry.Cutscene.Location, entry.Cutscene.Background, entry.Cutscene.SlowFade);
+					}
+					else
+					{
+						Logger.Log($"Invalid entry \"{entry.ID}\" from campaign \"{c.Title}\", ignoring");
 						continue;
 					}
-					puzzle.field_2766 = entry.ID;
-					// ensure all inputs/outputs have names
-					foreach(PuzzleInputOutput io in puzzle.field_2770.Union(puzzle.field_2771)) {
-						if(!io.field_2813.field_2639.method_1085()) {
-							io.field_2813.field_2639 = class_134.method_253("Molecule", string.Empty);
-						}
+					// implement other entry types later, and modify other code so we can do solitaires, letters, etc. more easily
+
+					Maybe<class_215> tutorialScreen = struct_18.field_1431; // implement later - refer to method_558
+					string songPath = string.IsNullOrEmpty(entry.Song) ? "music/Solving3" : entry.Song;
+					string fanfarePath = string.IsNullOrEmpty(entry.Fanfare) ? "sounds/fanfare_solving3" : entry.Fanfare;
+
+					class_259 requirement;
+					int n;
+					if (string.IsNullOrEmpty(entry.Requires))
+					{
+						requirement = new class_174();
 					}
+					else if (int.TryParse(entry.Requires, out n))
+					{
+						requirement = new class_265(n);
+					}
+					else
+					{
+						requirement = new class_243(entry.Requires);
+					}
+
 					// TODO: optimize
-					AddEntryToCampaign(campaign, j, entry.ID, class_134.method_253(entry.Title, string.Empty), (enum_129)0, struct_18.field_1431, puzzle, class_238.field_1992.field_972, class_238.field_1991.field_1832, string.IsNullOrEmpty(entry.Requires) ? (class_259)new class_174() : new class_243(entry.Requires));
-					Array.Resize(ref Puzzles.field_2816, Puzzles.field_2816.Length + 1);
-					Puzzles.field_2816[Puzzles.field_2816.Length - 1] = puzzle;
+					AddEntryToCampaign(campaign, j, entry.ID, class_134.method_253(entry.Title, string.Empty), entryType, tutorialScreen, maybePuzzle, QApi.loadSong(songPath), QApi.loadSound(fanfarePath), requirement);
+					if (maybePuzzle.method_1085())
+					{
+						Array.Resize(ref Puzzles.field_2816, Puzzles.field_2816.Length + 1);
+						Puzzles.field_2816[Puzzles.field_2816.Length - 1] = maybePuzzle.method_1087();
+					}
+
 				}
 			}
 
@@ -524,4 +716,5 @@ SomeZipIDontLike.zip");
 		Logger.Log($"Dumped puzzles to {outDir}");
 		UI.OpenScreen(new NoticeScreen("Puzzle Dumping", $"Saved puzzles to \"{outDir.Replace('\\', '/')}\""));
 	}
+	#endregion
 }

@@ -1,13 +1,10 @@
-﻿using System.Collections.Generic;
-
-using MonoMod;
+﻿using MonoMod;
 
 class patch_Puzzle {
 
-	// Custom puzzle data
-	public HashSet<string> CustomPermissions = new();
+	// sets your puzzle ID to 0
+	// will be improved in the future
 
-	// Set puzzle ID to 0
 	[PatchPuzzleIdWrite]
 	[MonoModIgnore]
 	public static extern void method_1248(string param_4980);
