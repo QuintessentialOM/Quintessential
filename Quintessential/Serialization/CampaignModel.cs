@@ -6,8 +6,7 @@ namespace Quintessential.Serialization;
 
 public class CampaignModel {
 
-	public string Name, Title, Music;
-
+	public string Name, Title, Music, ButtonBase;
 	public IList<ChapterModel> Chapters { get; set; }
 
 	[YamlIgnore]
@@ -18,10 +17,13 @@ public class ChapterModel {
 
 	public string Title, Subtitle, Place, Background;
 	public bool IsLeftSide;
-
-	// TODO: wheel icons
-
+	public ChapterButtonModel Button;
 	public IList<EntryModel> Entries;
+}
+
+public class ChapterButtonModel
+{
+	public string Hover, Locked, Unlocked, Gem, Position;
 }
 
 public class EntryModel {

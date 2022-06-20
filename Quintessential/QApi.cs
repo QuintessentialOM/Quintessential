@@ -281,6 +281,7 @@ public static class QApi {
 			{"textures/puzzle_select/background_4",     class_238.field_1989.field_96.field_830},
 			{"textures/puzzle_select/background_5",     class_238.field_1989.field_96.field_831},
 			{"textures/puzzle_select/background_6",     class_238.field_1989.field_96.field_832},
+			{"textures/puzzle_select/chapter_base",     class_235.method_615("textures/puzzle_select/chapter_base")},//loaded directly so we can easily change the chapter base
 		};
 	}
 

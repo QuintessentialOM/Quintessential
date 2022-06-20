@@ -523,6 +523,9 @@ SomeZipIDontLike.zip");
 	public static void LoadCampaigns() {
 		VanillaCampaign = Campaigns.field_2330;
 		((patch_Campaign)(object)VanillaCampaign).QuintTitle = "Opus Magnum";
+		((patch_Campaign)(object)VanillaCampaign).Music = "music/Map";
+		((patch_Campaign)(object)VanillaCampaign).ButtonBase = "textures/puzzle_select/chapter_base";
+
 		AllCampaigns.Add(VanillaCampaign);
 
 		for(int i = 0; i < ModCampaignModels.Count; i++) {
@@ -532,21 +535,60 @@ SomeZipIDontLike.zip");
 			};
 
 			((patch_Campaign)(object)campaign).QuintTitle = c.Title;
-			((patch_Campaign)(object)campaign).Music = !string.IsNullOrEmpty(c.Music) ? c.Music : "music/Map";
-			
+			((patch_Campaign)(object)campaign).Music = !string.IsNullOrEmpty(c.Music) ? c.Music : ((patch_Campaign)(object)Campaigns.field_2330).Music;
+			((patch_Campaign)(object)campaign).ButtonBase = !string.IsNullOrEmpty(c.ButtonBase) ? c.ButtonBase : ((patch_Campaign)(object)Campaigns.field_2330).ButtonBase;
 
-			for(int j = 0; j < c.Chapters.Count; j++) {
+
+			for (int j = 0; j < c.Chapters.Count; j++) {
 				ChapterModel chapter = c.Chapters[j];
+
+				Texture bLocked = Campaigns.field_2330.field_2309[j].field_2316;
+				Texture bUnlocked = Campaigns.field_2330.field_2309[j].field_2317;
+				Texture bHover = Campaigns.field_2330.field_2309[j].field_2318;
+				Texture bGem = Campaigns.field_2330.field_2309[j].field_2319;
+				Vector2 bPosition = Campaigns.field_2330.field_2309[j].field_2320;
+				if (chapter.Button != null)
+				{
+					//helper function
+					Texture SafeLoadTexture(string path, Texture tex)
+					{
+						if (!string.IsNullOrEmpty(path))
+						{
+							tex = QApi.loadTexture(path);
+						}
+						return tex;
+					}
+					//attempt to load button textures
+					bLocked = SafeLoadTexture(chapter.Button.Locked, bLocked);
+					bUnlocked = SafeLoadTexture(chapter.Button.Unlocked, bUnlocked);
+					bHover = SafeLoadTexture(chapter.Button.Hover, bHover);
+					bGem = SafeLoadTexture(chapter.Button.Gem, bGem);
+					//attempt to load button position
+					if (!string.IsNullOrEmpty(chapter.Button.Position))
+					{
+						float x, y;
+						string pos = chapter.Button.Position;
+						if (float.TryParse(pos.Split(',')[0], out x) && float.TryParse(pos.Split(',')[1], out y))
+						{
+							bPosition = new Vector2(x, y);
+						}
+						else
+						{
+							Logger.Log($"Can't parse \"Button.Position\" in chapter {j} from campaign \"{c.Title}\", ignoring");
+						}
+					}
+				}
+
 				campaign.field_2309[j] = new CampaignChapter(
 					class_134.method_253(chapter.Title, string.Empty),
 					class_134.method_253(chapter.Subtitle, string.Empty),
 					class_134.method_253(chapter.Place, string.Empty),
 					chapter.Background != null ? class_235.method_615(chapter.Background) : Campaigns.field_2330.field_2309[j].field_2315,
-					Campaigns.field_2330.field_2309[j].field_2316,
-					Campaigns.field_2330.field_2309[j].field_2317,
-					Campaigns.field_2330.field_2309[j].field_2318,
-					Campaigns.field_2330.field_2309[j].field_2319,
-					Campaigns.field_2330.field_2309[j].field_2320,
+					bLocked,
+					bUnlocked,
+					bHover,
+					bGem,
+					bPosition,
 					chapter.IsLeftSide
 				);
 
@@ -607,7 +649,7 @@ SomeZipIDontLike.zip");
 					string fanfarePath = string.IsNullOrEmpty(entry.Fanfare) ? "sounds/fanfare_solving3" : entry.Fanfare;
 
 					class_259 requirement;
-					int n = -1;
+					int n;
 					if (string.IsNullOrEmpty(entry.Requires))
 					{
 						requirement = new class_174();

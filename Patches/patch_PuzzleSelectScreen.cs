@@ -47,6 +47,7 @@ class patch_PuzzleSelectScreen {
 				Campaigns.field_2331[0] = QuintessentialLoader.AllCampaigns[currentCampaign];
 				// update resources
 				class_238.field_1992.field_968 = QApi.loadSong(((patch_Campaign)(object)Campaigns.field_2330).Music);
+				class_238.field_1989.field_96.field_833 = QApi.loadTexture(((patch_Campaign)(object)Campaigns.field_2330).ButtonBase);
 				// transition to new campaign
 				UI.InstantCloseScreen();
 				UI.OpenScreen(new PuzzleSelectScreen());
