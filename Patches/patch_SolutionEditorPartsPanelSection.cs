@@ -23,7 +23,7 @@ class patch_SolutionEditorPartsPanelSection {
 		Puzzle puzzle = sol.method_502().method_1934();
 		// check if we have the appropriate custom permissions
 		var perms = ((patch_Puzzle)(object)puzzle).CustomPermissions;
-		var checker = ((patch_PartType)(object)parts).CustomPermissionCheck;
+		var checker = ((patch_PartType)(object)type).CustomPermissionCheck;
 
 		if(checker == null || checker(perms))
 			orig_method_2046(parts, type);
