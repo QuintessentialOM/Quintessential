@@ -12,6 +12,7 @@ using PartTypes = class_191;
 using AtomTypes = class_175;
 using Song = class_186;
 using Texture = class_256;
+using Font = class_1;
 using ThrowError = class_266;
 
 public static class QApi {
@@ -362,6 +363,56 @@ public static class QApi {
 	#endregion
 
 	#region Misc APIs
+	private static Dictionary<string, Font> FontBank;
+	public static void initializeFontDictionary()
+	{
+		if (FontBank != null) return;
+		FontBank = new()
+		{
+			{"crimson 21", class_238.field_1990.field_2146},
+			{"crimson 16.5", class_238.field_1990.field_2145},
+			{"crimson 15", class_238.field_1990.field_2144},
+			{"crimson 13", class_238.field_1990.field_2143},
+			{"crimson 12", class_238.field_1990.field_2142},
+			{"crimson 10.5", class_238.field_1990.field_2141},
+			{"crimson 9.75", class_238.field_1990.field_2140},
+
+			{"cinzel 21", class_238.field_1990.field_2147},
+
+			{"cormorant 22.5", class_238.field_1990.field_2148},
+			{"cormorant 18", class_238.field_1990.field_2149},
+			{"cormorant 15", class_238.field_1990.field_2150},
+			{"cormorant 12.75", class_238.field_1990.field_2151},
+			{"cormorant 11", class_238.field_1990.field_2152},
+
+			{"reenie 17.25", class_238.field_1990.field_2153},
+
+			{"naver 17.25", class_238.field_1990.field_2154},
+		};
+
+		//debugging
+		Logger.Log($"QApi.initializeFontDictionary:");
+		Logger.Log($" === List of valid font IDs ===");
+		foreach (var font in FontBank)
+		{
+			Logger.Log($"   {font.Key}");
+		}
+		Logger.Log($" ==============================");
+	}
+
+	/// <summary>
+	/// Returns the specified font.
+	/// </summary>
+	/// <param name="ID">Font ID.</param>
+	public static Font getFont(string ID)
+	{
+		if (FontBank.ContainsKey(ID))
+		{
+			return FontBank[ID];
+		}
+		throw new ThrowError($"QApi.getFont: there is no font associated with \"{ID}\". Use QApi.listFonts to print the list of valid fonts to log.txt.");
+	}
+
 	/// <summary>
 	/// Adds an actor that can be referenced in vignettes and cutscenes.
 	/// </summary>
