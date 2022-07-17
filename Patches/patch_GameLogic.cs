@@ -33,6 +33,7 @@ class patch_GameLogic {
 	{
 		orig_method_955(param_4624);
 		QApi.initializeFontDictionary();
+		patch_DocumentScreen.initializeDocumentDictionary();
 	}
 
 }

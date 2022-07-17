@@ -378,7 +378,6 @@ public static class QApi {
 			{"crimson 9.75", class_238.field_1990.field_2140},
 
 			{"cinzel 21", class_238.field_1990.field_2147},
-
 			{"cormorant 22.5", class_238.field_1990.field_2148},
 			{"cormorant 18", class_238.field_1990.field_2149},
 			{"cormorant 15", class_238.field_1990.field_2150},
@@ -386,31 +385,62 @@ public static class QApi {
 			{"cormorant 11", class_238.field_1990.field_2152},
 
 			{"reenie 17.25", class_238.field_1990.field_2153},
-
 			{"naver 17.25", class_238.field_1990.field_2154},
 		};
-
-		//debugging
-		Logger.Log($"QApi.initializeFontDictionary:");
-		Logger.Log($" === List of valid font IDs ===");
-		foreach (var font in FontBank)
-		{
-			Logger.Log($"   {font.Key}");
-		}
-		Logger.Log($" ==============================");
 	}
 
 	/// <summary>
 	/// Returns the specified font.
 	/// </summary>
-	/// <param name="ID">Font ID.</param>
+	/// <param name="ID">The ID of the desired font.</param>
 	public static Font getFont(string ID)
 	{
 		if (FontBank.ContainsKey(ID))
 		{
 			return FontBank[ID];
 		}
-		throw new ThrowError($"QApi.getFont: there is no font associated with \"{ID}\". Use QApi.listFonts to print the list of valid fonts to log.txt.");
+		string err = "";
+		foreach (var item in FontBank)
+		{
+			err += $"\n    - \"{item.Key}\"";
+		}
+		throw new ThrowError($"QApi.getFont: there is no font associated with \"{ID}\" - consult the list of valid IDs below:{err}");
+	}
+
+	/// <summary>
+	/// Returns the vanilla handwriting font, i.e. returns 'naver 17.25' if the language is set to Korean, otherwise returns 'reenie 17.25'.
+	/// </summary>
+	public static Font getHandwrittenFont()
+	{
+		return patch_DocumentScreen.getHandwrittenFont();
+	}
+
+	/// <summary>
+	/// Draws text for documents. Return value depends on the parameter 'returnBoundingBox'.
+	/// </summary>
+	/// <param name="text">The text to be drawn.</param>
+	/// <param name="position">The anchor point for the text.</param>
+	/// <param name="font">The font of the text.</param>
+	/// <param name="color">The color of the text.</param>
+	/// <param name="alignment">Text alignment. Use '(enum_0) 0' for left-aligned, '(enum_0) 1' for center-aligned, and '(enum_0) 2' for right-aligned.</param>
+	/// <param name="lineSpacing">Vertical space between lines.</param>
+	/// <param name="columnWidth">Maximum width of the text column. If a line exceeds this amount, a newline is added.</param>
+	/// <param name="truncateWidth">Maximum width of the text column. If a line exceeds this amount, the line is truncated and '...' is appended.</param>
+	/// <param name="maxCharactersDrawn">Maximum number of characters to draw. To completely hide the text, set this parameter to 0.</param>
+	/// <param name="returnBoundingBox">If true, the function returns the bounding box of the text. If false, returns a Bounds2 where all corners are equal to 'position'.</param>
+	public static Bounds2 drawText(
+		string text,
+		Vector2 position,
+		Font font,
+		Color color,
+		enum_0 alignment = (enum_0)0,
+		float lineSpacing = 1f,
+		float columnWidth = float.MaxValue,
+		float truncateWidth = float.MaxValue,
+		int maxCharactersDrawn = int.MaxValue,
+		bool returnBoundingBox = true)
+	{
+		return patch_DocumentScreen.drawText(text, position, font, color, alignment, lineSpacing, columnWidth, truncateWidth, maxCharactersDrawn, returnBoundingBox);
 	}
 
 	/// <summary>
