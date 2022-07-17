@@ -9,6 +9,7 @@ public class ResourcesModel
 	public List<SongModel> Songs = new();
 	public List<VignetteActorModel> Characters = new();
 	public List<LocationModel> Locations = new();
+	public List<DocumentModel> Documents = new();
 }
 public class SoundModel
 {
@@ -31,4 +32,20 @@ public class VignetteActorModel
 public class LocationModel
 {
 	public string Path;
+}
+
+public class DocumentModel
+{
+	public string ID, Texture, Overlay;
+
+	public List<TextItemModel> TextItems;
+
+	public List<string> PipPositions;
+}
+
+public class TextItemModel
+{
+	public string Position, Font, Color, Align, LineSpacing, ColumnWidth;
+
+	public bool Handwritten;
 }

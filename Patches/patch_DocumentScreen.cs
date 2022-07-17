@@ -58,7 +58,7 @@ class patch_DocumentScreen
 		float columnWidth = float.MaxValue,
 		float truncateWidth = float.MaxValue,
 		int maxCharactersDrawn = int.MaxValue,
-		bool returnBoundingBox = true)
+		bool returnBoundingBox = false)
 	{
 		return class_135.method_290(text, position, font, color, alignment, lineSpacing,
 				0.6f/*default for documents, not sure what it does*/,
@@ -98,11 +98,11 @@ class patch_DocumentScreen
 		public void draw(Language lang, Vector2 origin, string text)
 		{
 			if (handwritten) font = getHandwrittenFont();
-			drawText(text, origin + position, font, color, alignment, lineSpacing, columnWidth, float.MaxValue, int.MaxValue, false);
+			drawText(text, origin + position, font, color, alignment, lineSpacing, columnWidth, float.MaxValue, int.MaxValue, true);
 		}
 	}
 
-	public static void createSimpleDocument(string documentID, Texture documentTexture, List<TextItem> textItems, List<Vector2> pipPositions, Texture overlayTexture = null)
+	public static void createSimpleDocument(string documentID, Texture documentTexture, List<TextItem> textItems, List<Vector2> pipPositions, Texture overlayTexture)
 	{
 		//construct the simple document drawing function
 		Action<Language, Vector2, string[]> draw = (lang, origin, textArray) => {
@@ -183,7 +183,7 @@ class patch_DocumentScreen
 		if (!class_110.field_1010)
 			return;
 		Language old_lang = lang;
-		Dictionary<SDL.enum_160, Language> lut = new()
+		Dictionary<SDL.enum_160, Language> lookupTable = new()
 		{
 			{SDL.enum_160.SDLK_1, Language.English},
 			{SDL.enum_160.SDLK_2, Language.German},
@@ -196,7 +196,7 @@ class patch_DocumentScreen
 			{SDL.enum_160.SDLK_9, Language.Turkish},
 			{SDL.enum_160.SDLK_0, Language.Ukrainian},
 		};
-		foreach (var item in lut)
+		foreach (var item in lookupTable)
 		{
 			if (class_115.method_198(item.Key)) lang = item.Value;
 		}

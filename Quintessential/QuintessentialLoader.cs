@@ -7,7 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Resources;
 using Texture = class_256;
-using Song = class_186;
+using Font = class_1;
 
 using Ionic.Zip;
 
@@ -410,6 +410,7 @@ SomeZipIDontLike.zip");
 	private static List<SongModel> ModSongs = new();
 	private static List<VignetteActorModel> ModVignetteActors = new();
 	private static List<LocationModel> ModLocations = new();
+	private static List<DocumentModel> ModDocuments = new();
 
 	public static void LoadSounds()
 	{
@@ -453,6 +454,78 @@ SomeZipIDontLike.zip");
 			Logger.Log($"  Added background texture \"{l.Path}\"");
 		}
 	}
+	public static void LoadDocuments()
+	{
+		foreach (var d in ModDocuments)
+		{
+			Texture texture = null;
+			Texture overlay = null;
+			List<patch_DocumentScreen.TextItem> textItems = new();
+			List<Vector2> pipPositions = new();
+
+			if (!string.IsNullOrEmpty(d.Texture))
+			{
+				texture = QApi.loadTexture(d.Texture);
+			}
+			if (!string.IsNullOrEmpty(d.Overlay))
+			{
+				overlay = QApi.loadTexture(d.Overlay);
+			}
+			foreach (var pip in d.PipPositions)
+			{
+				if (!string.IsNullOrEmpty(pip))
+				{
+					pipPositions.Add(new Vector2(int.Parse(pip.Split(',')[0]), int.Parse(pip.Split(',')[1])));
+				}
+			}
+			for (int i = 0; i < d.TextItems.Count; i++)
+			{
+				var item = d.TextItems[i];
+				Vector2 position = new Vector2(0f, -10f);
+				Font font = class_238.field_1990.field_2150;
+				Color color = patch_DocumentScreen.field_2410;
+				enum_0 alignment = (enum_0)0;
+				float lineSpacing = 1f;
+				float columnWidth = float.MaxValue;
+
+				if (!string.IsNullOrEmpty(item.Position))
+				{
+					position = new Vector2(float.Parse(item.Position.Split(',')[0]), float.Parse(item.Position.Split(',')[1]));
+				}
+				if (!string.IsNullOrEmpty(item.Font))
+				{
+					font = QApi.getFont(item.Font);
+				}
+				if (!string.IsNullOrEmpty(item.Color))
+				{
+					color = Color.FromHex(int.Parse(item.Color));
+				}
+				if (!string.IsNullOrEmpty(item.Align))
+				{
+					if (item.Align.ToLower() == "center")
+					{
+						alignment = (enum_0)1;
+					}
+					else if (item.Align.ToLower() == "right")
+					{
+						alignment = (enum_0)2;
+					}
+				}
+				if (!string.IsNullOrEmpty(item.LineSpacing))
+				{
+					lineSpacing = float.Parse(item.LineSpacing);
+				}
+				if (!string.IsNullOrEmpty(item.ColumnWidth))
+				{
+					columnWidth = float.Parse(item.ColumnWidth);
+				}
+
+				textItems.Add(new patch_DocumentScreen.TextItem(position, font, color, alignment, lineSpacing, columnWidth, item.Handwritten));
+			}
+			patch_DocumentScreen.createSimpleDocument(d.ID, texture, textItems, pipPositions, overlay);
+			Logger.Log($"  Added document \"{d.ID}\"");
+		}
+	}
 	private static void LoadModPuzzlesFromMeta(string puzzles)
 	{
 		//helper function
@@ -489,6 +562,11 @@ SomeZipIDontLike.zip");
 				{
 					Logger.Log($"    Adding {c.Locations.Count} cutscene location{AddS(c.Locations.Count)}.");
 					ModLocations.AddRange(c.Locations);
+				}
+				if (c.Documents.Count > 0)
+				{
+					Logger.Log($"    Adding {c.Documents.Count} documents{AddS(c.Documents.Count)}.");
+					ModDocuments.AddRange(c.Documents);
 				}
 
 			}
@@ -599,9 +677,15 @@ SomeZipIDontLike.zip");
 					//determine entry type, then load relevant data
 					enum_129 entryType;
 					Maybe<Puzzle> maybePuzzle = struct_18.field_1431;
+
+
 					if (!string.IsNullOrEmpty(entry.Solitaire))
 					{
-						entryType = (enum_129) 3;
+						entryType = (enum_129)3;
+					}
+					else if (entry.Document)
+					{
+						entryType = (enum_129)2;
 					}
 					else if (!string.IsNullOrEmpty(entry.Puzzle))
 					{
@@ -662,8 +746,12 @@ SomeZipIDontLike.zip");
 					{
 						requirement = new class_243(entry.Requires);
 					}
+					/*
+					entryType = (enum_129)2
+					*/
 
 					// TODO: optimize
+
 					AddEntryToCampaign(campaign, j, entry.ID, class_134.method_253(entry.Title, string.Empty), entryType, tutorialScreen, maybePuzzle, QApi.loadSong(songPath), QApi.loadSound(fanfarePath), requirement);
 					if (maybePuzzle.method_1085())
 					{

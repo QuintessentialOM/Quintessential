@@ -30,7 +30,9 @@ public class EntryModel {
 
 	// TODO: multiple requirements, solitaires and documents, tutorials
 
-	public string ID, Title, Song, Fanfare, Puzzle, Solitaire, Requires;
+	public string ID, Title, Song, Fanfare, Requires;
+	public string Puzzle, Solitaire;
+	public bool Document;
 	public CutsceneModel Cutscene;
 }
 public class CutsceneModel
