@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Quintessential;
 using SDL2;
 using Texture = class_256;
+using Font = class_1;
 
 #pragma warning disable CS0626 // Method, operator, or accessor is marked external and has no attributes on it
 [MonoModPatch("class_252")]
@@ -77,22 +78,12 @@ class patch_CutsceneScreen
 		public patch_CutsceneScreen field_2050;
 		public bool field_2051;
 
-		internal extern void orig_method_685(VignetteEvent.LineFields param_4177);
-		internal void method_685(VignetteEvent.LineFields param_4177)
-		{
-			orig_method_685(param_4177);
-		}
-		internal extern void orig_method_686(VignetteEvent.struct_131 param_4178);
-		internal void method_686(VignetteEvent.struct_131 param_4178)
-		{
-			orig_method_686(param_4178);
-		}
-		internal extern void orig_method_687(VignetteEvent.struct_132 param_4179);
-		internal void method_687(VignetteEvent.struct_132 param_4179)
-		{
-			orig_method_687(param_4179);
-		}
-
+		[MonoModIgnore]
+		internal extern void method_685(VignetteEvent.LineFields param_4177);
+		[MonoModIgnore]
+		internal extern void method_686(VignetteEvent.struct_131 param_4178);
+		[MonoModIgnore]
+		internal extern void method_687(VignetteEvent.struct_132 param_4179);
 	}
 		public sealed class class_255
 	{
@@ -102,21 +93,12 @@ class patch_CutsceneScreen
 		public Vector2 field_2055;
 	}
 
-	private extern bool orig_method_678();
-	private bool method_678()
-	{
-		return orig_method_678();
-	}
-	private extern int orig_method_680();
-	private int method_680()
-	{
-		return orig_method_680();
-	}
-	private extern int orig_method_681();
-	private int method_681()
-	{
-		return orig_method_681();
-	}
+	[MonoModIgnore]
+	private extern bool method_678();
+	[MonoModIgnore]
+	private extern int method_680();
+	[MonoModIgnore]
+	private extern int method_681();
 	private void method_684()
 	{
 		//reimplements the method
@@ -169,16 +151,15 @@ class patch_CutsceneScreen
 			background = QApi.loadTexture(CutsceneBackgrounds[puzzleID]);
 		}
 		
-		Texture class256_1 = background;
-		string str = location;
+		Vector2 resolution = class_115.field_1433;
 
-		class_135.method_279(Color.Black, Vector2.Zero, class_115.field_1433);
-		float num = class_115.field_1433.Y / (float)class256_1.field_2056.Y;
-		Vector2 vector2_1 = class256_1.field_2056.ToVector2() * num;
-		class_135.method_263(class256_1, Color.White, class_115.field_1433 / 2 - vector2_1 / 2, vector2_1);
-		Vector2 vector2_2 = new Vector2(class_115.field_1433.X / 2f - (float)(class_238.field_1989.field_84.field_531.field_2056.X / 2), class_115.field_1433.Y - 87f);
+		class_135.method_279(Color.Black, Vector2.Zero, resolution);
+		float num = resolution.Y / (float)background.field_2056.Y;
+		Vector2 vector2_1 = background.field_2056.ToVector2() * num;
+		class_135.method_263(background, Color.White, resolution / 2 - vector2_1 / 2, vector2_1);
+		Vector2 vector2_2 = new Vector2(resolution.X / 2f - (float)(class_238.field_1989.field_84.field_531.field_2056.X / 2), resolution.Y - 87f);
 		class_135.method_272(class_238.field_1989.field_84.field_531, vector2_2.Rounded());
-		class_135.method_290(str, new Vector2(class_115.field_1433.X / 2f, class_115.field_1433.Y - 68f), class_238.field_1990.field_2146, class_181.field_1718, (enum_0)1, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, false, true);
+		class_135.method_290(location, new Vector2(resolution.X / 2f, resolution.Y - 68f), class_238.field_1990.field_2146, class_181.field_1718, (enum_0)1, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, false, true);
 
 		patch_CutsceneScreen.class_254 class254 = new patch_CutsceneScreen.class_254();
 		class254.field_2050 = (patch_CutsceneScreen)this;
