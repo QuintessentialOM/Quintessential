@@ -36,16 +36,14 @@ public class LocationModel
 
 public class DocumentModel
 {
-	public string ID, Texture, Overlay;
+	public string ID, Texture;
 
-	public List<TextItemModel> TextItems;
-
-	public List<string> PipPositions;
+	public List<DrawItemModel> DrawItems;
 }
 
-public class TextItemModel
+public class DrawItemModel
 {
-	public string Position, Font, Color, Align, LineSpacing, ColumnWidth;
+	public string Position, Texture, Font, Color, Align, LineSpacing, ColumnWidth;
 
 	public bool Handwritten;
 }

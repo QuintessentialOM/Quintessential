@@ -29,7 +29,7 @@ class patch_DocumentScreen
 		createDocument("letter-3", class_238.field_1989.field_85.field_567, drawLetter3);
 		createDocument("letter-4", class_238.field_1989.field_85.field_568, drawLetter4);
 		createDocument("letter-5", class_238.field_1989.field_85.field_570, drawLetter5);
-		createDocument("letter-6", class_238.field_1989.field_85.field_571, drawLetter6, class_238.field_1989.field_85.field_572);
+		createDocument("letter-6", class_238.field_1989.field_85.field_571, drawLetter6);
 		//createDocument("letter-7", class_238.field_1989.field_85.field_573, drawLetter7); // "letter-7" was removed from the game.
 		createDocument("letter-9", class_238.field_1989.field_85.field_574, drawLetter9);
 		createDocument("letter-response", class_238.field_1989.field_85.field_575, drawLetterResponse);
@@ -74,9 +74,10 @@ class patch_DocumentScreen
 
 	//helper struct for custom campaigns
 	//  no need for truncateWidth, maxCharactersDrawn, returnBoundingBox
-	public sealed class TextItem
+	public sealed class DrawItem
 	{
 		Vector2 position;
+		Texture texture = null;
 		Font font;
 		Color color;
 		enum_0 alignment;
@@ -84,7 +85,7 @@ class patch_DocumentScreen
 		float columnWidth;
 		bool handwritten;
 
-		public TextItem(Vector2 position, Font font, Color color, enum_0 alignment, float lineSpacing, float columnWidth, bool handwritten)
+		public DrawItem(Vector2 position, Font font, Color color, enum_0 alignment, float lineSpacing, float columnWidth, bool handwritten)
 		{
 			this.position = position;
 			this.font = font;
@@ -94,44 +95,51 @@ class patch_DocumentScreen
 			this.columnWidth = columnWidth;
 			this.handwritten = handwritten;
 		}
-
-		public void draw(Language lang, Vector2 origin, string text)
+		public DrawItem(Vector2 position, Texture texture)
 		{
-			if (handwritten) font = getHandwrittenFont();
-			drawText(text, origin + position, font, color, alignment, lineSpacing, columnWidth, float.MaxValue, int.MaxValue, true);
+			this.position = position;
+			this.texture = texture;
+		}
+
+		public bool draw(Language lang, Vector2 origin, string text)
+		{
+			if (this.texture != null)
+			{
+				class_135.method_272(this.texture, origin + this.position);
+			}
+			else if (!string.IsNullOrEmpty(text))
+			{
+				if (handwritten) font = getHandwrittenFont();
+				drawText(text, origin + position, font, color, alignment, lineSpacing, columnWidth, float.MaxValue, int.MaxValue, true);
+				return true;
+			}
+			return false;
 		}
 	}
 
-	public static void createSimpleDocument(string documentID, Texture documentTexture, List<TextItem> textItems, List<Vector2> pipPositions, Texture overlayTexture)
+	public static void createSimpleDocument(string documentID, Texture documentTexture, List<DrawItem> drawItems)
 	{
 		//construct the simple document drawing function
 		Action<Language, Vector2, string[]> draw = (lang, origin, textArray) => {
-			int maxIndex = Math.Min(textArray.Length, textItems.Count);
-			for (int i = 0; i < maxIndex; i++)
+			int maxIndex = textArray.Length;
+			int index = 0;
+			for (int i = 0; i < drawItems.Count; i++)
 			{
-				textItems[i].draw(lang, origin, textArray[i]);
-			}
-			foreach (var pos in pipPositions)
-			{
-				class_135.method_272(class_238.field_1989.field_85.field_576, origin + pos);
+				string text = index < maxIndex ? textArray[index] : null;
+				index += drawItems[i].draw(lang, origin, text) ? 1 : 0;
 			}
 		};
 		//save function in bank
-		createDocument(documentID, documentTexture, draw, overlayTexture);
+		createDocument(documentID, documentTexture, draw);
 	}
 
-	public static void createDocument(string documentID, Texture documentTexture, Action<Language, Vector2, string[]> draw, Texture overlayTexture = null)
+	public static void createDocument(string documentID, Texture documentTexture, Action<Language, Vector2, string[]> draw)
 	{
 		//construct document drawing function
 		Action<Language, string[]> action = (lang, textArray) =>	{
 			Vector2 origin = class_115.field_1433 / 2 - documentTexture.field_2056.ToVector2() / 2;
 			class_135.method_272(documentTexture, origin.Rounded()); //draw document
 			draw(lang, origin, textArray);
-			if (overlayTexture != null)
-			{
-				//draw overlayTexture
-				class_135.method_271(overlayTexture, Color.White, origin.Rounded());
-			}
 		};
 		//save function in bank
 		if (DocumentBank.ContainsKey(documentID))
@@ -297,6 +305,7 @@ class patch_DocumentScreen
 	{
 		Bounds2 bounds2 = class_135.method_290(textArray[0], Vector2.Zero, class_238.field_1990.field_2150, Color.White, (enum_0)0, 1f, 0.6f, 775f, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, true, false);
 		class_135.method_290(textArray[0], origin + new Vector2(0.0f, bounds2.Height / 2f) + new Vector2(237f, 407f), class_238.field_1990.field_2150, DocumentScreen.field_2412, (enum_0)0, 1f, 0.6f, 775f, float.MaxValue, 0, new Color(), (class_256)null, int.MaxValue, false, true);
+		class_135.method_272(class_238.field_1989.field_85.field_572, origin);
 	}
 	/* "letter-7" was removed from the game.
 	private static void drawLetter7(Language lang, Vector2 origin, string[] textArray)

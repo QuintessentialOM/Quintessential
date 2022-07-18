@@ -458,30 +458,22 @@ SomeZipIDontLike.zip");
 	{
 		foreach (var d in ModDocuments)
 		{
-			Texture texture = null;
-			Texture overlay = null;
-			List<patch_DocumentScreen.TextItem> textItems = new();
-			List<Vector2> pipPositions = new();
+			Texture base_texture = null;
+			List<patch_DocumentScreen.DrawItem> drawItems = new();
 
 			if (!string.IsNullOrEmpty(d.Texture))
 			{
-				texture = QApi.loadTexture(d.Texture);
+				base_texture = QApi.loadTexture(d.Texture);
 			}
-			if (!string.IsNullOrEmpty(d.Overlay))
+			else
 			{
-				overlay = QApi.loadTexture(d.Overlay);
+				Logger.Log($"Document \"{d.ID}\" doesn't have a base texture defined, ignoring");
 			}
-			foreach (var pip in d.PipPositions)
+			int maxIndex = d.DrawItems == null ? 0 : d.DrawItems.Count;
+			for (int i = 0; i < maxIndex; i++)
 			{
-				if (!string.IsNullOrEmpty(pip))
-				{
-					pipPositions.Add(new Vector2(int.Parse(pip.Split(',')[0]), int.Parse(pip.Split(',')[1])));
-				}
-			}
-			for (int i = 0; i < d.TextItems.Count; i++)
-			{
-				var item = d.TextItems[i];
-				Vector2 position = new Vector2(0f, -10f);
+				var item = d.DrawItems[i];
+				Vector2 position = new Vector2(0f, 0f);
 				Font font = class_238.field_1990.field_2150;
 				Color color = patch_DocumentScreen.field_2410;
 				enum_0 alignment = (enum_0)0;
@@ -490,39 +482,54 @@ SomeZipIDontLike.zip");
 
 				if (!string.IsNullOrEmpty(item.Position))
 				{
-					position = new Vector2(float.Parse(item.Position.Split(',')[0]), float.Parse(item.Position.Split(',')[1]));
-				}
-				if (!string.IsNullOrEmpty(item.Font))
-				{
-					font = QApi.getFont(item.Font);
-				}
-				if (!string.IsNullOrEmpty(item.Color))
-				{
-					color = Color.FromHex(int.Parse(item.Color));
-				}
-				if (!string.IsNullOrEmpty(item.Align))
-				{
-					if (item.Align.ToLower() == "center")
+					float x, y;
+					string pos = item.Position;
+
+					if (float.TryParse(pos.Split(',')[0], out x) && float.TryParse(pos.Split(',')[1], out y))
 					{
-						alignment = (enum_0)1;
+						position = new Vector2(x, y);
 					}
-					else if (item.Align.ToLower() == "right")
-					{
-						alignment = (enum_0)2;
-					}
-				}
-				if (!string.IsNullOrEmpty(item.LineSpacing))
-				{
-					lineSpacing = float.Parse(item.LineSpacing);
-				}
-				if (!string.IsNullOrEmpty(item.ColumnWidth))
-				{
-					columnWidth = float.Parse(item.ColumnWidth);
 				}
 
-				textItems.Add(new patch_DocumentScreen.TextItem(position, font, color, alignment, lineSpacing, columnWidth, item.Handwritten));
+				if (!string.IsNullOrEmpty(item.Texture))
+				{
+					//make graphic item
+					drawItems.Add(new patch_DocumentScreen.DrawItem(position, QApi.loadTexture(item.Texture)));
+				}
+				else
+				{
+					//make a text item
+					if (!string.IsNullOrEmpty(item.Font))
+					{
+						font = QApi.getFont(item.Font);
+					}
+					if (!string.IsNullOrEmpty(item.Color))
+					{
+						color = Color.FromHex(int.Parse(item.Color));
+					}
+					if (!string.IsNullOrEmpty(item.Align))
+					{
+						if (item.Align.ToLower() == "center")
+						{
+							alignment = (enum_0)1;
+						}
+						else if (item.Align.ToLower() == "right")
+						{
+							alignment = (enum_0)2;
+						}
+					}
+					if (!string.IsNullOrEmpty(item.LineSpacing))
+					{
+						lineSpacing = float.Parse(item.LineSpacing);
+					}
+					if (!string.IsNullOrEmpty(item.ColumnWidth))
+					{
+						columnWidth = float.Parse(item.ColumnWidth);
+					}
+					drawItems.Add(new patch_DocumentScreen.DrawItem(position, font, color, alignment, lineSpacing, columnWidth, item.Handwritten));
+				}
 			}
-			patch_DocumentScreen.createSimpleDocument(d.ID, texture, textItems, pipPositions, overlay);
+			patch_DocumentScreen.createSimpleDocument(d.ID, base_texture, drawItems);
 			Logger.Log($"  Added document \"{d.ID}\"");
 		}
 	}
