@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using PartType = class_139;
 
 #pragma warning disable CS0626 // Method, operator, or accessor is marked external and has no attributes on it
+#pragma warning disable IDE1006 // Naming Styles
 
 [MonoModPatch("SolutionEditorPartsPanel/class_428")]
 class patch_SolutionEditorPartsPanelSection {

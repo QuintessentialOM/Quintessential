@@ -8,6 +8,9 @@ public class QuintessentialSettings {
 
 	public static QuintessentialSettings Instance => QuintessentialLoader.QuintessentialAsMod.Settings as QuintessentialSettings;
 
+	[SettingsLabel("Take Screenshot")]
+	public Keybinding Screenshot = new("F12");
+
 	[SettingsLabel("Enable Campaign Switcher")]
 	public bool EnableCustomCampaigns = true;
 

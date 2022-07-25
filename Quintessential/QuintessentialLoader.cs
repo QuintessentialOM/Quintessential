@@ -24,6 +24,7 @@ public class QuintessentialLoader {
 	public static string PathMods;
 	public static string PathBlacklist;
 	public static string PathModSaves;
+	public static string PathScreenshots;
 
 	public static List<QuintessentialMod> CodeMods = new();
 	public static List<ModMeta> Mods = new();
@@ -50,6 +51,7 @@ public class QuintessentialLoader {
 		try {
 			PathLightning = Path.GetDirectoryName(typeof(GameLogic).Assembly.Location);
 			PathMods = Path.Combine(PathLightning, "Mods");
+			PathScreenshots = Path.Combine(PathLightning, "Screenshots");
 
 			Logger.Init();
 			Logger.Log($"Quintessential v{VersionString} ({VersionNumber})");
@@ -59,6 +61,8 @@ public class QuintessentialLoader {
 
 			if(!Directory.Exists(PathMods))
 				Directory.CreateDirectory(PathMods);
+			if(!Directory.Exists(PathScreenshots))
+				Directory.CreateDirectory(PathScreenshots);
 
 			PathBlacklist = Path.Combine(PathMods, "blacklist.txt");
 			if(File.Exists(PathBlacklist))

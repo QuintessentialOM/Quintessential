@@ -7,21 +7,28 @@ public class Keybinding {
 
 	public bool Shift = false, Control = false, Alt = false;
 
-	public Keybinding() { }
+	public Keybinding(){}
 
-	public bool IsControlKeysPressed() {
+	public Keybinding(string key, bool shift = false, bool control = false, bool alt = false){
+		Key = key;
+		Shift = shift;
+		Control = control;
+		Alt = alt;
+	}
+
+	public bool IsControlKeysPressed(){
 		return (!Shift || Input.IsShiftHeld()) && (!Control || Input.IsControlHeld()) && (!Alt || Input.IsAltHeld());
 	}
 
-	public bool Pressed() {
+	public bool Pressed(){
 		return IsControlKeysPressed() && Input.IsKeyPressed(Key);
 	}
 
-	public bool Held() {
+	public bool Held(){
 		return IsControlKeysPressed() && Input.IsKeyHeld(Key);
 	}
 
-	public bool Released() {
+	public bool Released(){
 		return IsControlKeysPressed() && Input.IsKeyReleased(Key);
 	}
 
