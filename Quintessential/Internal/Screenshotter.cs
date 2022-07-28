@@ -26,11 +26,11 @@ internal class Screenshotter{
 			IntPtr bufferPointer = (IntPtr)bufferHandle;
 
 			IntPtr sdlRenderer = SDL.SDL_GetRenderer(GameLogic.field_2434.field_2437.field_2192);
-			SDL.SDL_RenderReadPixels(sdlRenderer, ref rect, SDL.SDL_PIXELFORMAT_ARGB8888, bufferPointer, rect.w * 4);
+			SDL.SDL_RenderReadPixels(sdlRenderer, ref rect, SDL.SDL_PIXELFORMAT_RGBA8888, bufferPointer, rect.w * 4);
 
-			var surface = SDL.SDL_CreateRGBSurfaceFrom(bufferPointer, rect.w, rect.h, 8 * 4, rect.w * 4, 0xFF0000, 0xFF00, 0xFF, 0xFF000000);
+			var surface = SDL.SDL_CreateRGBSurfaceFrom(bufferPointer, rect.w, rect.h, 8 * 4, rect.w * 4, 0xFF, 0xFF00, 0xFF0000, 0xFF000000);
 			Logger.Log("created surface!");
-			SDL.SDL_SaveBMP(surface, Path.Combine(QuintessentialLoader.PathScreenshots, "screenshot-" + 1 + ".bmp"));
+			class_267.method_726(surface, Path.Combine(QuintessentialLoader.PathScreenshots, "screenshot-" + 1 + ".png"));
 			Logger.Log("saved screenshot!");
 
 			SDL.SDL_FreeSurface(surface);
