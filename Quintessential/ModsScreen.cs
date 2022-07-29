@@ -144,21 +144,21 @@ class ModsScreen : IScreen {
 				return false;
 			class_238.field_1991.field_1821.method_28(1f);
 			return true;
-		} else
-			UI.DrawTexture(class_238.field_1989.field_101.field_772, boxBounds.Min);
+		}
+		UI.DrawTexture(class_238.field_1989.field_101.field_772, boxBounds.Min);
 		return false;
 	}
 
-	public static void SaveSettings(QuintessentialMod cmod) {
-		cmod.ApplySettings();
-		ModMeta mod = cmod.Meta;
-		var settings = cmod.Settings;
-		string name = mod.Name;
+	public static void SaveSettings(QuintessentialMod mod){
+		mod.ApplySettings();
+		ModMeta meta = mod.Meta;
+		object settings = mod.Settings;
+		string name = meta.Name;
 		string path = Path.Combine(QuintessentialLoader.PathModSaves, name + ".yaml");
 		if(!Directory.Exists(QuintessentialLoader.PathModSaves))
 			Directory.CreateDirectory(QuintessentialLoader.PathModSaves);
 
 		using StreamWriter writer = new(path);
-		YamlHelper.Serializer.Serialize(writer, settings, QuintessentialLoader.CodeMods.First(c => c.Meta == mod).SettingsType);
+		YamlHelper.Serializer.Serialize(writer, settings, QuintessentialLoader.CodeMods.First(c => c.Meta == meta).SettingsType);
 	}
 }
