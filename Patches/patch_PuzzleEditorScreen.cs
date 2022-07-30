@@ -11,7 +11,10 @@ using System.Linq;
 using MonoMod;
 using MonoMod.Utils;
 using Quintessential;
+
 using Scrollbar = class_262;
+using InstructionTypes = class_169;
+using Permissions = enum_149;
 
 class patch_PuzzleEditorScreen{
 	private Scrollbar scrollbar; // initializer is not merged
@@ -37,9 +40,9 @@ class patch_PuzzleEditorScreen{
 			// draw headers
 			var nCorner = corner - new Vector2(430, 74 - scrollbar.field_2078);
 
-			class_140.method_317(class_134.method_253("Products", "FULL LENGTH"), nCorner + new Vector2(489f, 774f), 904, false, true);
-			class_140.method_317(class_134.method_253("Reagents", ""), nCorner + new Vector2(489f, 506f), 904, false, true);
-			class_140.method_317(class_134.method_253("Mechanisms and Glyphs", ""), nCorner + new Vector2(489f, 237f), 904, false, true);
+			class_140.method_317(class_134.method_253("Products", "FULL LENGTH"), nCorner + new Vector2(489, 774), 900, false, true);
+			class_140.method_317(class_134.method_253("Reagents", ""), nCorner + new Vector2(489, 506), 900, false, true);
+			class_140.method_317(class_134.method_253("Mechanisms and Glyphs", ""), nCorner + new Vector2(489, 237), 900, false, true);
 
 			Puzzle myPuzzle = self.Get<Maybe<Puzzle>>("field_2789").method_1087();
 
@@ -48,7 +51,7 @@ class patch_PuzzleEditorScreen{
 			for(var row = 0; row < 2; row++){
 				PuzzleInputOutput[] puzzleIOs = row == 0 ? myPuzzle.field_2771 : myPuzzle.field_2770;
 				for(var column = 0; column < 4; ++column){
-					Bounds2 puzzleIoBox = Bounds2.WithSize(nCorner + new Vector2(495f, 576f) + new Vector2(column * 236, row == 0 ? -28f : -297f), new Vector2(226f, 226f));
+					Bounds2 puzzleIoBox = Bounds2.WithSize(nCorner + new Vector2(495f, 576f) + new Vector2(column * 235, row == 0 ? -28f : -297f), new Vector2(226f, 226f));
 					if(puzzleIOs.Length > column){
 						class_135.method_272(b ? class_238.field_1989.field_94.field_805 : class_238.field_1989.field_94.field_808, puzzleIoBox.Min);
 						var isHover = false;
@@ -93,8 +96,7 @@ class patch_PuzzleEditorScreen{
 						Vector2 halfSize = centre.Rounded();
 						centre = puzzleIoBox.Center;
 						class_135.method_272(moleculeSprite, centre.Rounded() - halfSize + new Vector2(-8f, -10f));
-					}
-					else if(b){
+					}else if(b){
 						Vector2 offset = new(-2f, -3f);
 						class_135.method_272(class_238.field_1989.field_94.field_802, puzzleIoBox.Min + offset);
 						class_135.method_290(row == 0 ? class_134.method_253("Create New Product", string.Empty).method_1060() : class_134.method_253("Create New Reagent", string.Empty).method_1060(), puzzleIoBox.Center + new Vector2(-6f, -8f), class_238.field_1990.field_2143, class_181.field_1718, (enum_0)1, 1f, 0.6f, 120f, float.MaxValue, 0, new Color(), null, int.MaxValue, false, true);
@@ -131,6 +133,47 @@ class patch_PuzzleEditorScreen{
 			self.Invoke("method_1261", rulesCorner + new Vector2(ruleSize.X * 1, ruleSize.Y * 2), (string)class_191.field_1779.field_1529, enum_149.Purification, myPuzzle);
 			self.Invoke("method_1261", rulesCorner + new Vector2(ruleSize.X * 2, ruleSize.Y * 2), (string)class_191.field_1781.field_1529, enum_149.Disposal, myPuzzle);
 			self.Invoke("method_1261", rulesCorner + new Vector2(ruleSize.X * 3, ruleSize.Y * 2), (string)class_134.method_253("Glyphs of Quintessence", string.Empty), enum_149.Quintessence, myPuzzle);
+
+			// quintessential global checkboxes
+			ModsScreen.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 0, ruleSize.Y * 3), "Save as Vanilla", false);
+			ModsScreen.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 1, ruleSize.Y * 3), "Allow Overlap", false);
+			
+			// instructions selection
+			Vector2 instructionsCorner = new(nCorner.X + 489, rulesCorner.Y + ruleSize.Y * 4) /*rulesCorner + new Vector2(0, ruleSize.Y * 4)*/;
+			class_140.method_317(class_134.method_253("Instructions", ""), instructionsCorner, 900, false, true);
+
+			InstructionType[] types = InstructionTypes.field_1667;
+			var i = 0;
+			foreach(var type in types){
+				var basePos = instructionsCorner + new Vector2(80 + 60 * i, -60);
+				var pos = basePos;
+				if(type.field_2550 == Permissions.None)
+					continue;
+				bool enabled = myPuzzle.field_2773.HasFlag(type.field_2550);
+
+				class_256 @base;
+				if(enabled)
+					@base = class_238.field_1989.field_99.field_706.field_716;
+				else{
+					@base = class_238.field_1989.field_99.field_706.field_717;
+					pos += new Vector2(3, -3);
+				}
+
+				bool hovered = Bounds2.WithSize(basePos, @base.field_2056.ToVector2()).Contains(Input.MousePos());
+				class_256 highlight = class_238.field_1989.field_99.field_706.field_720;
+				
+				UI.DrawTexture(@base, basePos);
+				UI.DrawTexture(type.field_2546, pos + new Vector2(1, 2));
+				if(hovered)
+					UI.DrawTexture(highlight, pos + new Vector2(2, 4));
+
+				if(hovered && Input.IsLeftClickPressed()){
+					myPuzzle.field_2773 ^= type.field_2550;
+					GameLogic.field_2434.field_2460.method_2241(myPuzzle);
+				}
+				
+				i++;
+			}
 
 			scrollbar.method_707(panelSize.Height * 2);
 		}

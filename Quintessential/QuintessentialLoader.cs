@@ -17,8 +17,8 @@ namespace Quintessential;
 
 public class QuintessentialLoader {
 
-	public readonly static string VersionString = "0.3.0";
-	public readonly static int VersionNumber = 6;
+	public static readonly string VersionString = "0.3.0";
+	public static readonly int VersionNumber = 6;
 
 	public static string PathLightning;
 	public static string PathMods;
