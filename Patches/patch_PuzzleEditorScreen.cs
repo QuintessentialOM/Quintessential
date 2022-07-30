@@ -46,6 +46,9 @@ class patch_PuzzleEditorScreen{
 			class_140.method_317(class_134.method_253("Mechanisms and Glyphs", ""), nCorner + new Vector2(489, 237), 900, false, true);
 
 			Puzzle myPuzzle = self.Get<Maybe<Puzzle>>("field_2789").method_1087();
+			// CustomPermissions may have just not been set? TODO: find a better place for the "canonical" setter
+			var conv = (patch_Puzzle)(object)myPuzzle;
+			conv.CustomPermissions ??= new();
 
 			// draw inputs/outputs
 			bool b = self.Get<enum_138>("field_2788") == 0;
@@ -174,21 +177,36 @@ class patch_PuzzleEditorScreen{
 
 			// quintessential rules
 			var rulesCorner = instructionsCorner + new Vector2(0, ruleSize.Y * 3.5f);
-			class_140.method_317(class_134.method_253("Rules", ""), rulesCorner - new Vector2(0, ruleSize.Y * .5f), 900, false, true);
+			class_140.method_317(class_134.method_253("Quintessential Rules", ""), rulesCorner - new Vector2(0, ruleSize.Y * .5f), 900, false, true);
 			ModsScreen.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 0 + 5, ruleSize.Y * 1), "Enable Modded Content", false);
 			ModsScreen.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 1 + 5, ruleSize.Y * 1), "Allow Overlap", false);
 			
-			// separator + modded parts
-			class_135.method_275(class_238.field_1989.field_102.field_822, Color.White, Bounds2.WithSize(new Vector2(nCorner.X + 489, rulesCorner.Y + ruleSize.Y * 2), new Vector2(900, 3)));
-			for(var idx = 0; idx < QApi.CustomPermisions.Count; idx++){
-				var permission = QApi.CustomPermisions[idx];
-				ModsScreen.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * (idx % 4) + 5, ruleSize.Y * ((idx / 4) + 4)), permission.Right, false);
+			// modded categories
+			Vector2 cursor = rulesCorner + new Vector2(0, ruleSize.Y * 2.5f);
+			foreach(var category in QApi.PuzzleOptions.GroupBy(k => k.SectionName)){
+				class_140.method_317(category.Key, cursor, 900, false, true);
+				
+				var idx = 0;
+				foreach(var option in category){
+					bool enabled = conv.CustomPermissions.Contains(option.ID);
+					// ReSharper disable once PossibleLossOfFraction
+					if(ModsScreen.DrawCheckbox(cursor + new Vector2(ruleSize.X * (idx % 4) + 5, ruleSize.Y * (idx / 4 + 1.5f)), option.Name, enabled)){
+						if(enabled)
+							conv.CustomPermissions.Remove(option.ID);
+						else
+							conv.CustomPermissions.Add(option.ID);
+					}
+
+					idx++;
+				}
+
+				var rows = (int)Math.Ceiling(idx / 4f);
+				cursor += new Vector2(0, ruleSize.Y * (rows + 2));
 			}
 
-			int rows = (int)Math.Ceiling(QApi.CustomPermisions.Count / 4f);
-			var dotdotCorner = rulesCorner + new Vector2(0, rows * ruleSize.Y);
-			
-			scrollbar.method_707(panelSize.Height * 2);
+			// expand the scroll area to cover the entire displayed area
+			// we're off by one row
+			scrollbar.method_707(nCorner.Y - cursor.Y + panelSize.Height - ruleSize.Y + 24);
 		}
 	}
 }

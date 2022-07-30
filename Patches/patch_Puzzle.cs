@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-
 using MonoMod;
 
-class patch_Puzzle {
-
+class patch_Puzzle{
+	
 	// Custom puzzle data
 	public HashSet<string> CustomPermissions = new();
 

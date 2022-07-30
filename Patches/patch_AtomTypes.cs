@@ -4,11 +4,11 @@ using AtomTypes = class_175;
 #pragma warning disable CS0626 // Method, operator, or accessor is marked external and has no attributes on it
 
 [MonoModPatch("class_175")]
-class patch_AtomTypes {
-
+class patch_AtomTypes{
+	
 	public static extern void orig_method_248();
 
-	public static void method_248() {
+	public static void method_248(){
 		orig_method_248();
 		((patch_AtomType)(object)AtomTypes.field_1675).QuintAtomType = "salt";
 		((patch_AtomType)(object)AtomTypes.field_1676).QuintAtomType = "air";

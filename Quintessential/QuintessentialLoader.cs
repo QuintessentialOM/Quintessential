@@ -165,7 +165,7 @@ SomeZipIDontLike.zip");
 			}
 			Mods.RemoveAll(m => rem.Contains(m));
 
-			while(waiting.Count() > 0) {
+			while(waiting.Any()){
 				var toRemove = new List<ModMeta>();
 				var removeFromMods = new List<ModMeta>();
 				foreach(var mod in waiting) {
@@ -205,7 +205,7 @@ SomeZipIDontLike.zip");
 				// if we don't load any mods, we have a circular dep, don't load any more
 				waiting.RemoveAll(m => toRemove.Contains(m));
 				Mods.RemoveAll(m => removeFromMods.Contains(m));
-				if(toRemove.Count() == 0) {
+				if(!toRemove.Any()) {
 					foreach(var item in waiting)
 						Logger.Log("Not loading " + item.Name + ": circular dependency!");
 					break;
@@ -310,11 +310,24 @@ SomeZipIDontLike.zip");
 			mod.LoadPuzzleContent();
 
 		// debug
+		QApi.AddPuzzlePermission("Quintessential:ravaris_wheel", "Ravari's Wheel", "Ravari's Engine");
+		QApi.AddPuzzlePermission("Quintessential:glyph_degradation", "Glyph of Degradation", "Ravari's Engine");
+		QApi.AddPuzzlePermission("Quintessential:glyph_fusion", "Glyph of Fusion", "Ravari's Engine");
+		QApi.AddPuzzlePermission("Quintessential:glyph_accretion", "Glyph of Accretion", "Ravari's Engine");
+		QApi.AddPuzzlePermission("Quintessential:alchemical_abacus", "Alchemical Abacus", "Ravari's Engine");
+		
+		QApi.AddPuzzlePermission("Quintessential:knight_arm", "Knight's Arm", "Various Arms");
+		QApi.AddPuzzlePermission("Quintessential:quad_arm", "Quad Arm", "Various Arms");
+		QApi.AddPuzzlePermission("Quintessential:waldo_arm", "Waldo", "Various Arms");
+		QApi.AddPuzzlePermission("Quintessential:mass_driver", "Mass Driver", "Various Arms");
+
 		QApi.AddPuzzlePermission("Quintessential:glyph_coolness", "Glyph of Coolness");
-		QApi.AddPuzzlePermission("Quintessential:glyph_irradiation", "Glyph of Irradiation");
 		QApi.AddPuzzlePermission("Quintessential:arm_scissor", "Scissor Arms");
 		QApi.AddPuzzlePermission("Quintessential:disable_track_loops", "Disable Track Loops");
 		QApi.AddPuzzlePermission("Quintessential:yoyos", "Yoyos");
+		QApi.AddPuzzlePermission("Quintessential:yolos", "Yolos");
+		QApi.AddPuzzlePermission("Quintessential:eh", "Option 6");
+		QApi.AddPuzzlePermission("Quintessential:why", "ran out of ideas :(");
 
 		Logger.Log("Finished puzzle content loading.");
 	}

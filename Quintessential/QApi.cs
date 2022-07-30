@@ -14,10 +14,9 @@ public static class QApi {
 	public static readonly List<Pair<PartType, PartType>> PanelParts = new();
 	public static readonly List<AtomType> ModAtomTypes = new();
 	public static readonly List<Action<Sim, bool>> ToRunAfterCycle = new();
-	// ID, display name
-	public static readonly List<Pair<string, string>> CustomPermisions = new();
+	public static readonly List<PuzzleOption> PuzzleOptions = new();
 
-	public static void Init() {
+	public static void Init(){
 
 	}
 
@@ -97,13 +96,16 @@ public static class QApi {
 	}
 
 	/// <summary>
-	/// Adds a permission to the "More Options" section of the puzzle editor. These can be used by setting the `CustomPermissionCheck`
-	/// field of your part type and checking for your permission ID.
+	/// Adds a permission to the puzzle editor. These can be used by setting the `CustomPermissionCheck`field of your part type and
+	/// checking for your permission ID.
+	///
+	/// Permissions with the same section name will be grouped together. If no name is chosen, this defaults to "Other Parts & Mechanisms"
 	/// </summary>
 	/// <param name="id">The ID of the permission that is used during checks and saved to puzzle files.</param>
 	/// <param name="displayName">The name of the permission that is displayed in the UI, e.g. "Glyphs of Quintessence".</param>
-	public static void AddPuzzlePermission(string id, string displayName) {
-		CustomPermisions.Add(new(id, displayName));
+	/// <param name="sectionName">The name of the section that the permission will appear under.</param>
+	public static void AddPuzzlePermission(string id, string displayName, string sectionName = "Other Parts and Mechanisms"){
+		PuzzleOptions.Add(PuzzleOption.BoolOption(id, displayName, sectionName));
 	}
 
 	/// <summary>
