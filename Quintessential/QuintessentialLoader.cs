@@ -310,9 +310,11 @@ SomeZipIDontLike.zip");
 			mod.LoadPuzzleContent();
 
 		// debug
-		QApi.AddPuzzlePermission("MyCoolPart", "Glyph of Coolness");
-		QApi.AddPuzzlePermission("GlyphIrridation", "Glyph of Irridation");
-		QApi.AddPuzzlePermission("ArmScissor", "Scissor Arms");
+		QApi.AddPuzzlePermission("Quintessential:glyph_coolness", "Glyph of Coolness");
+		QApi.AddPuzzlePermission("Quintessential:glyph_irradiation", "Glyph of Irradiation");
+		QApi.AddPuzzlePermission("Quintessential:arm_scissor", "Scissor Arms");
+		QApi.AddPuzzlePermission("Quintessential:disable_track_loops", "Disable Track Loops");
+		QApi.AddPuzzlePermission("Quintessential:yoyos", "Yoyos");
 
 		Logger.Log("Finished puzzle content loading.");
 	}

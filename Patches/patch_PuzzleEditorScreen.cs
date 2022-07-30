@@ -7,6 +7,7 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable ArrangeTypeModifiers
 
+using System;
 using System.Linq;
 using MonoMod;
 using MonoMod.Utils;
@@ -119,27 +120,23 @@ class patch_PuzzleEditorScreen{
 			}
 
 			// draw vanilla rule checkboxes
-			Vector2 ruleSize = new(236f, -37f);
-			Vector2 rulesCorner = nCorner + new Vector2(494f, 184f);
-			self.Invoke("method_1261", rulesCorner + new Vector2(ruleSize.X * 0, ruleSize.Y * 0), (string)class_191.field_1772.field_1529, enum_149.Bonder, myPuzzle);
-			self.Invoke("method_1261", rulesCorner + new Vector2(ruleSize.X * 1, ruleSize.Y * 0), (string)class_191.field_1774.field_1529, enum_149.SpeedBonder, myPuzzle);
-			self.Invoke("method_1261", rulesCorner + new Vector2(ruleSize.X * 2, ruleSize.Y * 0), (string)class_191.field_1775.field_1529, enum_149.PrismaBonder, myPuzzle);
-			self.Invoke("method_1261", rulesCorner + new Vector2(ruleSize.X * 3, ruleSize.Y * 0), (string)class_191.field_1773.field_1529, enum_149.Unbonder, myPuzzle);
-			self.Invoke("method_1261", rulesCorner + new Vector2(ruleSize.X * 0, ruleSize.Y * 1), (string)class_191.field_1776.field_1529, enum_149.Calcification, myPuzzle);
-			self.Invoke("method_1261", rulesCorner + new Vector2(ruleSize.X * 1, ruleSize.Y * 1), (string)class_191.field_1777.field_1529, enum_149.Duplication, myPuzzle);
-			self.Invoke("method_1261", rulesCorner + new Vector2(ruleSize.X * 2, ruleSize.Y * 1), (string)class_191.field_1771.field_1529, enum_149.BaronWheel, myPuzzle);
-			self.Invoke("method_1261", rulesCorner + new Vector2(ruleSize.X * 3, ruleSize.Y * 1), (string)class_191.field_1780.field_1529, enum_149.LifeAndDeath, myPuzzle);
-			self.Invoke("method_1261", rulesCorner + new Vector2(ruleSize.X * 0, ruleSize.Y * 2), (string)class_191.field_1778.field_1529, enum_149.Projection, myPuzzle);
-			self.Invoke("method_1261", rulesCorner + new Vector2(ruleSize.X * 1, ruleSize.Y * 2), (string)class_191.field_1779.field_1529, enum_149.Purification, myPuzzle);
-			self.Invoke("method_1261", rulesCorner + new Vector2(ruleSize.X * 2, ruleSize.Y * 2), (string)class_191.field_1781.field_1529, enum_149.Disposal, myPuzzle);
-			self.Invoke("method_1261", rulesCorner + new Vector2(ruleSize.X * 3, ruleSize.Y * 2), (string)class_134.method_253("Glyphs of Quintessence", string.Empty), enum_149.Quintessence, myPuzzle);
+			Vector2 ruleSize = new(236, -37);
+			Vector2 partsCorner = nCorner + new Vector2(494, 184);
+			self.Invoke("method_1261", partsCorner + new Vector2(ruleSize.X * 0, ruleSize.Y * 0), (string)class_191.field_1772.field_1529, enum_149.Bonder, myPuzzle);
+			self.Invoke("method_1261", partsCorner + new Vector2(ruleSize.X * 1, ruleSize.Y * 0), (string)class_191.field_1774.field_1529, enum_149.SpeedBonder, myPuzzle);
+			self.Invoke("method_1261", partsCorner + new Vector2(ruleSize.X * 2, ruleSize.Y * 0), (string)class_191.field_1775.field_1529, enum_149.PrismaBonder, myPuzzle);
+			self.Invoke("method_1261", partsCorner + new Vector2(ruleSize.X * 3, ruleSize.Y * 0), (string)class_191.field_1773.field_1529, enum_149.Unbonder, myPuzzle);
+			self.Invoke("method_1261", partsCorner + new Vector2(ruleSize.X * 0, ruleSize.Y * 1), (string)class_191.field_1776.field_1529, enum_149.Calcification, myPuzzle);
+			self.Invoke("method_1261", partsCorner + new Vector2(ruleSize.X * 1, ruleSize.Y * 1), (string)class_191.field_1777.field_1529, enum_149.Duplication, myPuzzle);
+			self.Invoke("method_1261", partsCorner + new Vector2(ruleSize.X * 2, ruleSize.Y * 1), (string)class_191.field_1771.field_1529, enum_149.BaronWheel, myPuzzle);
+			self.Invoke("method_1261", partsCorner + new Vector2(ruleSize.X * 3, ruleSize.Y * 1), (string)class_191.field_1780.field_1529, enum_149.LifeAndDeath, myPuzzle);
+			self.Invoke("method_1261", partsCorner + new Vector2(ruleSize.X * 0, ruleSize.Y * 2), (string)class_191.field_1778.field_1529, enum_149.Projection, myPuzzle);
+			self.Invoke("method_1261", partsCorner + new Vector2(ruleSize.X * 1, ruleSize.Y * 2), (string)class_191.field_1779.field_1529, enum_149.Purification, myPuzzle);
+			self.Invoke("method_1261", partsCorner + new Vector2(ruleSize.X * 2, ruleSize.Y * 2), (string)class_191.field_1781.field_1529, enum_149.Disposal, myPuzzle);
+			self.Invoke("method_1261", partsCorner + new Vector2(ruleSize.X * 3, ruleSize.Y * 2), (string)class_134.method_253("Glyphs of Quintessence", string.Empty), enum_149.Quintessence, myPuzzle);
 
-			// quintessential global checkboxes
-			ModsScreen.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 0, ruleSize.Y * 3), "Save as Vanilla", false);
-			ModsScreen.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 1, ruleSize.Y * 3), "Allow Overlap", false);
-			
 			// instructions selection
-			Vector2 instructionsCorner = new(nCorner.X + 489, rulesCorner.Y + ruleSize.Y * 4) /*rulesCorner + new Vector2(0, ruleSize.Y * 4)*/;
+			Vector2 instructionsCorner = new(nCorner.X + 489, partsCorner.Y + ruleSize.Y * 3);
 			class_140.method_317(class_134.method_253("Instructions", ""), instructionsCorner, 900, false, true);
 
 			InstructionType[] types = InstructionTypes.field_1667;
@@ -175,6 +172,22 @@ class patch_PuzzleEditorScreen{
 				i++;
 			}
 
+			// quintessential rules
+			var rulesCorner = instructionsCorner + new Vector2(0, ruleSize.Y * 3.5f);
+			class_140.method_317(class_134.method_253("Rules", ""), rulesCorner - new Vector2(0, ruleSize.Y * .5f), 900, false, true);
+			ModsScreen.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 0 + 5, ruleSize.Y * 1), "Enable Modded Content", false);
+			ModsScreen.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 1 + 5, ruleSize.Y * 1), "Allow Overlap", false);
+			
+			// separator + modded parts
+			class_135.method_275(class_238.field_1989.field_102.field_822, Color.White, Bounds2.WithSize(new Vector2(nCorner.X + 489, rulesCorner.Y + ruleSize.Y * 2), new Vector2(900, 3)));
+			for(var idx = 0; idx < QApi.CustomPermisions.Count; idx++){
+				var permission = QApi.CustomPermisions[idx];
+				ModsScreen.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * (idx % 4) + 5, ruleSize.Y * ((idx / 4) + 4)), permission.Right, false);
+			}
+
+			int rows = (int)Math.Ceiling(QApi.CustomPermisions.Count / 4f);
+			var dotdotCorner = rulesCorner + new Vector2(0, rows * ruleSize.Y);
+			
 			scrollbar.method_707(panelSize.Height * 2);
 		}
 	}
