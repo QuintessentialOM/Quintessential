@@ -623,11 +623,17 @@ SomeZipIDontLike.zip");
 			for (int j = 0; j < c.Chapters.Count; j++) {
 				ChapterModel chapter = c.Chapters[j];
 
-				Texture bLocked = Campaigns.field_2330.field_2309[j].field_2316;
-				Texture bUnlocked = Campaigns.field_2330.field_2309[j].field_2317;
-				Texture bHover = Campaigns.field_2330.field_2309[j].field_2318;
-				Texture bGem = Campaigns.field_2330.field_2309[j].field_2319;
-				Vector2 bPosition = Campaigns.field_2330.field_2309[j].field_2320;
+				int jj = Math.Min(j,6); // prevent out-of-array-bounds if there are more than 7 chapters
+				Texture bLocked = Campaigns.field_2330.field_2309[jj].field_2316;
+				Texture bUnlocked = Campaigns.field_2330.field_2309[jj].field_2317;
+				Texture bHover = Campaigns.field_2330.field_2309[jj].field_2318;
+				Texture bGem = Campaigns.field_2330.field_2309[jj].field_2319;
+				Vector2 bPosition = Campaigns.field_2330.field_2309[jj].field_2320;
+				if (j >= 7)
+				{
+					bPosition += new Vector2(0,-80*(j-6));
+				}
+
 				if (chapter.Button != null)
 				{
 					//helper function
@@ -655,7 +661,7 @@ SomeZipIDontLike.zip");
 						}
 						else
 						{
-							Logger.Log($"Can't parse \"Button.Position\" in chapter {j} from campaign \"{c.Title}\", ignoring");
+							Logger.Log($"Can't parse \"Button.Position\" in chapter {j} from campaign \"{c.Title}\", using the default position.");
 						}
 					}
 				}
@@ -664,7 +670,7 @@ SomeZipIDontLike.zip");
 					class_134.method_253(chapter.Title, string.Empty),
 					class_134.method_253(chapter.Subtitle, string.Empty),
 					class_134.method_253(chapter.Place, string.Empty),
-					chapter.Background != null ? class_235.method_615(chapter.Background) : Campaigns.field_2330.field_2309[j].field_2315,
+					chapter.Background != null ? class_235.method_615(chapter.Background) : Campaigns.field_2330.field_2309[jj].field_2315,
 					bLocked,
 					bUnlocked,
 					bHover,
@@ -684,7 +690,7 @@ SomeZipIDontLike.zip");
 
 					if (!string.IsNullOrEmpty(entry.Solitaire))
 					{
-						entryType = (enum_129)3;
+						entryType = (enum_129)3; // to-do: allow custom solitaire?
 					}
 					else if (entry.Document)
 					{
@@ -729,7 +735,8 @@ SomeZipIDontLike.zip");
 						Logger.Log($"Invalid entry \"{entry.ID}\" from campaign \"{c.Title}\", ignoring");
 						continue;
 					}
-					// implement other entry types later, and modify other code so we can do solitaires, letters, etc. more easily
+					// to-do: add a type (say, (enum_129)4) for running arbitrary code
+					// Refer to method_825, method_826, method_827, the CampaignItem constructor, and the class385.field_2953.field_2324 switch in PuzzleSelectScreen.method_50
 
 					Maybe<class_215> tutorialScreen = struct_18.field_1431; // implement later - refer to method_558
 					string songPath = string.IsNullOrEmpty(entry.Song) ? "music/Solving3" : entry.Song;
@@ -749,9 +756,6 @@ SomeZipIDontLike.zip");
 					{
 						requirement = new class_243(entry.Requires);
 					}
-					/*
-					entryType = (enum_129)2
-					*/
 
 					// TODO: optimize
 
