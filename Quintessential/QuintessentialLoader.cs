@@ -458,16 +458,12 @@ SomeZipIDontLike.zip");
 	{
 		foreach (var d in ModDocuments)
 		{
-			Texture base_texture = null;
+			Texture base_texture = class_238.field_1989.field_85.field_570; // letter-5
 			List<patch_DocumentScreen.DrawItem> drawItems = new();
 
 			if (!string.IsNullOrEmpty(d.Texture))
 			{
 				base_texture = QApi.loadTexture(d.Texture);
-			}
-			else
-			{
-				Logger.Log($"Document \"{d.ID}\" doesn't have a base texture defined, ignoring");
 			}
 			int maxIndex = d.DrawItems == null ? 0 : d.DrawItems.Count;
 			for (int i = 0; i < maxIndex; i++)
