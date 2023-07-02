@@ -39,7 +39,7 @@ class patch_PuzzleEditorScreen{
 			// clear scroll zone
 			class_226.method_600(Color.Transparent);
 			// draw headers
-			var nCorner = new Vector2(-5, scrollbar.field_2078 - 110);
+			var nCorner = new Vector2(-10, scrollbar.field_2078 - 100);
 
 			class_140.method_317(class_134.method_253("Products", "FULL LENGTH"), nCorner + new Vector2(489, 774), 900, false, true);
 			class_140.method_317(class_134.method_253("Reagents", ""), nCorner + new Vector2(489, 506), 900, false, true);
