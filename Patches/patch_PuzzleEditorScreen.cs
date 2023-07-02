@@ -32,14 +32,14 @@ class patch_PuzzleEditorScreen{
 		DynamicData self = new(this);
 		Vector2 size = new(1516f, 922f);
 		Vector2 corner = (class_115.field_1433 / 2 - size / 2 + new Vector2(-2, -11)).Rounded();
-		Bounds2 panelSize = Bounds2.WithSize(corner + new Vector2(457, 94), new Vector2(980, 712));
+		Bounds2 panelSize = Bounds2.WithSize(corner + new Vector2(0, 88 + 5), size + new Vector2(-152f + 78, -158f - 40 - 10));
 
 		// add scrollbar/scroll region
 		using(var _ = scrollbar.method_709(panelSize.Min, panelSize.Size.CeilingToInt(), 0, -30)){
 			// clear scroll zone
 			class_226.method_600(Color.Transparent);
 			// draw headers
-			var nCorner = corner - new Vector2(430, 74 - scrollbar.field_2078);
+			var nCorner = new Vector2(-5, scrollbar.field_2078 - 110);
 
 			class_140.method_317(class_134.method_253("Products", "FULL LENGTH"), nCorner + new Vector2(489, 774), 900, false, true);
 			class_140.method_317(class_134.method_253("Reagents", ""), nCorner + new Vector2(489, 506), 900, false, true);
