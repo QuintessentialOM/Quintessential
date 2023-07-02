@@ -4,6 +4,7 @@
     <TargetFramework>net452</TargetFramework>
     <RootNamespace />
     <AssemblyName>Quintessential</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup>
