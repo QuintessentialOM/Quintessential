@@ -43,7 +43,7 @@ public class AtomSelectScreen : IScreen{
 		}
 		
 		// "press esc to CANCEL"
-		Bounds2 labelBounds = UI.DrawText("Press ESC to ", (Input.ScreenSize() / 2) + new Vector2(0, -170), UI.SubTitle, class_181.field_1718, TextAlignment.Centred);
+		Bounds2 labelBounds = UI.DrawText("Press ESC to ", (Input.ScreenSize() / 2) + new Vector2(-40, -170), UI.SubTitle, class_181.field_1718, TextAlignment.Centred);
 		if(Input.IsSdlKeyPressed(SDL.enum_160.SDLK_ESCAPE) || UI.DrawAndCheckSimpleButton("CANCEL", labelBounds.BottomRight + new Vector2(10, -7), new Vector2(70, (int)labelBounds.Height + 10)))
 			UI.HandleCloseButton();
 	}

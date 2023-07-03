@@ -219,23 +219,23 @@ class patch_PuzzleEditorScreen{
 			scrollbar.method_707(nCorner.Y - cursor.Y + panelSize.Height - ruleSize.Y + 24);
 		}
 	}
-	
+
 	// TODO: generalize?
-	private static bool DrawAtomSelector(Vector2 pos, string label, AtomType atom) {
-		Bounds2 boxBounds = Bounds2.WithSize(pos, new Vector2(36f, 37f));
+	private static bool DrawAtomSelector(Vector2 pos, string label, AtomType atom){
 		Bounds2 labelBounds = UI.DrawText(label, pos + new Vector2(45f, 13f), UI.SubTitle, UI.TextColor, TextAlignment.Left);
-		/*if(enabled)
-			UI.DrawTexture(class_238.field_1989.field_101.field_773, boxBounds.Min);*/
-		Editor.method_927(atom, pos, 1, 1, 1, 1, -21, 0, null, null, false);
-		
-		if(boxBounds.Contains(Input.MousePos()) || labelBounds.Contains(Input.MousePos())) {
-			UI.DrawTexture(class_238.field_1989.field_101.field_774, boxBounds.Min);
-			if(!Input.IsLeftClickPressed())
-				return false;
-			class_238.field_1991.field_1821.method_28(1f);
-			return true;
+		Vector2 atomPos = pos + new Vector2(17, 16);
+		const float scale = 0.7f;
+		Editor.method_927(atom, atomPos, scale, 1, 1, 1, -21, 0, null, null, false);
+
+		if(Vector2.Distance(atomPos, Input.MousePos()) < (37 * scale) || labelBounds.Contains(Input.MousePos())){
+			Vector2 outlinePos = (atomPos - class_238.field_1989.field_89.field_124.field_2056.ToVector2() * scale / 2).Rounded();
+			var tex = class_238.field_1989.field_89.field_124;
+			class_135.method_263(tex, Color.White, outlinePos, tex.field_2056.ToVector2() * 0.7f);
+			if(Input.IsLeftClickPressed()){
+				class_238.field_1991.field_1821.method_28(1);
+				return true;
+			}
 		}
-		UI.DrawTexture(class_238.field_1989.field_101.field_772, boxBounds.Min);
 		return false;
 	}
 }
