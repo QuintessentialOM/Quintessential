@@ -16,6 +16,7 @@ using Quintessential;
 using Scrollbar = class_262;
 using InstructionTypes = class_169;
 using Permissions = enum_149;
+using AtomTypes = class_175;
 
 class patch_PuzzleEditorScreen{
 	private Scrollbar scrollbar; // initializer is not merged
@@ -188,19 +189,22 @@ class patch_PuzzleEditorScreen{
 				
 				var idx = 0;
 				foreach(var option in category){
+					// ReSharper disable once PossibleLossOfFraction
+					Vector2 pos = cursor + new Vector2(ruleSize.X * (idx % 4) + 5, ruleSize.Y * (idx / 4 + 1.5f));
 					// TODO: other option types
 					if(option.Type == PuzzleOptionType.Boolean){
 						bool enabled = conv.CustomPermissions.Contains(option.ID);
-						// ReSharper disable once PossibleLossOfFraction
-						if(UI.DrawCheckbox(cursor + new Vector2(ruleSize.X * (idx % 4) + 5, ruleSize.Y * (idx / 4 + 1.5f)), option.Name, enabled)){
+						if(UI.DrawCheckbox(pos, option.Name, enabled))
 							if(enabled)
 								conv.CustomPermissions.Remove(option.ID);
 							else
 								conv.CustomPermissions.Add(option.ID);
-						}
 					}else if(option.Type == PuzzleOptionType.Atom){
 						var currentChoice = option.AtomIn(myPuzzle);
-						
+						if(DrawAtomSelector(pos, option.Name, currentChoice ?? AtomTypes.field_1689))
+							UI.OpenScreen(new AtomSelectScreen("Select: " + option.Name, type => {
+								option.SetAtomIn(myPuzzle, type);
+							}, currentChoice));
 					}
 
 					idx++;
@@ -214,5 +218,24 @@ class patch_PuzzleEditorScreen{
 			// we're off by one row
 			scrollbar.method_707(nCorner.Y - cursor.Y + panelSize.Height - ruleSize.Y + 24);
 		}
+	}
+	
+	// TODO: generalize?
+	private static bool DrawAtomSelector(Vector2 pos, string label, AtomType atom) {
+		Bounds2 boxBounds = Bounds2.WithSize(pos, new Vector2(36f, 37f));
+		Bounds2 labelBounds = UI.DrawText(label, pos + new Vector2(45f, 13f), UI.SubTitle, UI.TextColor, TextAlignment.Left);
+		/*if(enabled)
+			UI.DrawTexture(class_238.field_1989.field_101.field_773, boxBounds.Min);*/
+		Editor.method_927(atom, pos, 1, 1, 1, 1, -21, 0, null, null, false);
+		
+		if(boxBounds.Contains(Input.MousePos()) || labelBounds.Contains(Input.MousePos())) {
+			UI.DrawTexture(class_238.field_1989.field_101.field_774, boxBounds.Min);
+			if(!Input.IsLeftClickPressed())
+				return false;
+			class_238.field_1991.field_1821.method_28(1f);
+			return true;
+		}
+		UI.DrawTexture(class_238.field_1989.field_101.field_772, boxBounds.Min);
+		return false;
 	}
 }

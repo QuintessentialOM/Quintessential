@@ -96,16 +96,20 @@ public static class QApi {
 	}
 
 	/// <summary>
-	/// Adds a permission to the puzzle editor. These can be used by setting the `CustomPermissionCheck`field of your part type and
+	/// Adds a permission to the puzzle editor. These can be used by setting the `CustomPermissionCheck` field of your part type and
 	/// checking for your permission ID.
 	///
-	/// Permissions with the same section name will be grouped together. If no name is chosen, this defaults to "Other Parts & Mechanisms"
+	/// Permissions with the same section name will be grouped together. If no name is chosen, this defaults to "Other Parts &amp; Mechanisms".
 	/// </summary>
 	/// <param name="id">The ID of the permission that is used during checks and saved to puzzle files.</param>
 	/// <param name="displayName">The name of the permission that is displayed in the UI, e.g. "Glyphs of Quintessence".</param>
 	/// <param name="sectionName">The name of the section that the permission will appear under.</param>
 	public static void AddPuzzlePermission(string id, string displayName, string sectionName = "Other Parts and Mechanisms"){
 		PuzzleOptions.Add(PuzzleOption.BoolOption(id, displayName, sectionName));
+	}
+
+	public static void AddPuzzleOption(PuzzleOption option){
+		PuzzleOptions.Add(option);
 	}
 
 	/// <summary>

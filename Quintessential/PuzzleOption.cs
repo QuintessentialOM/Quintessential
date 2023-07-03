@@ -87,6 +87,27 @@ public class PuzzleOption{
 		return null;
 	}
 
+	public void SetEnabledIn(Puzzle from, bool enabled){
+		if(enabled)
+			Convert(from).CustomPermissions.Add(ID);
+		else
+			Convert(from).CustomPermissions.Remove(ID);
+	}
+	
+	public void SetChoiceIn(Puzzle from, string choice){
+		var perms = Convert(from).CustomPermissions;
+		perms.RemoveWhere(s => s.StartsWith(ID + "::"));
+		perms.Add(ID + "::" + choice);
+	}
+
+	public void SetAtomIn(Puzzle from, AtomType atom){
+		SetChoiceIn(from, Convert(atom).QuintAtomType);
+	}
+
+	public void SetPartIn(Puzzle from, PartType part){
+		SetChoiceIn(from, part.field_1528);
+	}
+
 	private static patch_Puzzle Convert(Puzzle from){
 		return (patch_Puzzle)(object)from;
 	}
