@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -100,7 +101,7 @@ class ModsScreen : IScreen {
 			string label = field.GetCustomAttribute<SettingsLabel>()?.Label ?? field.Name;
 
 			if(field.FieldType == typeof(bool)) {
-				if(DrawCheckbox(pos + new Vector2(20, bgSize.Y - y), label, (bool)field.GetValue(settings))) {
+				if(UI.DrawCheckbox(pos + new Vector2(20, bgSize.Y - y), label, (bool)field.GetValue(settings))) {
 					field.SetValue(settings, !(bool)field.GetValue(settings));
 					settingsChanged = true;
 				}
@@ -132,7 +133,7 @@ class ModsScreen : IScreen {
 		return new DrawProgress { pressed = settingsChanged, curY = y };
 	}
 
-	// TODO: move to UI
+	[Obsolete("Use UI.DrawCheckbox instead")]
 	public static bool DrawCheckbox(Vector2 pos, string label, bool enabled) {
 		Bounds2 boxBounds = Bounds2.WithSize(pos, new Vector2(36f, 37f));
 		Bounds2 labelBounds = UI.DrawText(label, pos + new Vector2(45f, 13f), UI.SubTitle, UI.TextColor, TextAlignment.Left);

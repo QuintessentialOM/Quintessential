@@ -178,8 +178,8 @@ class patch_PuzzleEditorScreen{
 			// quintessential rules
 			var rulesCorner = instructionsCorner + new Vector2(0, ruleSize.Y * 3.5f);
 			class_140.method_317(class_134.method_253("Quintessential Rules", ""), rulesCorner - new Vector2(0, ruleSize.Y * .5f), 900, false, true);
-			ModsScreen.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 0 + 5, ruleSize.Y * 1), "Enable Modded Content", false);
-			ModsScreen.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 1 + 5, ruleSize.Y * 1), "Allow Overlap", false);
+			UI.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 0 + 5, ruleSize.Y * 1), "Enable Modded Content", false);
+			UI.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 1 + 5, ruleSize.Y * 1), "Allow Overlap", false);
 			
 			// modded categories
 			Vector2 cursor = rulesCorner + new Vector2(0, ruleSize.Y * 2.5f);
@@ -188,13 +188,19 @@ class patch_PuzzleEditorScreen{
 				
 				var idx = 0;
 				foreach(var option in category){
-					bool enabled = conv.CustomPermissions.Contains(option.ID);
-					// ReSharper disable once PossibleLossOfFraction
-					if(ModsScreen.DrawCheckbox(cursor + new Vector2(ruleSize.X * (idx % 4) + 5, ruleSize.Y * (idx / 4 + 1.5f)), option.Name, enabled)){
-						if(enabled)
-							conv.CustomPermissions.Remove(option.ID);
-						else
-							conv.CustomPermissions.Add(option.ID);
+					// TODO: other option types
+					if(option.Type == PuzzleOptionType.Boolean){
+						bool enabled = conv.CustomPermissions.Contains(option.ID);
+						// ReSharper disable once PossibleLossOfFraction
+						if(UI.DrawCheckbox(cursor + new Vector2(ruleSize.X * (idx % 4) + 5, ruleSize.Y * (idx / 4 + 1.5f)), option.Name, enabled)){
+							if(enabled)
+								conv.CustomPermissions.Remove(option.ID);
+							else
+								conv.CustomPermissions.Add(option.ID);
+						}
+					}else if(option.Type == PuzzleOptionType.Atom){
+						var currentChoice = option.AtomIn(myPuzzle);
+						
 					}
 
 					idx++;

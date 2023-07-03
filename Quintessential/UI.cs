@@ -99,6 +99,22 @@ public static class UI {
 		DrawResizableTexture(OMAssets.field_1989.field_102.field_817, pos, size);
 	}
 
+	public static bool DrawCheckbox(Vector2 pos, string label, bool enabled) {
+		Bounds2 boxBounds = Bounds2.WithSize(pos, new Vector2(36f, 37f));
+		Bounds2 labelBounds = DrawText(label, pos + new Vector2(45f, 13f), SubTitle, TextColor, TextAlignment.Left);
+		if(enabled)
+			DrawTexture(class_238.field_1989.field_101.field_773, boxBounds.Min);
+		if(boxBounds.Contains(Input.MousePos()) || labelBounds.Contains(Input.MousePos())) {
+			DrawTexture(class_238.field_1989.field_101.field_774, boxBounds.Min);
+			if(!Input.IsLeftClickPressed())
+				return false;
+			class_238.field_1991.field_1821.method_28(1f);
+			return true;
+		}
+		DrawTexture(class_238.field_1989.field_101.field_772, boxBounds.Min);
+		return false;
+	}
+	
 	#endregion
 }
 
