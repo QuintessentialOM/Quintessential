@@ -30,7 +30,10 @@ internal class patch_WorkshopManager{
 		string path = Path.Combine(class_269.field_2102, folder);
 		foreach(var puzzleFilePath in Directory.EnumerateFiles(path, "*.puzzle.yaml")){
 			PuzzleModel model = YamlHelper.Deserializer.Deserialize<PuzzleModel>(File.ReadAllText(puzzleFilePath));
-			yield return PuzzleModel.FromModel(model);
+			Puzzle fromModel = PuzzleModel.FromModel(model);
+			// ReSharper disable once PossibleInvalidCastException
+			((patch_Puzzle)(object)fromModel).IsModdedPuzzle = true;
+			yield return fromModel;
 		}
 	}
 }

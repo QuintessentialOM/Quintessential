@@ -179,7 +179,7 @@ class patch_PuzzleEditorScreen{
 			// quintessential rules
 			var rulesCorner = instructionsCorner + new Vector2(0, ruleSize.Y * 3.5f);
 			class_140.method_317(class_134.method_253("Quintessential Rules", ""), rulesCorner - new Vector2(0, ruleSize.Y * .5f), 900, false, true);
-			UI.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 0 + 5, ruleSize.Y * 1), "Enable Modded Content", false);
+			UI.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 0 + 5, ruleSize.Y * 1), "Enable Modded Content", conv.IsModdedPuzzle);
 			UI.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 1 + 5, ruleSize.Y * 1), "Allow Overlap", false);
 			
 			// modded categories
