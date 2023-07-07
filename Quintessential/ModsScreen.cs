@@ -40,7 +40,7 @@ class ModsScreen : IScreen {
 		UI.DrawUiFrame(pos, size);
 		UI.DrawHeader("Mods", pos + new Vector2(100f, size.Y - 99f), modButtonWidth, true, true);
 
-		if(UI.DrawAndCheckCloseButton(pos, size, new Vector2(104, 94)))
+		if(UI.DrawAndCheckCloseButton(pos, size, new Vector2(104, 98)))
 			UI.HandleCloseButton();
 
 		// draw mod buttons

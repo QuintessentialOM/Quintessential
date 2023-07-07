@@ -61,7 +61,7 @@ class ChangeKeybindScreen : IScreen {
 		// handle keypresses
 		string key = "";
 		foreach(var bindable in BindableKeys)
-			if(Input.IsKeyPressed(bindable.ToString()))
+			if(Input.IsKeyPressed(bindable))
 				key = bindable;
 		if(key != ""){
 			Keybinding old = Key.Copy();
