@@ -32,32 +32,34 @@ public class PuzzleModel {
 	public ProductionInfoM ProductionInfo = null;
 
 	public static PuzzleModel FromPuzzle(Puzzle puzzle) {
-		PuzzleModel model = new();
-		model.ID = puzzle.field_2766;
+		PuzzleModel model = new(){
+			ID = puzzle.field_2766,
+			PermissionFlags = puzzle.field_2773,
+			Name = puzzle.field_2767?.method_620() ?? "Unnamed",
+			Author = puzzle.field_2768.method_1085() ? puzzle.field_2768.method_1087() : "",
+			CustomPermissions = ((patch_Puzzle)(object)puzzle).CustomPermissions
+		};
 		foreach(var @in in puzzle.field_2770)
 			model.Inputs.Add(new PuzzleIoM(@in));
 		foreach(var @out in puzzle.field_2771)
 			model.Outputs.Add(new PuzzleIoM(@out));
-		model.PermissionFlags = puzzle.field_2773;
-		model.Name = puzzle.field_2767?.method_620() ?? "Unnamed";
-		model.Author = puzzle.field_2768.method_1085() ? puzzle.field_2768.method_1087() : "";
 		foreach(var item in puzzle.field_2774)
 			model.Highlights.Add(new HexIndexM(item));
 		if(puzzle.field_2779.method_1085())
 			model.ProductionInfo = new ProductionInfoM(puzzle.field_2779.method_1087());
-		model.CustomPermissions = ((patch_Puzzle)(object)puzzle).CustomPermissions;
 		return model;
 	}
 
 	public static Puzzle FromModel(PuzzleModel model) {
-		Puzzle ret = new();
-		ret.field_2766 = model.ID;
-		ret.field_2767 = class_134.method_253(model.Name, string.Empty);
-		ret.field_2770 = model.Inputs.Select(k => k.FromModel()).ToArray();
-		ret.field_2771 = model.Outputs.Select(k => k.FromModel()).ToArray();
-		ret.field_2773 = model.PermissionFlags;
-		ret.field_2768 = model.Author.Equals("") ? new Maybe<string>(false, null) : model.Author;
-		ret.field_2774 = model.Highlights.Select(k => k.FromModel()).ToArray();
+		Puzzle ret = new(){
+			field_2766 = model.ID,
+			field_2767 = class_134.method_253(model.Name, string.Empty),
+			field_2770 = model.Inputs.Select(k => k.FromModel()).ToArray(),
+			field_2771 = model.Outputs.Select(k => k.FromModel()).ToArray(),
+			field_2773 = model.PermissionFlags,
+			field_2768 = model.Author.Equals("") ? new Maybe<string>(false, null) : model.Author,
+			field_2774 = model.Highlights.Select(k => k.FromModel()).ToArray()
+		};
 		if(model.ProductionInfo != null && model.ProductionInfo.Chambers.Count > 0)
 			ret.field_2779 = model.ProductionInfo.FromModel();
 		((patch_Puzzle)(object)ret).CustomPermissions = model.CustomPermissions;
