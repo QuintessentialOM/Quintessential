@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using MonoMod;
+using Quintessential;
+using Quintessential.Serialization;
 
 class patch_Puzzle{
 	
@@ -10,8 +13,13 @@ class patch_Puzzle{
 	// Controls whether this is saved to/from a vanilla `.puzzle` file, or a Quintessential `.puzzle.yaml` file
 	public bool IsModdedPuzzle = false;
 	
-	// Set puzzle ID to 0
+	// Save using the right format, and set Steam user ID to 0
 	[PatchPuzzleIdWrite]
-	[MonoModIgnore]
-	public static extern void method_1248(string param_4980);
+	public extern void orig_method_1248(string path);
+	public void method_1248(string path){
+		if(IsModdedPuzzle)
+			File.WriteAllText(path, YamlHelper.Serializer.Serialize(PuzzleModel.FromPuzzle((Puzzle)(object)this)));
+		else
+			orig_method_1248(path);
+	}
 }

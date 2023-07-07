@@ -36,4 +36,13 @@ internal class patch_WorkshopManager{
 			yield return fromModel;
 		}
 	}
+	
+	// give YAML-based puzzles the right file location
+	// used for both finding and saving, though saving in the correct format is handled in `Puzzle`
+	private extern string orig_method_2237(Puzzle puzzle);
+	private string method_2237(Puzzle puzzle){
+		return ((patch_Puzzle)(object)puzzle).IsModdedPuzzle
+			? Path.Combine(class_269.field_2102, "custom", puzzle.field_2766 + ".puzzle.yaml")
+			: orig_method_2237(puzzle);
+	}
 }
