@@ -58,14 +58,6 @@ public class QuintessentialLoader {
 			Logger.Log("Starting pre-init loading.");
 
 			QApi.Init();
-			
-			QApi.AddPuzzleOption(PuzzleOption.BoolOption("Quintessential:so_true", "So true!", "Truths"));
-			QApi.AddPuzzleOption(PuzzleOption.AtomTypeOption("Quintessential:flavour", "Tastiest atom", "Truths"));
-			QApi.AddPuzzleOption(PuzzleOption.AtomTypeOption("Quintessential:flavour2", "Chewiest atom", "Truths"));
-			QApi.AddPuzzleOption(PuzzleOption.AtomTypeOption("Quintessential:flavour3", "Hungriest atom", "Truths"));
-			QApi.AddPuzzleOption(PuzzleOption.AtomTypeOption("Quintessential:flavour4", "Angriest atom", "Truths"));
-			QApi.AddPuzzleOption(PuzzleOption.AtomTypeOption("Quintessential:flavour5", "Queerest atom", "Truths"));
-			QApi.AddPuzzleOption(PuzzleOption.AtomTypeOption("Quintessential:flavour6", "Nicest atom", "Truths"));
 
 			if(!Directory.Exists(PathMods))
 				Directory.CreateDirectory(PathMods);
