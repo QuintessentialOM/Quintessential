@@ -181,7 +181,8 @@ class patch_PuzzleEditorScreen{
 			class_140.method_317(class_134.method_253("Quintessential Rules", ""), rulesCorner - new Vector2(0, ruleSize.Y * .5f), 900, false, true);
 			if(UI.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 0 + 5, ruleSize.Y * 1), "Enable Modded Content", conv.IsModdedPuzzle))
 				conv.ConvertFormat(!conv.IsModdedPuzzle);
-			UI.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 1 + 5, ruleSize.Y * 1), "Allow Overlap", false);
+			// TODO: will probably move to a seperate mod
+			//UI.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 1 + 5, ruleSize.Y * 1), "Allow Overlap", false);
 			
 			// modded categories
 			Vector2 cursor = rulesCorner + new Vector2(0, ruleSize.Y * 2.5f);
@@ -195,16 +196,19 @@ class patch_PuzzleEditorScreen{
 					// TODO: other option types
 					if(option.Type == PuzzleOptionType.Boolean){
 						bool enabled = conv.CustomPermissions.Contains(option.ID);
-						if(UI.DrawCheckbox(pos, option.Name, enabled))
+						if(UI.DrawCheckbox(pos, option.Name, enabled)){
 							if(enabled)
 								conv.CustomPermissions.Remove(option.ID);
 							else
 								conv.CustomPermissions.Add(option.ID);
+							GameLogic.field_2434.field_2460.method_2241(myPuzzle);
+						}
 					}else if(option.Type == PuzzleOptionType.Atom){
 						var currentChoice = option.AtomIn(myPuzzle);
 						if(DrawAtomSelector(pos, option.Name, currentChoice ?? AtomTypes.field_1689))
 							UI.OpenScreen(new AtomSelectScreen("Select: " + option.Name, type => {
 								option.SetAtomIn(myPuzzle, type);
+								GameLogic.field_2434.field_2460.method_2241(myPuzzle);
 							}, currentChoice));
 					}
 
