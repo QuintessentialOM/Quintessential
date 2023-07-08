@@ -3,7 +3,7 @@ using MonoMod.Utils;
 
 using Quintessential;
 using System.Collections.Generic;
-
+using System.Linq;
 using PartType = class_139;
 
 #pragma warning disable CS0626 // Method, operator, or accessor is marked external and has no attributes on it
@@ -28,9 +28,9 @@ class patch_SolutionEditorPartsPanelSection {
 
 		if(checker == null || checker(perms))
 			orig_method_2046(parts, type);
-		
-		foreach(var pair in QApi.PanelParts)
-			if(type.Equals(pair.Right))
+
+		if(((patch_Puzzle)(object)puzzle).IsModdedPuzzle)
+			foreach(var pair in QApi.PanelParts.Where(pair => type.Equals(pair.Right)))
 				method_2046(parts, pair.Left);
 	}
 }
