@@ -185,7 +185,7 @@ class patch_PuzzleEditorScreen{
 			class_140.method_317(class_134.method_253("Quintessential Rules", ""), rulesCorner - new Vector2(0, ruleSize.Y * .5f), 900, false, true);
 			if(UI.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 0 + 5, ruleSize.Y * 1), "Enable Modded Content", conv.IsModdedPuzzle))
 				conv.ConvertFormat(!conv.IsModdedPuzzle);
-			// TODO: will probably move to a seperate mod
+			// TODO: will probably move to a separate mod
 			//UI.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 1 + 5, ruleSize.Y * 1), "Allow Overlap", false);
 			
 			// modded categories, if enabled
