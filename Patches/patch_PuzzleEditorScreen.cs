@@ -68,10 +68,12 @@ class patch_PuzzleEditorScreen{
 								isHover = true;
 								if(Input.IsLeftClickPressed()){
 									int columnTemp = column; // otherwise it's modified after(?)
-									GameLogic.field_2434.method_946(new MoleculeEditorScreen(puzzleIOs[column].field_2813, row == 0, value => {
+									var moleculeEditorScreen = new MoleculeEditorScreen(puzzleIOs[column].field_2813, row == 0, value => {
 										puzzleIOs[columnTemp].field_2813 = value;
 										GameLogic.field_2434.field_2460.method_2241(myPuzzle);
-									}));
+									});
+									((patch_MoleculeEditorScreen)(object)moleculeEditorScreen).editing = conv;
+									GameLogic.field_2434.method_946(moleculeEditorScreen);
 									class_238.field_1991.field_1821.method_28(1f);
 								}
 							}
@@ -111,13 +113,15 @@ class patch_PuzzleEditorScreen{
 
 						if(!class_115.method_206((enum_142)1)) continue;
 						int rowTemp = row; // otherwise it's modified after
-						GameLogic.field_2434.method_946(new MoleculeEditorScreen(new Molecule(), row == 0, value => {
+						var moleculeEditorScreen = new MoleculeEditorScreen(new Molecule(), row == 0, value => {
 							if(rowTemp == 0)
 								myPuzzle.field_2771 = myPuzzle.field_2771.method_451(new PuzzleInputOutput(value)).ToArray();
 							else
 								myPuzzle.field_2770 = myPuzzle.field_2770.method_451(new PuzzleInputOutput(value)).ToArray();
 							GameLogic.field_2434.field_2460.method_2241(myPuzzle);
-						}));
+						});
+						((patch_MoleculeEditorScreen)(object)moleculeEditorScreen).editing = conv;
+						GameLogic.field_2434.method_946(moleculeEditorScreen);
 						class_238.field_1991.field_1821.method_28(1f);
 					}
 				}
