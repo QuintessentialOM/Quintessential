@@ -463,6 +463,7 @@ SomeZipIDontLike.zip");
 						puzzle = Puzzle.method_1249(baseName + ".puzzle");
 					} else if(File.Exists(baseName + ".puzzle.yaml")) {
 						puzzle = PuzzleModel.FromModel(YamlHelper.Deserializer.Deserialize<PuzzleModel>(File.ReadAllText(baseName + ".puzzle.yaml")));
+						((patch_Puzzle)(object)puzzle).IsModdedPuzzle = true;
 					} else {
 						Logger.Log($"Puzzle \"{entry.Puzzle}\" from campaign \"{c.Title}\" doesn't exist, ignoring");
 						continue;
