@@ -188,40 +188,41 @@ class patch_PuzzleEditorScreen{
 			// TODO: will probably move to a seperate mod
 			//UI.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 1 + 5, ruleSize.Y * 1), "Allow Overlap", false);
 			
-			// modded categories
+			// modded categories, if enabled
 			Vector2 cursor = rulesCorner + new Vector2(0, ruleSize.Y * 2.5f);
-			foreach(var category in QApi.PuzzleOptions.GroupBy(k => k.SectionName)){
-				class_140.method_317(category.Key, cursor, 900, false, true);
-				
-				var idx = 0;
-				foreach(var option in category){
-					// ReSharper disable once PossibleLossOfFraction
-					Vector2 pos = cursor + new Vector2(ruleSize.X * (idx % 4) + 5, ruleSize.Y * (idx / 4 + 1.5f));
-					// TODO: other option types
-					if(option.Type == PuzzleOptionType.Boolean){
-						bool enabled = conv.CustomPermissions.Contains(option.ID);
-						if(UI.DrawCheckbox(pos, option.Name, enabled)){
-							if(enabled)
-								conv.CustomPermissions.Remove(option.ID);
-							else
-								conv.CustomPermissions.Add(option.ID);
-							GameLogic.field_2434.field_2460.method_2241(myPuzzle);
-						}
-					}else if(option.Type == PuzzleOptionType.Atom){
-						var currentChoice = option.AtomIn(myPuzzle);
-						if(DrawAtomSelector(pos, option.Name, currentChoice ?? AtomTypes.field_1689))
-							UI.OpenScreen(new AtomSelectScreen("Select: " + option.Name, type => {
-								option.SetAtomIn(myPuzzle, type);
+			if(conv.IsModdedPuzzle)
+				foreach(var category in QApi.PuzzleOptions.GroupBy(k => k.SectionName)){
+					class_140.method_317(category.Key, cursor, 900, false, true);
+
+					var idx = 0;
+					foreach(var option in category){
+						// ReSharper disable once PossibleLossOfFraction
+						Vector2 pos = cursor + new Vector2(ruleSize.X * (idx % 4) + 5, ruleSize.Y * (idx / 4 + 1.5f));
+						// TODO: other option types
+						if(option.Type == PuzzleOptionType.Boolean){
+							bool enabled = conv.CustomPermissions.Contains(option.ID);
+							if(UI.DrawCheckbox(pos, option.Name, enabled)){
+								if(enabled)
+									conv.CustomPermissions.Remove(option.ID);
+								else
+									conv.CustomPermissions.Add(option.ID);
 								GameLogic.field_2434.field_2460.method_2241(myPuzzle);
-							}, currentChoice));
+							}
+						} else if(option.Type == PuzzleOptionType.Atom){
+							var currentChoice = option.AtomIn(myPuzzle);
+							if(DrawAtomSelector(pos, option.Name, currentChoice ?? AtomTypes.field_1689))
+								UI.OpenScreen(new AtomSelectScreen("Select: " + option.Name, type => {
+									option.SetAtomIn(myPuzzle, type);
+									GameLogic.field_2434.field_2460.method_2241(myPuzzle);
+								}, currentChoice));
+						}
+
+						idx++;
 					}
 
-					idx++;
+					var rows = (int)Math.Ceiling(idx / 4f);
+					cursor += new Vector2(0, ruleSize.Y * (rows + 2));
 				}
-
-				var rows = (int)Math.Ceiling(idx / 4f);
-				cursor += new Vector2(0, ruleSize.Y * (rows + 2));
-			}
 
 			// expand the scroll area to cover the entire displayed area
 			// we're off by one row
