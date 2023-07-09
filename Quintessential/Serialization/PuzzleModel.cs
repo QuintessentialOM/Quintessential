@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Bond = class_277;
@@ -147,7 +148,10 @@ public class PuzzleModel {
 		public AtomM(){}
 
 		public Atom FromModel() {
-			return new Atom(AtomTypes.field_1691.First(k => ((patch_AtomType)(object)k).QuintAtomType.Equals(AtomType)));
+			return new Atom(
+				AtomTypes.field_1691.FirstOrDefault(k => ((patch_AtomType)(object)k).QuintAtomType.Equals(AtomType))
+				?? throw new Exception($"Atom type \"{AtomType}\" does not exist!")
+			);
 		}
 	}
 

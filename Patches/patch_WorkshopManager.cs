@@ -3,6 +3,7 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable SuspiciousTypeConversion.Global
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -31,7 +32,14 @@ internal class patch_WorkshopManager{
 		string path = Path.Combine(class_269.field_2102, folder);
 		foreach(var puzzleFilePath in Directory.EnumerateFiles(path, "*.puzzle.yaml")){
 			PuzzleModel model = YamlHelper.Deserializer.Deserialize<PuzzleModel>(File.ReadAllText(puzzleFilePath));
-			Puzzle fromModel = PuzzleModel.FromModel(model);
+			Puzzle fromModel;
+			try{
+				fromModel = PuzzleModel.FromModel(model);
+			}catch(Exception e){
+				Logger.Log($"Exception loading custom puzzle \"{model.ID}\":");
+				Logger.Log(e);
+				continue;
+			}
 			// ReSharper disable once PossibleInvalidCastException
 			((patch_Puzzle)(object)fromModel).IsModdedPuzzle = true;
 			yield return fromModel;
