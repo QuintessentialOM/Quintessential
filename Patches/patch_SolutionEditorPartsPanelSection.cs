@@ -23,7 +23,7 @@ class patch_SolutionEditorPartsPanelSection {
 		var sol = selfData.Get<SolutionEditorScreen>("field_2007");
 		Puzzle puzzle = sol.method_502().method_1934();
 		// check if we have the appropriate custom permissions
-		var perms = ((patch_Puzzle)(object)puzzle).CustomPermissions;
+		var perms = (((patch_Puzzle)(object)puzzle).CustomPermissions ??= new());
 		var checker = ((patch_PartType)(object)type).CustomPermissionCheck;
 
 		if(checker == null || checker(perms))
