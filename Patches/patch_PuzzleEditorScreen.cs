@@ -82,10 +82,10 @@ class patch_PuzzleEditorScreen{
 							// open "are you sure" menu if X is clicked
 							if(isDelete){
 								class_135.method_272(class_238.field_1989.field_94.field_807, deleteBounds.Min);
-								if(class_115.method_206((enum_142)1)){
+								if(Input.IsLeftClickPressed()){
 									int rowTemp = row;
 									int columnTemp = column;
-									GameLogic.field_2434.method_946(MessageBoxScreen.method_1095(panelSize, true, row == 0 ? class_134.method_253("Do you really want to delete this product?", string.Empty) : class_134.method_253("Do you really want to delete this reagent?", string.Empty), struct_18.field_1431, row == 0 ? class_134.method_253("Delete Product", string.Empty) : class_134.method_253("Delete Reagent", string.Empty), class_134.method_253("Cancel", string.Empty),
+									GameLogic.field_2434.method_946(MessageBoxScreen.method_1095(panelSize.Translated(new(80, 0)), true, row == 0 ? class_134.method_253("Do you really want to delete this product?", string.Empty) : class_134.method_253("Do you really want to delete this reagent?", string.Empty), struct_18.field_1431, row == 0 ? class_134.method_253("Delete Product", string.Empty) : class_134.method_253("Delete Reagent", string.Empty), class_134.method_253("Cancel", string.Empty),
 										() => {
 											if(rowTemp == 0)
 												myPuzzle.field_2771 = myPuzzle.field_2771.Take(columnTemp).Concat(myPuzzle.field_2771.Skip(columnTemp + 1)).ToArray();
@@ -208,7 +208,7 @@ class patch_PuzzleEditorScreen{
 									conv.CustomPermissions.Add(option.ID);
 								GameLogic.field_2434.field_2460.method_2241(myPuzzle);
 							}
-						} else if(option.Type == PuzzleOptionType.Atom){
+						}else if(option.Type == PuzzleOptionType.Atom){
 							var currentChoice = option.AtomIn(myPuzzle);
 							if(DrawAtomSelector(pos, option.Name, currentChoice ?? AtomTypes.field_1689))
 								UI.OpenScreen(new AtomSelectScreen("Select: " + option.Name, type => {
