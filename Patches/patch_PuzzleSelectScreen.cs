@@ -34,14 +34,17 @@ class patch_PuzzleSelectScreen {
 			bool keyLeft = settings.SwitchCampaignLeft.Pressed();
 			bool keyRight = settings.SwitchCampaignRight.Pressed();
 
-			if((leftBounds.Contains(Input.MousePos()) && Input.IsLeftClickPressed()) || keyLeft) {
+			if((leftBounds.Contains(Input.MousePos()) && Input.IsLeftClickPressed()) || keyLeft){
 				class_238.field_1991.field_1821.method_28(1f);
-				currentCampaign = System.Math.Abs((currentCampaign - 1) % QuintessentialLoader.AllCampaigns.Count);
+				var next = currentCampaign - 1;
+				if(next < 0)
+					next += QuintessentialLoader.AllCampaigns.Count;
+				currentCampaign = next;
 				Campaigns.field_2330 = QuintessentialLoader.AllCampaigns[currentCampaign];
 				Campaigns.field_2331[0] = QuintessentialLoader.AllCampaigns[currentCampaign];
 				UI.InstantCloseScreen();
 				UI.OpenScreen(new PuzzleSelectScreen());
-			} else if((rightBounds.Contains(Input.MousePos()) && Input.IsLeftClickPressed()) || keyRight) {
+			}else if((rightBounds.Contains(Input.MousePos()) && Input.IsLeftClickPressed()) || keyRight) {
 				class_238.field_1991.field_1821.method_28(1f);
 				currentCampaign = (currentCampaign + 1) % QuintessentialLoader.AllCampaigns.Count;
 				Campaigns.field_2330 = QuintessentialLoader.AllCampaigns[currentCampaign];
