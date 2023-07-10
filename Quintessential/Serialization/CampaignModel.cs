@@ -33,8 +33,10 @@ public class ChapterModel {
 
 public class EntryModel {
 
-	// TODO: multiple requirements, solitaires and documents, tutorials
+	// TODO: multiple requirements, documents, tutorials
 
+	public string Type { get; set; } = "puzzle";
+	
 	public string ID { get; set; }
 
 	public string Title { get; set; }
