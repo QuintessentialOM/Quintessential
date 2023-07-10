@@ -2,6 +2,7 @@
 
 public class patch_Molecule{
 
+	// Copy molecule names when copying the molecule
 	private extern Molecule orig_method_1104();
 	public Molecule method_1104(){
 		Molecule ret = orig_method_1104();
