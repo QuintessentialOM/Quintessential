@@ -241,13 +241,21 @@ SomeZipIDontLike.zip");
 		if(Directory.Exists(content))
 			ModContentDirectories.Add(mod.PathDirectory);
 
+		LoadModCampaigns(mod);
+
+		loaded.Add(mod);
+		Logger.Log($"Will load mod \"{mod.Name}\".");
+	}
+
+	private static void LoadModCampaigns(ModMeta mod){
 		var puzzles = Path.Combine(mod.PathDirectory, "Puzzles");
-		if(Directory.Exists(puzzles)) {
-			ModPuzzleDirectories.Add(puzzles);
+		if(Directory.Exists(puzzles)){
+			if(!ModPuzzleDirectories.Contains(puzzles))
+				ModPuzzleDirectories.Add(puzzles);
 			// Look for name.campaign.yaml and name.journal.yaml files in the folder
-			foreach(var item in Directory.GetFiles(puzzles)) {
+			foreach(var item in Directory.GetFiles(puzzles)){
 				string filename = Path.GetFileName(item);
-				if(filename.EndsWith(".campaign.yaml")) {
+				if(filename.EndsWith(".campaign.yaml")){
 					using StreamReader reader = new(item);
 
 					CampaignModel c = YamlHelper.Deserializer.Deserialize<CampaignModel>(reader);
@@ -255,28 +263,28 @@ SomeZipIDontLike.zip");
 					c.Path = Path.GetDirectoryName(item);
 					ModCampaignModels.Add(c);
 				}
-				if(filename.EndsWith(".journal.yaml")) {
+
+				if(filename.EndsWith(".journal.yaml")){
 					using StreamReader reader = new(item);
 
 					JournalModel c = YamlHelper.Deserializer.Deserialize<JournalModel>(reader);
 					Logger.Log($"Journal \"{c.Title}\" has {c.Chapters.Count} chapters.");
 					bool valid = true;
-					foreach(var chapter in c.Chapters) {
-						if(chapter.Puzzles.Count != 5) {
+					foreach(var chapter in c.Chapters){
+						if(chapter.Puzzles.Count != 5){
 							Logger.Log($"Journal chapter \"{chapter.Title}\" in \"{c.Title}\" doesn't have 5 puzzles; skipping journal.");
-							valid = false; break;
+							valid = false;
+							break;
 						}
 					}
-					if(valid) {
+
+					if(valid){
 						c.Path = Path.GetDirectoryName(item);
 						ModJournalModels.Add(c);
 					}
 				}
 			}
 		}
-
-		loaded.Add(mod);
-		Logger.Log($"Will load mod \"{mod.Name}\".");
 	}
 
 	public static void PostLoad() {
@@ -429,6 +437,14 @@ SomeZipIDontLike.zip");
 	}
 
 	public static void LoadCampaigns() {
+		AllCampaigns.Clear();
+		if(VanillaCampaign != null){ // reloading
+			Logger.Log("Reloading campaigns!");
+			Campaigns.field_2330 = VanillaCampaign;
+			Campaigns.field_2331[0] = VanillaCampaign;
+			patch_PuzzleSelectScreen.ResetPosition();
+		}
+
 		VanillaCampaign = Campaigns.field_2330;
 		((patch_Campaign)(object)VanillaCampaign).QuintTitle = "Opus Magnum";
 		AllCampaigns.Add(VanillaCampaign);
@@ -488,6 +504,20 @@ SomeZipIDontLike.zip");
 				campaign.field_2309[index].field_2310 = index;
 
 			AllCampaigns.Add(campaign);
+		}
+	}
+
+	public static void CheckCampaignReload(){
+		if(QuintessentialSettings.Instance.HotReloadCampaigns.Pressed() && GameLogic.field_2434.method_938() is PuzzleSelectScreen){
+			ModPuzzleDirectories.Clear();
+			ModCampaignModels.Clear();
+			ModJournalModels.Clear();
+			foreach(ModMeta mod in Mods)
+				if(mod != QuintessentialModMeta)
+					LoadModCampaigns(mod);
+			LoadCampaigns();
+			UI.InstantCloseScreen();
+			UI.OpenScreen(new PuzzleSelectScreen());
 		}
 	}
 

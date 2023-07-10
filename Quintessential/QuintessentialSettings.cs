@@ -11,6 +11,9 @@ public class QuintessentialSettings {
 	//[SettingsLabel("Take Screenshot")]
 	//public Keybinding Screenshot = new("F12");
 
+	[SettingsLabel("Hot Reload Campaigns")]
+	public Keybinding HotReloadCampaigns = new("F11");
+
 	[SettingsLabel("Enable Campaign Switcher")]
 	public bool EnableCustomCampaigns = true;
 

@@ -54,4 +54,8 @@ class patch_PuzzleSelectScreen {
 			}
 		}
 	}
+
+	public static void ResetPosition(){
+		currentCampaign = 0;
+	}
 }
