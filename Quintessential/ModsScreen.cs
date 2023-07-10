@@ -69,14 +69,18 @@ class ModsScreen : IScreen {
 					SaveSettings(cmod);
 	}
 
-	private float DrawModLabel(ModMeta mod, Vector2 pos, Vector2 bgSize) {
-		UI.DrawText(mod.Title ?? mod.Name, pos + new Vector2(20, bgSize.Y - 99f), UI.Title, UI.TextColor, TextAlignment.Left);
+	private float DrawModLabel(ModMeta mod, Vector2 pos, Vector2 bgSize){
+		bool hasIcon = !string.IsNullOrWhiteSpace(mod.Icon);
+		Vector2 titlePos = hasIcon ? pos + new Vector2(140, -30) : pos;
+		if(mod.Icon != null)
+			UI.DrawTexture(mod.IconCache ??= class_235.method_615(mod.Icon), pos + new Vector2(20, bgSize.Y - 99f - 100));
+		UI.DrawText(mod.Title ?? mod.Name, titlePos + new Vector2(20, bgSize.Y - 99f), UI.Title, UI.TextColor, TextAlignment.Left);
 		string ver = mod.Version.ToString();
 		if(mod.Title != null)
 			ver = mod.Name + " - " + ver;
-		UI.DrawText(ver, pos + new Vector2(20, bgSize.Y - 130f), UI.Text, Color.LightGray, TextAlignment.Left);
+		UI.DrawText(ver, titlePos + new Vector2(20, bgSize.Y - 130f), UI.Text, Color.LightGray, TextAlignment.Left);
 		if(mod.Desc != null) {
-			var desc = UI.DrawText(mod.Desc, pos + new Vector2(20, bgSize.Y - 170f), UI.Text, UI.TextColor, TextAlignment.Left, maxWidth: 460);
+			var desc = UI.DrawText(mod.Desc, pos + new Vector2(20, bgSize.Y - 170f - (hasIcon ? 70 : 0)), UI.Text, UI.TextColor, TextAlignment.Left, maxWidth: 460);
 			return desc.Height + 80;
 		}
 		return 20;

@@ -4,6 +4,8 @@ using YamlDotNet.Serialization;
 
 namespace Quintessential;
 
+using Texture = class_256;
+
 public class ModMeta {
 
 	public string Name { get; set; }
@@ -31,6 +33,9 @@ public class ModMeta {
 	[YamlIgnore]
 	public Version Version { get; set; } = new Version(1, 0);
 	private string _VersionString;
+
+	[YamlIgnore]
+	public Texture IconCache = null;
 
 	[YamlMember(Alias = "Version")]
 	public string VersionString {
