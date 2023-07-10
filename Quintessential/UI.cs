@@ -1,4 +1,6 @@
-﻿namespace Quintessential;
+﻿using System;
+
+namespace Quintessential;
 
 using OMDraw = class_135;
 using OMUI = class_140;
@@ -36,8 +38,8 @@ public static class UI {
 
 	#region Text drawing methods
 
-	public static Bounds2 DrawText(string text, Vector2 pos, OMFont font, Color color, TextAlignment alignment, float maxWidth = float.MaxValue, float maxHeight = float.MaxValue) {
-		return OMDraw.method_290(text, pos, font, color, (enum_0)(int)alignment, 1f, 0.6f, maxWidth, maxHeight, 0, new Color(), (OMTexture)null, int.MaxValue, true, true);
+	public static Bounds2 DrawText(string text, Vector2 pos, OMFont font, Color color, TextAlignment alignment, float maxWidth = float.MaxValue, float ellipsesCutoff = float.MaxValue) {
+		return OMDraw.method_290(text, pos, font, color, (enum_0)(int)alignment, 1f, 0.6f, maxWidth, ellipsesCutoff, 0, new Color(), (OMTexture)null, int.MaxValue, true, true);
 	}
 
 	public static void DrawHeader(string text, Vector2 pos, int width, bool a, bool b) {

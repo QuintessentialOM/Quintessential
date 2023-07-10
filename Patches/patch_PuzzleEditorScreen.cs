@@ -109,10 +109,10 @@ class patch_PuzzleEditorScreen{
 						class_135.method_272(moleculeSprite, centre + new Vector2(-8f, -10f));
 
 						if(conv.IsModdedPuzzle){
-							Vector2 namePos = puzzleIoBox.BottomLeft + new Vector2(puzzleIoBox.Width / 2f - 5, -17);
+							Vector2 namePos = puzzleIoBox.BottomLeft + new Vector2(puzzleIoBox.Width / 2f - 7, -17);
 							var isElement = molecule.method_1100().Count == 1;
 							var fallbackPvw = "_(" + (isElement ? molecule.method_1100().Values.First().field_2275.field_2285 : "Unnamed") + ")_";
-							Bounds2 textArea = UI.DrawText(molecule.field_2639.method_1090(class_134.method_253(fallbackPvw, "")), namePos, class_238.field_1990.field_2143, UI.TextColor, TextAlignment.Centred);
+							Bounds2 textArea = UI.DrawText(molecule.field_2639.method_1090(class_134.method_253(fallbackPvw, "")), namePos, class_238.field_1990.field_2143, UI.TextColor, TextAlignment.Centred, maxWidth: 236, ellipsesCutoff: 206);
 							if(textArea.Contains(Input.MousePos()) && Input.IsLeftClickPressed() && !screenOpened){
 								screenOpened = true;
 								GameLogic.field_2434.method_946(MessageBoxScreenEx.textbox(coverBounds, class_134.method_253("Please enter a new name for this " + (isInput ? "product:" : "reagent:"), string.Empty),  molecule.field_2639.method_1085() ? molecule.field_2639.method_1087() : (isElement ? molecule.method_1100().Values.First().field_2275.field_2285 : ""), class_134.method_253("Rename " + (isInput ? "Product" : "Reagent"), string.Empty), s => {
