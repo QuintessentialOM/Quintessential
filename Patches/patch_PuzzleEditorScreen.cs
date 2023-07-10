@@ -12,7 +12,7 @@ using System.Linq;
 using MonoMod;
 using MonoMod.Utils;
 using Quintessential;
-
+using Quintessential.Internal;
 using Scrollbar = class_262;
 using InstructionTypes = class_169;
 using Permissions = enum_149;
@@ -34,6 +34,7 @@ class patch_PuzzleEditorScreen{
 		Vector2 size = new(1516f, 922f);
 		Vector2 corner = (class_115.field_1433 / 2 - size / 2 + new Vector2(-2, -11)).Rounded();
 		Bounds2 panelSize = Bounds2.WithSize(corner + new Vector2(0, 88 + 5), size + new Vector2(-152f + 78, -158f - 40 - 10));
+		Bounds2 coverBounds = panelSize.Translated(new(80, 0));
 
 		// add scrollbar/scroll region
 		using(var _ = scrollbar.method_709(panelSize.Min, panelSize.Size.CeilingToInt(), 0, -30)){
@@ -53,13 +54,16 @@ class patch_PuzzleEditorScreen{
 
 			// draw inputs/outputs
 			bool b = self.Get<enum_138>("field_2788") == 0;
+			bool screenOpened = false;
 			for(var row = 0; row < 2; row++){
+				bool isInput = row == 0;
 				PuzzleInputOutput[] puzzleIOs = row == 0 ? myPuzzle.field_2771 : myPuzzle.field_2770;
 				for(var column = 0; column < 4; ++column){
-					Bounds2 puzzleIoBox = Bounds2.WithSize(nCorner + new Vector2(495f, 576f) + new Vector2(column * 235, row == 0 ? -28f : -297f), new Vector2(226f, 226f));
+					Bounds2 puzzleIoBox = Bounds2.WithSize(nCorner + new Vector2(495f, 576f) + new Vector2(column * 235, isInput ? -28f : -297f), new Vector2(226f, 226f));
 					if(puzzleIOs.Length > column){
 						class_135.method_272(b ? class_238.field_1989.field_94.field_805 : class_238.field_1989.field_94.field_808, puzzleIoBox.Min);
 						var isHover = false;
+						var molecule = puzzleIOs[column].field_2813;
 						if(b){
 							Bounds2 deleteBounds = Bounds2.WithSize(puzzleIoBox.Min + new Vector2(176f, 175f), class_238.field_1989.field_94.field_806.field_2056.ToVector2());
 							bool isDelete = deleteBounds.Contains(Input.MousePos());
@@ -68,11 +72,12 @@ class patch_PuzzleEditorScreen{
 								isHover = true;
 								if(Input.IsLeftClickPressed()){
 									int columnTemp = column; // otherwise it's modified after(?)
-									var moleculeEditorScreen = new MoleculeEditorScreen(puzzleIOs[column].field_2813, row == 0, value => {
+									var moleculeEditorScreen = new MoleculeEditorScreen(molecule, isInput, value => {
 										puzzleIOs[columnTemp].field_2813 = value;
 										GameLogic.field_2434.field_2460.method_2241(myPuzzle);
 									});
 									((patch_MoleculeEditorScreen)(object)moleculeEditorScreen).editing = conv;
+									screenOpened = true;
 									GameLogic.field_2434.method_946(moleculeEditorScreen);
 									class_238.field_1991.field_1821.method_28(1f);
 								}
@@ -85,7 +90,7 @@ class patch_PuzzleEditorScreen{
 								if(Input.IsLeftClickPressed()){
 									int rowTemp = row;
 									int columnTemp = column;
-									GameLogic.field_2434.method_946(MessageBoxScreen.method_1095(panelSize.Translated(new(80, 0)), true, row == 0 ? class_134.method_253("Do you really want to delete this product?", string.Empty) : class_134.method_253("Do you really want to delete this reagent?", string.Empty), struct_18.field_1431, row == 0 ? class_134.method_253("Delete Product", string.Empty) : class_134.method_253("Delete Reagent", string.Empty), class_134.method_253("Cancel", string.Empty),
+									GameLogic.field_2434.method_946(MessageBoxScreen.method_1095(coverBounds, true, isInput ? class_134.method_253("Do you really want to delete this product?", string.Empty) : class_134.method_253("Do you really want to delete this reagent?", string.Empty), struct_18.field_1431, isInput ? class_134.method_253("Delete Product", string.Empty) : class_134.method_253("Delete Reagent", string.Empty), class_134.method_253("Cancel", string.Empty),
 										() => {
 											if(rowTemp == 0)
 												myPuzzle.field_2771 = myPuzzle.field_2771.Take(columnTemp).Concat(myPuzzle.field_2771.Skip(columnTemp + 1)).ToArray();
@@ -98,22 +103,33 @@ class patch_PuzzleEditorScreen{
 							}
 						}
 
-						class_256 moleculeSprite = Editor.method_928(puzzleIOs[column].field_2813, (uint)row > 0U, isHover, new Vector2(156f, 146f), false, struct_18.field_1431).method_1351().field_937;
-						Vector2 centre = moleculeSprite.field_2056.ToVector2() / 2;
-						Vector2 halfSize = centre.Rounded();
-						centre = puzzleIoBox.Center;
-						class_135.method_272(moleculeSprite, centre.Rounded() - halfSize + new Vector2(-8f, -10f));
+						class_256 moleculeSprite = Editor.method_928(molecule, (uint)row > 0U, isHover, new Vector2(156f, 146f), false, struct_18.field_1431).method_1351().field_937;
+						Vector2 halfSize = (moleculeSprite.field_2056.ToVector2() / 2).Rounded();
+						var centre = puzzleIoBox.Center.Rounded() - halfSize;
+						class_135.method_272(moleculeSprite, centre + new Vector2(-8f, -10f));
+
+						if(conv.IsModdedPuzzle){
+							Vector2 namePos = puzzleIoBox.BottomLeft + new Vector2(puzzleIoBox.Width / 2f - 5, -17);
+							Bounds2 textArea = UI.DrawText(molecule.field_2639.method_1090(class_134.method_253("_(Unnamed)_", "")), namePos, class_238.field_1990.field_2143, UI.TextColor, TextAlignment.Centred);
+							if(textArea.Contains(Input.MousePos()) && Input.IsLeftClickPressed() && !screenOpened){
+								GameLogic.field_2434.method_946(MessageBoxScreenEx.textbox(coverBounds, class_134.method_253("Please enter a new name for this " + (isInput ? "product:" : "reagent:"), string.Empty), molecule.field_2639.method_1090(LocString.field_2597), class_134.method_253("Rename " + (isInput ? "Product" : "Reagent"), string.Empty), s => {
+									molecule.field_2639 = class_134.method_253(s, "");
+									GameLogic.field_2434.field_2460.method_2241(myPuzzle);
+								}));
+								class_238.field_1991.field_1821.method_28(1f);
+							}
+						}
 					}else if(b){
 						Vector2 offset = new(-2f, -3f);
 						class_135.method_272(class_238.field_1989.field_94.field_802, puzzleIoBox.Min + offset);
-						class_135.method_290(row == 0 ? class_134.method_253("Create New Product", string.Empty).method_1060() : class_134.method_253("Create New Reagent", string.Empty).method_1060(), puzzleIoBox.Center + new Vector2(-6f, -8f), class_238.field_1990.field_2143, class_181.field_1718, (enum_0)1, 1f, 0.6f, 120f, float.MaxValue, 0, new Color(), null, int.MaxValue, false, true);
+						class_135.method_290(isInput ? class_134.method_253("Create New Product", string.Empty).method_1060() : class_134.method_253("Create New Reagent", string.Empty).method_1060(), puzzleIoBox.Center + new Vector2(-6f, -8f), class_238.field_1990.field_2143, class_181.field_1718, (enum_0)1, 1f, 0.6f, 120f, float.MaxValue, 0, new Color(), null, int.MaxValue, false, true);
 
 						if(!puzzleIoBox.Contains(Input.MousePos())) continue;
 						class_135.method_272(class_238.field_1989.field_94.field_803, puzzleIoBox.Min + offset);
 
 						if(!class_115.method_206((enum_142)1)) continue;
 						int rowTemp = row; // otherwise it's modified after
-						var moleculeEditorScreen = new MoleculeEditorScreen(new Molecule(), row == 0, value => {
+						var moleculeEditorScreen = new MoleculeEditorScreen(new Molecule(), isInput, value => {
 							if(rowTemp == 0)
 								myPuzzle.field_2771 = myPuzzle.field_2771.method_451(new PuzzleInputOutput(value)).ToArray();
 							else
