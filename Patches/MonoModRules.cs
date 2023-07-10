@@ -108,6 +108,16 @@ static class MonoModRules{
 		if(method.HasBody){
 			ILCursor cursor = new(new ILContext(method));
 			Instruction target = null; // will definitely be set
+			
+			// kill off `flag5` and make the Upload puzzle button never clickable
+			if(cursor.TryGotoNext(MoveType.Before, instr => instr.MatchLdloc(27))){
+				cursor.Remove();
+				cursor.Emit(OpCodes.Ldc_I4_0);
+			}else{
+				Console.WriteLine("Failed to modify puzzle editor screen (no 1st match)!");
+				throw new Exception();
+			}
+
 			if(cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdflda("PuzzleEditorScreen", "field_2789"),
 				   instr => instr.MatchCall(out MethodReference mref) && mref.Name.Equals("method_1085"),
 				   instr => {
@@ -123,7 +133,7 @@ static class MonoModRules{
 				cursor.Emit(OpCodes.Call, to); // call reimplementation
 				cursor.Emit(OpCodes.Br, target); // skip rest of `if` statement
 			}else{
-				Console.WriteLine("Failed to modify puzzle editor screen (no match)!");
+				Console.WriteLine("Failed to modify puzzle editor screen (no 2nd match)!");
 				throw new Exception();
 			}
 		}else{
