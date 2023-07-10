@@ -476,39 +476,54 @@ SomeZipIDontLike.zip");
 					class_259 requirement = string.IsNullOrEmpty(entry.Requires) ? (class_259)new class_174() : new class_243(entry.Requires);
 
 					var lower = entry.Type.ToLowerInvariant();
-					if(lower.Equals("puzzle")){
-						string baseName = Path.Combine(c.Path, entry.Puzzle);
-						Puzzle puzzle;
-						if(File.Exists(baseName + ".puzzle")){
-							puzzle = Puzzle.method_1249(baseName + ".puzzle");
-						}else if(File.Exists(baseName + ".puzzle.yaml")){
-							puzzle = PuzzleModel.FromModel(YamlHelper.Deserializer.Deserialize<PuzzleModel>(File.ReadAllText(baseName + ".puzzle.yaml")));
-						}else{
-							Logger.Log($"Puzzle \"{entry.Puzzle}\" from campaign \"{c.Title}\" doesn't exist, ignoring");
-							continue;
-						}
-
-						// even if it was loaded from a vanilla format puzzle file, it was included in a mod and may rely on modded behaviour
-						// these are never saved over and could have been modified directly by the campaign mod, so this is safe
-						((patch_Puzzle)(object)puzzle).IsModdedPuzzle = true;
-						puzzle.field_2766 = entry.ID;
-						// ensure all inputs/outputs have names
-						foreach(PuzzleInputOutput io in puzzle.field_2770.Union(puzzle.field_2771)){
-							if(!io.field_2813.field_2639.method_1085()){
-								io.field_2813.field_2639 = class_134.method_253("Molecule", string.Empty);
+					CampaignItem cItem;
+					switch(lower){
+						case "puzzle": {
+							string baseName = Path.Combine(c.Path, entry.Puzzle);
+							Puzzle puzzle;
+							if(File.Exists(baseName + ".puzzle")){
+								puzzle = Puzzle.method_1249(baseName + ".puzzle");
+							}else if(File.Exists(baseName + ".puzzle.yaml")){
+								puzzle = PuzzleModel.FromModel(YamlHelper.Deserializer.Deserialize<PuzzleModel>(File.ReadAllText(baseName + ".puzzle.yaml")));
+							}else{
+								Logger.Log($"Puzzle \"{entry.Puzzle}\" from campaign \"{c.Title}\" doesn't exist, ignoring");
+								continue;
 							}
-						}
 
-						// TODO: optimize
-						AddEntryToCampaign(campaign, j, entry.ID, class_134.method_253(entry.Title, string.Empty), (enum_129)0, struct_18.field_1431, puzzle, class_238.field_1992.field_972, class_238.field_1991.field_1832, requirement);
-						Array.Resize(ref Puzzles.field_2816, Puzzles.field_2816.Length + 1);
-						Puzzles.field_2816[Puzzles.field_2816.Length - 1] = puzzle;
-					}else if(lower.Equals("solitaire")){
-						CampaignItem campaignItem = new(entry.ID, class_134.method_253("Sigmar's Garden", string.Empty), (enum_129) 3, struct_18.field_1431, requirement, class_238.field_1992.field_970, class_238.field_1991.field_1830);
-						campaign.field_2309[j].field_2314.Add(campaignItem);
-					}else{
-						Logger.Log($"Campaign entry in {c.Name} has unknown type {entry.Type}, skipping");
+							// even if it was loaded from a vanilla format puzzle file, it was included in a mod and may rely on modded behaviour
+							// these are never saved over and could have been modified directly by the campaign mod, so this is safe
+							((patch_Puzzle)(object)puzzle).IsModdedPuzzle = true;
+							puzzle.field_2766 = entry.ID;
+							// ensure all inputs/outputs have names
+							foreach(PuzzleInputOutput io in puzzle.field_2770.Union(puzzle.field_2771)){
+								if(!io.field_2813.field_2639.method_1085()){
+									io.field_2813.field_2639 = class_134.method_253("Molecule", string.Empty);
+								}
+							}
+
+							// TODO: optimize
+							cItem = AddEntryToCampaign(campaign, j, entry.ID, class_134.method_253(entry.Title, string.Empty), (enum_129)0, struct_18.field_1431, puzzle, class_238.field_1992.field_972, class_238.field_1991.field_1832, requirement);
+							Array.Resize(ref Puzzles.field_2816, Puzzles.field_2816.Length + 1);
+							Puzzles.field_2816[Puzzles.field_2816.Length - 1] = puzzle;
+							break;
+						}
+						case "solitaire": {
+							cItem = new(entry.ID, class_134.method_253("Sigmar's Garden", string.Empty), (enum_129) 3, struct_18.field_1431, requirement, class_238.field_1992.field_970, class_238.field_1991.field_1830);
+							campaign.field_2309[j].field_2314.Add(cItem);
+							break;
+						}
+						default:
+							Logger.Log($"Campaign entry in {c.Name} has unknown type {entry.Type}, skipping");
+							continue;
 					}
+
+					patch_CampaignItem conv = (patch_CampaignItem)(object)cItem;
+					// probably not great to reload the images every time, in the case that a campaign uses the same image on every puzzle?
+					// but these are small, and we can definitely handle the case where every puzzle has a unique icon
+					if(!string.IsNullOrWhiteSpace(entry.Icon))
+						conv.Icon = class_235.method_615(entry.Icon);
+					if(!string.IsNullOrWhiteSpace(entry.IconSmall))
+						conv.IconSmall = class_235.method_615(entry.IconSmall);
 				}
 			}
 
@@ -533,7 +548,7 @@ SomeZipIDontLike.zip");
 		}
 	}
 
-	private static void AddEntryToCampaign(
+	private static CampaignItem AddEntryToCampaign(
 			Campaign campaign,
 			int chapter,
 			string entryId,
@@ -550,6 +565,7 @@ SomeZipIDontLike.zip");
 		}
 		CampaignItem campaignItem = new(entryId, entryTitle, type, puzzle, requirement, param_4487, clickSound);
 		campaign.field_2309[chapter].field_2314.Add(campaignItem);
+		return campaignItem;
 	}
 
 	internal static void DumpVanillaPuzzles() {

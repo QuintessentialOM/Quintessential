@@ -44,4 +44,7 @@ public class EntryModel {
 	public string Puzzle { get; set; }
 
 	public string Requires { get; set; }
+	
+	public string Icon { get; set; }
+	public string IconSmall { get; set; }
 }
