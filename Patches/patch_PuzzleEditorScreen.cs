@@ -45,7 +45,7 @@ class patch_PuzzleEditorScreen{
 
 			class_140.method_317(class_134.method_253("Products", "FULL LENGTH"), nCorner + new Vector2(489, 774), 900, false, true);
 			class_140.method_317(class_134.method_253("Reagents", ""), nCorner + new Vector2(489, 506), 900, false, true);
-			class_140.method_317(class_134.method_253("Mechanisms and Glyphs", ""), nCorner + new Vector2(489, 237), 900, false, true);
+			class_140.method_317(class_134.method_253("Mechanisms and Glyphs", ""), nCorner + new Vector2(489, 233), 900, false, true);
 
 			Puzzle myPuzzle = self.Get<Maybe<Puzzle>>("field_2789").method_1087();
 			// CustomPermissions may have just not been set? TODO: find a better place for the "canonical" setter
@@ -148,7 +148,7 @@ class patch_PuzzleEditorScreen{
 
 			// draw vanilla rule checkboxes
 			Vector2 ruleSize = new(236, -37);
-			Vector2 partsCorner = nCorner + new Vector2(494, 184);
+			Vector2 partsCorner = nCorner + new Vector2(494, 180);
 			self.Invoke("method_1261", partsCorner + new Vector2(ruleSize.X * 0, ruleSize.Y * 0), (string)class_191.field_1772.field_1529, enum_149.Bonder, myPuzzle);
 			self.Invoke("method_1261", partsCorner + new Vector2(ruleSize.X * 1, ruleSize.Y * 0), (string)class_191.field_1774.field_1529, enum_149.SpeedBonder, myPuzzle);
 			self.Invoke("method_1261", partsCorner + new Vector2(ruleSize.X * 2, ruleSize.Y * 0), (string)class_191.field_1775.field_1529, enum_149.PrismaBonder, myPuzzle);
