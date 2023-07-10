@@ -9,10 +9,7 @@ namespace Quintessential.Internal;
 internal class Screenshotter{
 
 	public static void CheckScreenshot(){
-		if(true)
-			return; // TODO
-
-		if(QuintessentialSettings.Instance.Screenshot.Pressed()){
+		if(/*QuintessentialSettings.Instance.Screenshot.Pressed()*/ false){
 			var size = Input.ScreenSize();
 			SDL.SDL_Rect rect = new(){
 				w = (int)Math.Ceiling(size.X),
