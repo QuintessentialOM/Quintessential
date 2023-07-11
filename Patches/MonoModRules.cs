@@ -22,6 +22,12 @@ class PatchGifRecorderFrame : Attribute{}
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchPuzzleEditorScreen))]
 class PatchPuzzleEditorScreen : Attribute{}
 
+[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchJournalScreen))]
+class PatchJournalScreen : Attribute{}
+
+[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchJournalPuzzleBackgrounds))]
+class PatchJournalPuzzleBackgrounds : Attribute{}
+
 static class MonoModRules{
 
 	static MonoModRules(){
@@ -138,6 +144,46 @@ static class MonoModRules{
 			}
 		}else{
 			Console.WriteLine("Failed to modify puzzle editor screen (no body)!");
+			throw new Exception();
+		}
+	}
+
+	public static void PatchJournalScreen(MethodDefinition method, CustomAttribute attrib){
+		MonoModRule.Modder.Log("Patching journal screen");
+		if(method.HasBody){
+			ILCursor cursor = new(new ILContext(method));
+			if(cursor.TryGotoNext(MoveType.Before, instr => instr.MatchLdstr("The Journal of Alchemical Engineering"))){
+				cursor.Remove();
+				TypeDefinition holder = MonoModRule.Modder.FindType("JournalScreen").Resolve();
+				MethodDefinition to = holder.Methods.First(m => m.Name.Equals("CurrentJournalName"));
+				cursor.Emit(OpCodes.Call, to);
+			}else{
+				Console.WriteLine("Failed to modify journal screen (no match)!");
+				throw new Exception();
+			}
+		}else{
+			Console.WriteLine("Failed to modify journal screen (no body)!");
+			throw new Exception();
+		}
+	}
+
+	public static void PatchJournalPuzzleBackgrounds(MethodDefinition method, CustomAttribute attrib){
+		MonoModRule.Modder.Log("Patching journal screen puzzle backgrounds");
+		if(method.HasBody){
+			ILCursor cursor = new(new ILContext(method));
+			if(cursor.TryGotoNext(MoveType.After, instr => instr.MatchStloc(1))){
+				cursor.Emit(OpCodes.Ldloc_1);
+				cursor.Emit(OpCodes.Ldarg_3);
+				TypeDefinition holder = MonoModRule.Modder.FindType("JournalScreen").Resolve();
+				MethodDefinition to = holder.Methods.First(m => m.Name.Equals("CurrentJournalBg"));
+				cursor.Emit(OpCodes.Call, to);
+				cursor.Emit(OpCodes.Stloc_1);
+			}else{
+				Console.WriteLine("Failed to modify journal screen puzzle backgrounds (no match)!");
+				throw new Exception();
+			}
+		}else{
+			Console.WriteLine("Failed to modify journal screen puzzle backgrounds (no body)!");
 			throw new Exception();
 		}
 	}

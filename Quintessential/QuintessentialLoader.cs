@@ -33,12 +33,14 @@ public class QuintessentialLoader {
 
 	public static List<Campaign> AllCampaigns = new();
 	public static Campaign VanillaCampaign;
+	public static List<List<JournalVolume>> AllJournals = new();
+	public static List<JournalVolume> VanillaJournal;
 
 	public static ModMeta QuintessentialModMeta;
 	public static QuintessentialMod QuintessentialAsMod;
 
-	private static List<CampaignModel> ModCampaignModels = new();
-	private static List<JournalModel> ModJournalModels = new();
+	public static List<CampaignModel> ModCampaignModels = new();
+	public static List<JournalModel> ModJournalModels = new();
 
 	private static List<string> blacklisted = new();
 	private static List<ModMeta> loaded = new();
@@ -269,19 +271,18 @@ SomeZipIDontLike.zip");
 
 					JournalModel c = YamlHelper.Deserializer.Deserialize<JournalModel>(reader);
 					Logger.Log($"Journal \"{c.Title}\" has {c.Chapters.Count} chapters.");
-					bool valid = true;
-					foreach(var chapter in c.Chapters){
+					foreach(var chapter in new List<JournalChapterModel>(c.Chapters)){
 						if(chapter.Puzzles.Count != 5){
-							Logger.Log($"Journal chapter \"{chapter.Title}\" in \"{c.Title}\" doesn't have 5 puzzles; skipping journal.");
-							valid = false;
-							break;
+							Logger.Log($"Journal chapter \"{chapter.Title}\" in \"{c.Title}\" has {chapter.Puzzles.Count} puzzles instead of 5; skipping chapter.");
+							c.Chapters.Remove(chapter);
 						}
 					}
 
-					if(valid){
+					if(c.Chapters.Count > 0){
 						c.Path = Path.GetDirectoryName(item);
 						ModJournalModels.Add(c);
-					}
+					}else
+						Logger.Log($"Journal \"{c.Title}\" has no chapters, skipping.");
 				}
 			}
 		}
@@ -317,6 +318,10 @@ SomeZipIDontLike.zip");
 		foreach(var mod in CodeMods)
 			mod.LoadPuzzleContent();
 
+		Logger.Log("Loading campaigns and journals.");
+		LoadCampaigns();
+		LoadJournals();
+		
 		Logger.Log("Finished puzzle content loading.");
 	}
 
@@ -436,22 +441,15 @@ SomeZipIDontLike.zip");
 		return Assembly.LoadFrom(asmPath);
 	}
 
-	public static void LoadCampaigns() {
+	public static void LoadCampaigns(){
 		AllCampaigns.Clear();
-		if(VanillaCampaign != null){ // reloading
-			Logger.Log("Reloading campaigns!");
-			Campaigns.field_2330 = VanillaCampaign;
-			Campaigns.field_2331[0] = VanillaCampaign;
-			patch_PuzzleSelectScreen.ResetPosition();
-		}
 
 		VanillaCampaign = Campaigns.field_2330;
 		((patch_Campaign)(object)VanillaCampaign).QuintTitle = "Opus Magnum";
 		AllCampaigns.Add(VanillaCampaign);
 
-		for(int i = 0; i < ModCampaignModels.Count; i++) {
-			CampaignModel c = ModCampaignModels[i];
-			var campaign = new Campaign {
+		foreach(var c in ModCampaignModels){
+			var campaign = new Campaign{
 				field_2309 = new CampaignChapter[c.Chapters.Count]
 			};
 
@@ -479,16 +477,8 @@ SomeZipIDontLike.zip");
 					CampaignItem cItem;
 					switch(lower){
 						case "puzzle": {
-							string baseName = Path.Combine(c.Path, entry.Puzzle);
-							Puzzle puzzle;
-							if(File.Exists(baseName + ".puzzle")){
-								puzzle = Puzzle.method_1249(baseName + ".puzzle");
-							}else if(File.Exists(baseName + ".puzzle.yaml")){
-								puzzle = PuzzleModel.FromModel(YamlHelper.Deserializer.Deserialize<PuzzleModel>(File.ReadAllText(baseName + ".puzzle.yaml")));
-							}else{
-								Logger.Log($"Puzzle \"{entry.Puzzle}\" from campaign \"{c.Title}\" doesn't exist, ignoring");
+							if(!TryLoadPuzzle(c.Path, entry.Puzzle, c.Title, out var puzzle))
 								continue;
-							}
 
 							// even if it was loaded from a vanilla format puzzle file, it was included in a mod and may rely on modded behaviour
 							// these are never saved over and could have been modified directly by the campaign mod, so this is safe
@@ -534,15 +524,69 @@ SomeZipIDontLike.zip");
 		}
 	}
 
+	public static void LoadJournals(){
+		AllJournals.Clear();
+		
+		VanillaJournal = JournalVolumes.field_2572.ToList();
+		AllJournals.Add(VanillaJournal);
+		
+		foreach(JournalModel journal in ModJournalModels){
+			List<JournalVolume> volumes = journal.Chapters.Select(chapter =>
+				new JournalVolume{
+					field_2569 = chapter.Title,
+					field_2570 = chapter.Description,
+					field_2571 = chapter.Puzzles.SelectMany(puzzleName =>
+						TryLoadPuzzle(journal.Path, puzzleName, journal.Title, out var puzzle) ? new[]{ puzzle } : new Puzzle[0]).ToArray()
+				}).ToList();
+			foreach(JournalVolume jv in volumes){
+				Logger.Log($"Journal {jv.field_2569} has {jv.field_2571.Length} puzzles");
+			}
+			AllJournals.Add(volumes);
+		}
+	}
+
+	private static bool TryLoadPuzzle(string basePath, string puzzleName, string campaignTitle, out Puzzle puzzle){
+		try{
+			string baseName = Path.Combine(basePath, puzzleName);
+			if(File.Exists(baseName + ".puzzle")){
+				puzzle = Puzzle.method_1249(baseName + ".puzzle");
+			}else if(File.Exists(baseName + ".puzzle.yaml")){
+				puzzle = PuzzleModel.FromModel(YamlHelper.Deserializer.Deserialize<PuzzleModel>(File.ReadAllText(baseName + ".puzzle.yaml")));
+			}else{
+				Logger.Log($"Puzzle \"{puzzleName}\" from \"{campaignTitle}\" doesn't exist, ignoring");
+				puzzle = null;
+				return false;
+			}
+
+			return true;
+		}catch(Exception e){
+			Logger.Log($"Exception loading puzzle \"{puzzleName}\" from \"{campaignTitle}\", ignoring");
+			Logger.Log(e);
+			puzzle = null;
+			return false;
+		}
+	}
+
 	public static void CheckCampaignReload(){
 		if(QuintessentialSettings.Instance.HotReloadCampaigns.Pressed() && GameLogic.field_2434.method_938() is PuzzleSelectScreen){
+			Logger.Log("Reloading campaigns and journals!");
+			
 			ModPuzzleDirectories.Clear();
 			ModCampaignModels.Clear();
 			ModJournalModels.Clear();
+			
+			Campaigns.field_2330 = VanillaCampaign;
+			Campaigns.field_2331[0] = VanillaCampaign;
+			JournalVolumes.field_2572 = VanillaJournal.ToArray();
+			patch_PuzzleSelectScreen.ResetPosition();
+			patch_JournalScreen.ResetPosition();
+			
 			foreach(ModMeta mod in Mods)
 				if(mod != QuintessentialModMeta)
 					LoadModCampaigns(mod);
+			
 			LoadCampaigns();
+			LoadJournals();
 			UI.InstantCloseScreen();
 			UI.OpenScreen(new PuzzleSelectScreen());
 		}
