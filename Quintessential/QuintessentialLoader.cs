@@ -480,9 +480,6 @@ SomeZipIDontLike.zip");
 							if(!TryLoadPuzzle(c.Path, entry.Puzzle, c.Title, out var puzzle))
 								continue;
 
-							// even if it was loaded from a vanilla format puzzle file, it was included in a mod and may rely on modded behaviour
-							// these are never saved over and could have been modified directly by the campaign mod, so this is safe
-							((patch_Puzzle)(object)puzzle).IsModdedPuzzle = true;
 							puzzle.field_2766 = entry.ID;
 							// ensure all inputs/outputs have names
 							foreach(PuzzleInputOutput io in puzzle.field_2770.Union(puzzle.field_2771)){
@@ -557,6 +554,10 @@ SomeZipIDontLike.zip");
 				puzzle = null;
 				return false;
 			}
+			
+			// even if it was loaded from a vanilla format puzzle file, it was included in a mod and may rely on modded behaviour
+			// these are never saved over and could have been modified directly by the campaign mod, so this is safe
+			((patch_Puzzle)(object)puzzle).IsModdedPuzzle = true;
 
 			return true;
 		}catch(Exception e){
