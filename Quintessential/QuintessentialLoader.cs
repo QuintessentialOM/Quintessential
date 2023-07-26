@@ -629,4 +629,33 @@ SomeZipIDontLike.zip");
 		Logger.Log($"Dumped puzzles to {outDir}");
 		UI.OpenScreen(new NoticeScreen("Puzzle Dumping", $"Saved puzzles to \"{outDir.Replace('\\', '/')}\""));
 	}
+
+	internal static void DumpAtomSprites(){
+		string outDir = Path.Combine(PathModSaves, "Quintessential", "DumpedAtomSprites");
+		Directory.CreateDirectory(outDir);
+		foreach(AtomType atomType in class_175.field_1691){
+			RenderTargetHandle v = RenderAtomToTarget(atomType);
+			Renderer.method_1313(v.method_1351().field_937).method_735(Path.Combine(outDir, ((patch_AtomType)(object)atomType).QuintAtomType.Replace(":", "_") + ".png"));
+		}
+		Logger.Log($"Dumped atom sprites to {outDir}");
+		UI.OpenScreen(new NoticeScreen("Sprite Dumping", $"Saved atom sprites to \"{outDir.Replace('\\', '/')}\""));
+	}
+
+	internal static RenderTargetHandle RenderAtomToTarget(AtomType type){
+		RenderTargetHandle renderTargetHandle = new RenderTargetHandle();
+		Bounds2 bounds = Bounds2.CenteredOn(class_187.field_1742.method_491(new HexIndex(0, 0), Vector2.Zero), class_187.field_1742.field_1744.X, class_187.field_1742.field_1744.Y * 1.3f);
+		Index2 size = bounds.Size.CeilingToInt() + new Index2(20 * 2, 20 * 2);
+		Vector2 pos = size.ToVector2() / 2 / 1f - bounds.Center;
+		pos.Y = -pos.Y;
+		renderTargetHandle.field_2987 = size;
+		class_95 class95 = renderTargetHandle.method_1352(out var flag);
+		if(flag){
+			using(class_226.method_597(class95, Matrix4.method_1074(new Vector3(1, -1, 1)))){
+				class_226.method_600(Color.Transparent);
+				Editor.method_927(type, pos, 1, 1, 1, 1, -21, 0, class_238.field_1989.field_71, null, false);
+			}
+		}
+
+		return renderTargetHandle;
+	}
 }

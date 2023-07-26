@@ -34,4 +34,8 @@ public class QuintessentialSettings {
 	[SettingsLabel("Dump Puzzles")]
 	[YamlIgnore]
 	public SettingsButton DumpPuzzles = QuintessentialLoader.DumpVanillaPuzzles;
+	
+	[SettingsLabel("Dump Atom Sprites")]
+	[YamlIgnore]
+	public SettingsButton DumpAtomSprites = QuintessentialLoader.DumpAtomSprites;
 }
