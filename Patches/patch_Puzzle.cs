@@ -24,6 +24,16 @@ class patch_Puzzle{
 			orig_method_1248(path);
 	}
 
+	public static extern Puzzle orig_method_1249(string path);
+	public static Puzzle method_1249(string path){
+		if(Path.GetExtension(path) == ".yaml"){
+			Puzzle p = PuzzleModel.FromModel(YamlHelper.Deserializer.Deserialize<PuzzleModel>(File.ReadAllText(path)));
+			((patch_Puzzle)(object)p).IsModdedPuzzle = true;
+			return p;
+		}
+		return orig_method_1249(path);
+	}
+
 	public void ConvertFormat(bool modded){
 		Puzzle self = (Puzzle)(object)this;
 		WorkshopManager wm = GameLogic.field_2434.field_2460;
