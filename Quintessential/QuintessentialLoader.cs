@@ -7,7 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Resources;
 
-using Ionic.Zip;
+using ICSharpCode.SharpZipLib.Zip;
 
 using MonoMod.Utils;
 
@@ -48,6 +48,8 @@ public class QuintessentialLoader {
 
 	private static readonly string zipExtractSuffix = "__quintessential_from_zip";
 	private static readonly string quintAssetFolder = "__quintessential_assets";
+
+	private static FastZip zipExtractor = new FastZip();
 
 	public static void PreInit() {
 		try {
@@ -99,6 +101,8 @@ SomeZipIDontLike.zip");
 			var set = manager.GetResourceSet(CultureInfo.InvariantCulture, true, true);
 			foreach(object item in set){
 				if(item is DictionaryEntry de){
+			foreach(object item in set) {
+				if(item is DictionaryEntry de) {
 					string name = (string)de.Key;
 					using var toStream = File.OpenWrite(Path.Combine(outDir, name));
 					byte[] content = (byte[])de.Value;
@@ -341,8 +345,7 @@ SomeZipIDontLike.zip");
 			return;
 
 		var dest = zip.Substring(0, zip.Length - ".zip".Length) + zipExtractSuffix;
-		using(ZipFile file = new(zip))
-			file.ExtractAll(dest);
+		zipExtractor.ExtractZip(zip, dest, "");
 		FindFolderMod(dest, zip);
 	}
 
