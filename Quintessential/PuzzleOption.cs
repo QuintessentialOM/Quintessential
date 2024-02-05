@@ -59,7 +59,7 @@ public class PuzzleOption{
 	// Getters that each correspond to a PuzzleOptionType
 	
 	public bool EnabledIn(Puzzle from){
-		return Convert(from).CustomPermissions.Contains(ID);
+		return Convert(from).CustomPermissions?.Contains(ID) ?? false;
 	}
 
 	public string ChoiceIn(Puzzle from){
