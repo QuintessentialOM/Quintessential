@@ -61,8 +61,11 @@ public class PuzzleModel {
 			field_2768 = model.Author.Equals("") ? new Maybe<string>(false, null) : model.Author,
 			field_2774 = model.Highlights.Select(k => k.FromModel()).ToArray()
 		};
-		if(model.ProductionInfo != null && model.ProductionInfo.Chambers.Count > 0)
+		if(model.ProductionInfo != null && model.ProductionInfo.Chambers.Count > 0){
 			ret.field_2779 = model.ProductionInfo.FromModel();
+			// Calculate bounds
+			ret.method_1247();
+		}
 		((patch_Puzzle)(object)ret).CustomPermissions = model.CustomPermissions;
 		return ret;
 	}
