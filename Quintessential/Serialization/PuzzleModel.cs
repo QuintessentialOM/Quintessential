@@ -8,6 +8,8 @@ using PermissionFlags = enum_149;
 using ProductionInfo = class_261;
 using ChamberType = class_183;
 using Chamber = class_189;
+using Conduit = class_117;
+using Vial = class_128;
 using AtomTypes = class_175;
 
 namespace Quintessential.Serialization;
@@ -205,21 +207,33 @@ public class PuzzleModel {
 
 	public class ProductionInfoM {
 		public List<ChamberM> Chambers = new();
-		public bool Isolation = false;
+		public List<ConduitM> Conduits = new();
+		public List<VialM> Vials = new();
+		public bool Isolation = false, ShrinkLeft = false, ShrinkRight = false;
 
 		public ProductionInfoM(ProductionInfo info) {
-			foreach(var chamber in info.field_2071) {
+			foreach(var chamber in info.field_2071)
 				Chambers.Add(new ChamberM(chamber));
-			}
+			foreach(Conduit conduit in info.field_2072)
+				Conduits.Add(new ConduitM(conduit));
+			foreach(Vial vial in info.field_2073)
+				Vials.Add(new VialM(vial));
+			ShrinkLeft = info.field_2075;
+			ShrinkRight = info.field_2076;
 			Isolation = info.field_2077;
 		}
 
 		public ProductionInfoM(){}
 
 		public ProductionInfo FromModel() {
-			ProductionInfo ret = new();
-			ret.field_2071 = Chambers.Select(k => k.FromModel()).ToArray();
-			ret.field_2077 = Isolation;
+			ProductionInfo ret = new(){
+				field_2071 = Chambers.Select(k => k.FromModel()).ToArray(),
+				field_2072 = Conduits.Select(k => k.FromModel()).ToArray(),
+				field_2073 = Vials.Select(k => k.FromModel()).ToArray(),
+				field_2075 = ShrinkLeft,
+				field_2076 = ShrinkRight,
+				field_2077 = Isolation
+			};
 			return ret;
 		}
 	}
@@ -237,6 +251,52 @@ public class PuzzleModel {
 
 		public Chamber FromModel() {
 			return new(Position.Q(), Position.R(), Puzzles.field_2932.First(k => k.field_1727.Equals(ChamberType)));
+		}
+	}
+
+	public class ConduitM {
+		public HexIndexM PosA, PosB;
+		public List<HexIndexM> Shape = new();
+
+		public ConduitM(){}
+
+		public ConduitM(Conduit c) {
+			foreach(HexIndex hex in c.field_1440)
+				Shape.Add(new HexIndexM(hex));
+			// TODO: when are there ever more than two?
+			PosA = new HexIndexM(c.field_1441[0].field_1879);
+			PosB = new HexIndexM(c.field_1441[1].field_1879);
+		}
+
+		public Conduit FromModel() {
+			return new Conduit(PosA.Q(), PosA.R(), PosB.Q(), PosB.R(), Shape.Select(k => k.FromModel()).ToArray());
+		}
+	}
+
+	public class VialM {
+		public HexIndexM Position;
+		public bool Top;
+		public List<Pair<string, string>> Sprites = new();
+
+		public VialM(){}
+
+		public VialM(Vial v) {
+			Position = new HexIndexM(v.field_1471);
+			Top = v.field_1472;
+			foreach(Tuple<class_256, class_256> sprites in v.field_1473)
+				Sprites.Add(new(CleanName(sprites.Item1), CleanName(sprites.Item2)));
+		}
+
+		public Vial FromModel() {
+			return new Vial(Position.Q(), Position.R(), Top,
+				Sprites.Select(xs => Tuple.Create(class_235.method_615(xs.Left), class_235.method_615(xs.Right))).ToArray());
+		}
+
+		private static string CleanName(class_256 texture){
+			string name = texture.field_2062.method_1087();
+			if(name.StartsWith("Content/") || name.StartsWith("Content\\"))
+				name = name.Substring("Content/".Length);
+			return name;
 		}
 	}
 

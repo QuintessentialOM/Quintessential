@@ -2,6 +2,8 @@
 
 public class Pair<A, B> {
 
+	public Pair(){}
+
 	public Pair(A left, B right) {
 		Left = left;
 		Right = right;
