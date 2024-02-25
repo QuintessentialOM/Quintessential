@@ -7,12 +7,15 @@ using Quintessential.Settings;
 
 namespace Quintessential;
 
+using Scrollbar = class_262;
+
 class ModsScreen : IScreen {
 
 	private const int modButtonWidth = 300;
 	private static readonly class_256 verticalBarCentreTall = class_235.method_615("Quintessential/vertical_bar_centre_tall");
 	
 	private ModMeta selected = QuintessentialLoader.QuintessentialModMeta;
+	private Scrollbar modsListScrollbar = new();
 
 	private struct DrawProgress {
 		public bool pressed;
@@ -33,34 +36,43 @@ class ModsScreen : IScreen {
 
 	// update & render
 	public void method_50(float time) {
-		Vector2 size = new(1200, 1000);
+		Vector2 size = new(1220, 1000);
 		Vector2 pos = (Input.ScreenSize() / 2 - size / 2).Rounded();
 		Vector2 bgPos = pos + new Vector2(78, 88);
 		Vector2 bgSize = size - new Vector2(78 * 2, 77 * 2);
 
 		UI.DrawLargeUiBackground(bgPos, bgSize);
 		UI.DrawUiFrame(pos, size);
-		UI.DrawHeader("Mods", pos + new Vector2(100f, size.Y - 99f), modButtonWidth, true, true);
+		UI.DrawTexture(verticalBarCentreTall, pos + new Vector2(modButtonWidth + 130, 76f));
 
 		if(UI.DrawAndCheckCloseButton(pos, size, new Vector2(104, 98)))
 			UI.HandleCloseButton();
 
 		// draw mod buttons
-		int y = 40;
-		if(UI.DrawAndCheckSolutionButton("Quintessential", $"{QuintessentialLoader.VersionString} ({QuintessentialLoader.VersionNumber})", pos - new Vector2(-100, -size.Y + 140 + y), modButtonWidth, selected == QuintessentialLoader.QuintessentialModMeta))
-			selected = QuintessentialLoader.QuintessentialModMeta;
-		y += 100;
-		class_135.method_275(class_238.field_1989.field_102.field_822, Color.White, Bounds2.WithSize(pos - new Vector2(-100, -size.Y + 140 + 60), new Vector2(modButtonWidth, 3f)));
-		foreach(var mod in QuintessentialLoader.Mods) {
-			if(mod != QuintessentialLoader.QuintessentialModMeta) {
-				if(UI.DrawAndCheckSolutionButton(mod.Title ?? mod.Name, mod.Version.ToString(), pos - new Vector2(-100, -size.Y + 140 + y), modButtonWidth, selected == mod))
-					selected = mod;
-				y += 70;
-			}
+		using(var _ = modsListScrollbar.method_709(bgPos + new Vector2(0, 5), new(modButtonWidth + 60, (int)bgSize.Y - 10), 0, -30)){
+			// clear scroll zone
+			class_226.method_600(Color.Transparent);
+			
+			int y = -(int)modsListScrollbar.field_2078;
+			UI.DrawHeader("Mods", new Vector2(20, size.Y - 200 - y), modButtonWidth, true, true);
+			
+			if(UI.DrawAndCheckSolutionButton("Quintessential", $"{QuintessentialLoader.VersionString} ({QuintessentialLoader.VersionNumber})", new Vector2(20, size.Y - 285 - y), modButtonWidth, selected == QuintessentialLoader.QuintessentialModMeta))
+				selected = QuintessentialLoader.QuintessentialModMeta;
+			class_135.method_275(class_238.field_1989.field_102.field_822, Color.White, Bounds2.WithSize(new Vector2(20, size.Y - 305 - y), new Vector2(modButtonWidth, 3f)));
+			y += 100;
+			foreach(var mod in QuintessentialLoader.Mods)
+				if(mod != QuintessentialLoader.QuintessentialModMeta){
+					if(UI.DrawAndCheckSolutionButton(mod.Title ?? mod.Name, mod.Version.ToString(), new Vector2(20, size.Y - 290 - y), modButtonWidth, selected == mod))
+						selected = mod;
+					y += 70;
+				}
+			
+			// expand the scroll area to cover the entire displayed area
+			modsListScrollbar.method_707(y + 132);
 		}
+		
 		// draw mod options panel
-		UI.DrawTexture(verticalBarCentreTall, pos + new Vector2(modButtonWidth + 110, 76f));
-		DrawModOptions(pos + new Vector2(modButtonWidth + 140, -10), size - new Vector2(160, 10), selected);
+		DrawModOptions(pos + new Vector2(modButtonWidth + 160, -10), size - new Vector2(160, 10), selected);
 	}
 
 	private void DrawModOptions(Vector2 pos, Vector2 size, ModMeta mod) {
