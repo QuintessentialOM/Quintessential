@@ -19,7 +19,9 @@ class ChangeKeybindScreen : IScreen {
 			BindableKeys.Add(letter.ToString());
 		for(int i = 1; i < 25; i++) // F1 -> F24
 			BindableKeys.Add("F" + i);
-		BindableKeys.AddRange(new[]{ "Insert", "PageUp", "PageDown" });
+		for(int i = 0; i < 10; i++) // Keypad numbers
+			BindableKeys.Add("Keypad " + i);
+		BindableKeys.AddRange(new[]{ "Insert", "PageUp", "PageDown", "Home", "End" });
 	}
 
 	public ChangeKeybindScreen(Keybinding key, string label, QuintessentialMod save){
