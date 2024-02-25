@@ -51,7 +51,7 @@ class ModsScreen : IScreen {
 		class_135.method_275(class_238.field_1989.field_102.field_822, Color.White, Bounds2.WithSize(pos - new Vector2(-100, -size.Y + 140 + 60), new Vector2(modButtonWidth, 3f)));
 		foreach(var mod in QuintessentialLoader.Mods) {
 			if(mod != QuintessentialLoader.QuintessentialModMeta) {
-				if(UI.DrawAndCheckSolutionButton(mod.Name, mod.Version.ToString(), pos - new Vector2(-100, -size.Y + 140 + y), modButtonWidth, selected == mod))
+				if(UI.DrawAndCheckSolutionButton(mod.Title ?? mod.Name, mod.Version.ToString(), pos - new Vector2(-100, -size.Y + 140 + y), modButtonWidth, selected == mod))
 					selected = mod;
 				y += 70;
 			}
