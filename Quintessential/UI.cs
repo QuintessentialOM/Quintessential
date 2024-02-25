@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Quintessential;
+﻿namespace Quintessential;
 
 using OMDraw = class_135;
 using OMUI = class_140;
@@ -17,6 +15,8 @@ public static class UI {
 	public static readonly OMFont SubTitle = OMAssets.field_1990.field_2143;
 
 	public static readonly Color TextColor = class_181.field_1718;
+
+	public static readonly OMTexture BackgroundLarger = class_235.method_615("Quintessential/background_larger");
 
 	#endregion
 
@@ -95,6 +95,10 @@ public static class UI {
 
 	public static void DrawUiBackground(Vector2 pos, Vector2 size) {
 		DrawRepeatingTexture(OMAssets.field_1989.field_102.field_810, pos, size);
+	}
+	
+	public static void DrawLargeUiBackground(Vector2 pos, Vector2 size) {
+		DrawRepeatingTexture(BackgroundLarger, pos, size);
 	}
 
 	public static void DrawUiFrame(Vector2 pos, Vector2 size) {

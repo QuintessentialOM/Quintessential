@@ -10,7 +10,9 @@ namespace Quintessential;
 class ModsScreen : IScreen {
 
 	private const int modButtonWidth = 300;
-	ModMeta selected = QuintessentialLoader.QuintessentialModMeta;
+	private static readonly class_256 verticalBarCentreTall = class_235.method_615("Quintessential/vertical_bar_centre_tall");
+	
+	private ModMeta selected = QuintessentialLoader.QuintessentialModMeta;
 
 	private struct DrawProgress {
 		public bool pressed;
@@ -31,12 +33,12 @@ class ModsScreen : IScreen {
 
 	// update & render
 	public void method_50(float time) {
-		Vector2 size = new(1000f, 922f);
+		Vector2 size = new(1200, 1000);
 		Vector2 pos = (Input.ScreenSize() / 2 - size / 2).Rounded();
-		Vector2 bgPos = pos + new Vector2(78f, 88f);
-		Vector2 bgSize = size + new Vector2(-152f, -158f);
+		Vector2 bgPos = pos + new Vector2(78, 88);
+		Vector2 bgSize = size - new Vector2(78 * 2, 77 * 2);
 
-		UI.DrawUiBackground(bgPos, bgSize);
+		UI.DrawLargeUiBackground(bgPos, bgSize);
 		UI.DrawUiFrame(pos, size);
 		UI.DrawHeader("Mods", pos + new Vector2(100f, size.Y - 99f), modButtonWidth, true, true);
 
@@ -57,7 +59,7 @@ class ModsScreen : IScreen {
 			}
 		}
 		// draw mod options panel
-		UI.DrawTexture(class_238.field_1989.field_102.field_824, pos + new Vector2(modButtonWidth + 110, 76f));
+		UI.DrawTexture(verticalBarCentreTall, pos + new Vector2(modButtonWidth + 110, 76f));
 		DrawModOptions(pos + new Vector2(modButtonWidth + 140, -10), size - new Vector2(160, 10), selected);
 	}
 
