@@ -120,8 +120,10 @@ public class PuzzleModel {
 		public string Name = "";
 
 		public MoleculeM(Molecule mol) {
+			// clean molecules first
+			mol = MoleculeEditorScreen.method_1134(mol);
 			foreach(var atom in mol.method_1100())
-				Atoms.Add(new AtomM(((patch_AtomType)(object)atom.Value.field_2275).QuintAtomType, new HexIndexM(atom.Key)));
+				Atoms.Add(new AtomM(atom.Value, new HexIndexM(atom.Key)));
 			foreach(var bond in mol.method_1101())
 				Bonds.Add(new BondM(bond));
 			Name = mol.field_2639.method_1090(null)?.method_620() ?? "";
@@ -137,7 +139,7 @@ public class PuzzleModel {
 				ret.method_1111((BondType)item.BondBits(), item.A.FromModel(), item.B.FromModel());
 			if(!Name.Equals(""))
 				ret.field_2639 = class_134.method_253(Name, string.Empty);
-			return ret;
+			return MoleculeEditorScreen.method_1133(ret, class_181.field_1716);
 		}
 	}
 
@@ -145,8 +147,8 @@ public class PuzzleModel {
 		public string AtomType;
 		public HexIndexM Position;
 
-		public AtomM(string type, HexIndexM hex) {
-			AtomType = type;
+		public AtomM(Atom atom, HexIndexM hex) {
+			AtomType = ((patch_AtomType)(object)atom.field_2275).QuintAtomType;
 			Position = hex;
 		}
 
@@ -154,7 +156,7 @@ public class PuzzleModel {
 
 		public Atom FromModel() {
 			return new Atom(
-				AtomTypes.field_1691.FirstOrDefault(k => ((patch_AtomType)(object)k).QuintAtomType.Equals(AtomType))
+				AtomTypes.field_1691.FirstOrDefault(k => AtomType.Equals(((patch_AtomType)(object)k).QuintAtomType))
 				?? throw new Exception($"Atom type \"{AtomType}\" does not exist!")
 			);
 		}
