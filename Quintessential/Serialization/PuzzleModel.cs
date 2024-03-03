@@ -6,7 +6,6 @@ using Bond = class_277;
 using BondType = enum_126;
 using PermissionFlags = enum_149;
 using ProductionInfo = class_261;
-using ChamberType = class_183;
 using Chamber = class_189;
 using Conduit = class_117;
 using Vial = class_128;
@@ -22,13 +21,12 @@ public class PuzzleModel {
 	public List<PuzzleIoM> Inputs = new();
 	// the outputs
 	public List<PuzzleIoM> Outputs = new();
+	// output multiplier
+	public int OutputMultiplier = 1;
 	// vanilla permission info
 	public PermissionFlags PermissionFlags;
 	// modded permisisons, can be used for parts, instructions, or anything else
 	public HashSet<string> CustomPermissions = new();
-	// number of times you can place each part
-	// 0 = disallowed, negative = unlimited, not present = default (unlimited for non-unique parts)
-	public Dictionary<string, int> PartQuotas = new();
 	// set of highlighted hexes
 	public HashSet<HexIndexM> Highlights = new();
 	// production-related stuff, or null for non-production puzzles
@@ -40,7 +38,8 @@ public class PuzzleModel {
 			PermissionFlags = puzzle.field_2773,
 			Name = puzzle.field_2767?.method_620() ?? "Unnamed",
 			Author = puzzle.field_2768.method_1085() ? puzzle.field_2768.method_1087() : "",
-			CustomPermissions = ((patch_Puzzle)(object)puzzle).CustomPermissions
+			CustomPermissions = ((patch_Puzzle)(object)puzzle).CustomPermissions,
+			OutputMultiplier = puzzle.field_2780
 		};
 		foreach(var @in in puzzle.field_2770)
 			model.Inputs.Add(new PuzzleIoM(@in));
@@ -61,7 +60,8 @@ public class PuzzleModel {
 			field_2771 = model.Outputs.Select(k => k.FromModel()).ToArray(),
 			field_2773 = model.PermissionFlags,
 			field_2768 = model.Author.Equals("") ? new Maybe<string>(false, null) : model.Author,
-			field_2774 = model.Highlights.Select(k => k.FromModel()).ToArray()
+			field_2774 = model.Highlights.Select(k => k.FromModel()).ToArray(),
+			field_2780 = model.OutputMultiplier
 		};
 		if(model.ProductionInfo != null && model.ProductionInfo.Chambers.Count > 0){
 			ret.field_2779 = model.ProductionInfo.FromModel();
@@ -96,21 +96,19 @@ public class PuzzleModel {
 
 	public class PuzzleIoM {
 		public MoleculeM Molecule;
-
-		// for an output, the number of times this must be output to complete the puzzle.
-		// negative = 6
-		// for an input, the number of times this input will produce a molecule
-		// negative or 0 = unlimited
-		public int Amount = -1;
+		public int AmountOverride = 0;
 
 		public PuzzleIoM(PuzzleInputOutput io) {
 			Molecule = new MoleculeM(io.field_2813);
+			AmountOverride = ((patch_PuzzleInputOutput)(object)io).AmountOverride;
 		}
 
 		public PuzzleIoM(){}
 
-		public PuzzleInputOutput FromModel() {
-			return new(Molecule.FromModel());
+		public PuzzleInputOutput FromModel(){
+			PuzzleInputOutput io = new PuzzleInputOutput(Molecule.FromModel());
+			((patch_PuzzleInputOutput)(object)(io)).AmountOverride = AmountOverride;
+			return io;
 		}
 	}
 
@@ -193,18 +191,6 @@ public class PuzzleModel {
 				bits |= (byte)BondType.Prisma2;
 			return bits;
 		}
-	}
-
-	public class PartM {
-		public string PartType;
-		public int Rotation;
-		// only used for arms
-		public int Extension;
-		// for most parts, Nodes[0] = position
-		// for tracks, Nodes = track segments
-		// for conduits, Nodes[0] and Nodes[1] are the conduit positions
-		// modded parts can also use these
-		public List<HexIndexM> Nodes = new();
 	}
 
 	public class ProductionInfoM {
@@ -300,11 +286,5 @@ public class PuzzleModel {
 				name = name.Substring("Content/".Length);
 			return name;
 		}
-	}
-
-	public class HintM {
-		public HexIndexM Position;
-		public int AnchorType;
-		public string Text;
 	}
 }
