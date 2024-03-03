@@ -22,7 +22,14 @@ class patch_Part{
 		
 		bool isPolymer = this.method_1159().field_1554;
 		if(!isPolymer){
-			PuzzleInputOutput io = !method_1159().field_1541 ? solution.method_1934().field_2771[method_1167()] : solution.method_1934().field_2770[method_1167()];
+			PuzzleInputOutput[] list = (!method_1159().field_1541 ? solution.method_1934().field_2771 : solution.method_1934().field_2770);
+			if(list == null || list.Length <= method_1167())
+				return;
+
+			PuzzleInputOutput io = list[method_1167()];
+			if(io == null)
+				return;
+
 			int amount = ((patch_PuzzleInputOutput)(object)io).AmountOverride;
 			if(amount > 0)
 				method_1170(amount);
