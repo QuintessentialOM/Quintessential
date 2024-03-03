@@ -12,8 +12,7 @@ class patch_LocVignette {
 
 		self.field_2091 = new Dictionary<Language, Vignette>();
 		self.field_2090 = key;
-        Language[] languages = new Language[12]
-        {
+        Language[] languages = {
             Language.English,
             Language.German,
             Language.French,
@@ -28,11 +27,11 @@ class patch_LocVignette {
             Language.Czech
         };
         foreach(Language lang in languages) {
-            string path1 = Path.Combine("Content", "vignettes", string.Format("{0}.{1}.txt", key, class_134.field_1498[lang]));
+            string path1 = Path.Combine("Content", "vignettes", $"{key}.{class_134.field_1498[lang]}.txt");
 
             for(int i = 0; i < QuintessentialLoader.ModContentDirectories.Count && !File.Exists(path1); i++) {
                 string content = QuintessentialLoader.ModContentDirectories[i];
-                path1 = Path.Combine(content, "Content", "vignettes", string.Format("{0}.{1}.txt", key, class_134.field_1498[Language.English]));
+                path1 = Path.Combine(content, "Content", "vignettes", $"{key}.{class_134.field_1498[Language.English]}.txt");
             }
 
             string text = File.Exists(path1) ? File.ReadAllText(path1) : "";
