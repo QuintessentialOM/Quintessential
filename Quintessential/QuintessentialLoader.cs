@@ -490,7 +490,7 @@ SomeZipIDontLike.zip");
 							}
 
 							// TODO: optimize
-							cItem = AddEntryToCampaign(campaign, j, entry.ID, class_134.method_253(entry.Title, string.Empty), (enum_129)0, struct_18.field_1431, puzzle, class_238.field_1992.field_972, class_238.field_1991.field_1832, requirement);
+							cItem = AddEntryToCampaign(campaign, j, entry.ID, class_134.method_253(entry.Title, string.Empty), (enum_129)0, struct_18.field_1431, puzzle, class_238.field_1992.field_972, class_238.field_1991.field_1832, requirement, entry.NoStoryPanel);
 							Array.Resize(ref Puzzles.field_2816, Puzzles.field_2816.Length + 1);
 							Puzzles.field_2816[Puzzles.field_2816.Length - 1] = puzzle;
 							break;
@@ -604,13 +604,19 @@ SomeZipIDontLike.zip");
 			Maybe<Puzzle> puzzle,
 			class_186 param_4487,
 			Sound clickSound,
-			class_259 requirement) {
+			class_259 requirement,
+			bool noStoryPanel
+	) {
 		if(puzzle.method_1085()) {
 			//puzzle.method_1087().field_2767 = entryTitle;
 			puzzle.method_1087().field_2769 = param_4485;
 		}
 		CampaignItem campaignItem = new(entryId, entryTitle, type, puzzle, requirement, param_4487, clickSound);
 		campaign.field_2309[chapter].field_2314.Add(campaignItem);
+		// no cutscene to see here
+		if(noStoryPanel)
+			campaignItem.field_2327 = struct_18.field_1431;
+
 		return campaignItem;
 	}
 

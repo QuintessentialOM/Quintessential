@@ -47,4 +47,6 @@ public class EntryModel {
 	
 	public string Icon { get; set; }
 	public string IconSmall { get; set; }
+	
+	public bool NoStoryPanel{ get; set; }
 }
