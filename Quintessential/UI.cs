@@ -1,4 +1,7 @@
-﻿namespace Quintessential;
+﻿using System.Collections.Generic;
+using MonoMod.Utils;
+
+namespace Quintessential;
 
 using OMDraw = class_135;
 using OMUI = class_140;
@@ -121,6 +124,20 @@ public static class UI {
 		return false;
 	}
 	
+	#endregion
+
+	#region Texture control methods
+
+	public static OMTexture AssignOffset(OMTexture tex, Vector2 offset){
+		new DynamicData(typeof(class_107)).Get<Dictionary<OMTexture, Vector2>>("field_996")[tex] = offset;
+		return tex;
+	}
+	
+	public static OMTexture AssignCentre(OMTexture tex, Vector2 offset){
+		new DynamicData(typeof(class_107)).Get<Dictionary<OMTexture, Vector2>>("field_997")[tex] = offset;
+		return tex;
+	}
+
 	#endregion
 }
 

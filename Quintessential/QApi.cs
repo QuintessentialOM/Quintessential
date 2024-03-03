@@ -7,6 +7,7 @@ using PartType = class_139;
 using RenderHelper = class_195;
 using PartTypes = class_191;
 using AtomTypes = class_175;
+using ChamberType = class_183;
 
 public static class QApi {
 
@@ -26,11 +27,8 @@ public static class QApi {
 	/// </summary>
 	/// <param name="type">The part type to be added.</param>
 	/// <param name="mechanism">Whether to add to the mechanisms section or the glyphs section.</param>
-	public static void AddPartTypeToPanel(PartType type, bool mechanism) {
-		if(mechanism)
-			AddPartTypeToPanel(type, PartTypes.field_1771);
-		else
-			AddPartTypeToPanel(type, PartTypes.field_1782);
+	public static void AddPartTypeToPanel(PartType type, bool mechanism){
+		AddPartTypeToPanel(type, mechanism ? PartTypes.field_1771 : PartTypes.field_1782);
 	}
 
 	/// <summary>
@@ -110,6 +108,23 @@ public static class QApi {
 
 	public static void AddPuzzleOption(PuzzleOption option){
 		PuzzleOptions.Add(option);
+	}
+
+	/// <summary>
+	/// Adds a chamber type, used by name in production puzzle files.
+	/// </summary>
+	/// <param name="chamberType">The chamber type to add.</param>
+	/// <param name="autoCentre">
+	/// Whether to automatically assign a centred offset for the chamber's overlay texture.
+	/// Otherwise, the chamber's <c>field_1730</c> must have its offset assigned by <c>UI.AssignOffset</c>, or the chamber will be visually incorrect.
+	/// </param>
+	public static void AddChamberType(ChamberType chamberType, bool autoCentre = true){
+		int length = Puzzles.field_2932.Length;
+		Array.Resize(ref Puzzles.field_2932, length + 1);
+		Puzzles.field_2932[length] = chamberType;
+
+		if(autoCentre)
+			UI.AssignOffset(chamberType.field_1730, -0.5f * chamberType.field_1730.field_2056.ToVector2());
 	}
 
 	/// <summary>
