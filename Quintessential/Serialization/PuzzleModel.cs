@@ -153,6 +153,9 @@ public class PuzzleModel {
 		public AtomM(){}
 
 		public Atom FromModel() {
+			if(AtomType == null)
+				throw new NullReferenceException("Missing atom type!");
+
 			return new Atom(
 				AtomTypes.field_1691.FirstOrDefault(k => AtomType.Equals(((patch_AtomType)(object)k).QuintAtomType))
 				?? throw new Exception($"Atom type \"{AtomType}\" does not exist!")
