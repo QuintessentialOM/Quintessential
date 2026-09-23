@@ -8,40 +8,22 @@ using MonoMod.InlineRT;
 using Quintessential;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using static Quintessential.CycleEvent;
 using static Quintessential.PartCycleDelegate;
 
 public class patch_Sim : Sim {
+    #region RecipeSystem
 
     public RecipeInputDictionary<HexIndex, IRecipeInput> RecipeInputs;
     public RecipeOutputDictionary<HexIndex, IRecipeOutput> RecipeOutputs;
     public List<Part> HoldingParts;
-
-    private void InitRecipeDictionaries() {
-        RecipeInputs = [];
-        RecipeOutputs = [];
-    }
 
     public bool GetAtomReference(Part part, HexIndex offset, bool allowPartAttachedAtoms, out AtomReference atomReference) {
         return GetAtomReference(part, offset, HoldingParts, allowPartAttachedAtoms).GetOrDefault(out atomReference);
     }
     public bool HasAtomAt(Part part, HexIndex offset, bool allowPartAttachedAtoms) {
         return GetAtomReference(part, offset, HoldingParts, allowPartAttachedAtoms).HasValue();
-    }
-
-    [MonoModILInject(".ctor")]
-    static void PatchCtor(MethodDefinition method, CustomAttribute attribute) {
-
-        MonoModRule.Modder.Log("Patching Sim init.");
-        if (!method.HasBody) {
-            throw new Exception("Unable to patch Sim init. (no body)");
-        }
-        ILCursor cursor = new(new ILContext(method));
-        MethodReference init = MonoModRule.Modder.FindType("Sim").Resolve().Methods.First(f => f.Name.Equals("InitRecipeDictionaries"));
-        cursor.EmitLdarg0();
-        cursor.EmitCall(init);
     }
 
     [MonoModILInject("RunCycleGlyphs")]
@@ -867,6 +849,10 @@ public class patch_Sim : Sim {
         cursor.EmitLdfld(wasActivated);
     }
 
+    #endregion
+
+    #region PartCycleDelegates
+
     public void RunPartCycleDelegate(ReferredPart referredPart, PartSimState simState, bool isCycleStart, GlyphRecipe recipe, PartCycleExecutionType executionType) {
         PartCycleDelegate cycleDelegate = ((patch_PartType)(object)referredPart.part.GetType()).CycleDelegate;
         if (cycleDelegate != null && cycleDelegate.ExecutionType.HasFlag(executionType)) {
@@ -929,6 +915,9 @@ public class patch_Sim : Sim {
         cursor.Next.Operand = newTarget;
     }
 
+    #endregion
+
+    #region CycleEvents
 
     public static List<CycleEvent> CycleEvents = [];
     public void RunCycleEvents(CycleEventExecutionType executionType) {
@@ -999,5 +988,25 @@ public class patch_Sim : Sim {
         cursor.EmitLdarg0();
         cursor.EmitLdcI4(64); // CycleEventExecutionType - 64
         cursor.EmitCall(to);
+    }
+
+    #endregion
+
+    private void InitCustom() {
+        RecipeInputs = [];
+        RecipeOutputs = [];
+    }
+
+    [MonoModILInject(".ctor")]
+    static void PatchCtor(MethodDefinition method, CustomAttribute attribute) {
+
+        MonoModRule.Modder.Log("Patching Sim init.");
+        if (!method.HasBody) {
+            throw new Exception("Unable to patch Sim init. (no body)");
+        }
+        ILCursor cursor = new(new ILContext(method));
+        MethodReference init = MonoModRule.Modder.FindType("Sim").Resolve().Methods.First(f => f.Name.Equals("InitCustom"));
+        cursor.EmitLdarg0();
+        cursor.EmitCall(init);
     }
 }
