@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 
-namespace Quintessential.Utils;
+//namespace Quintessential.Utils;
 /*
 //# Currently unused, see https://ladimolnar.com/2015/09/14/the-weak-event-pattern-is-dangerous/
 //# for a prominent issue.

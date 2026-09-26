@@ -10,34 +10,34 @@ using System.Collections.Generic;
 using System.Linq;
 using static Quintessential.CycleEvent;
 
-public class patch_Bond : IComponentHolder<patch_Bond, IBondComponent>, ISimCallbacks, IRecipeOutput {
+public class patch_Atom : IComponentHolder<patch_Atom, IAtomComponent>, ISimCallbacks {
 
     #region ComponentSystem
-    private Dictionary<Identifier, IBondComponent> Components;
+    private Dictionary<Identifier, IAtomComponent> Components;
 
-    public void AddComponent(IBondComponent toAdd) {
+    public void AddComponent(IAtomComponent toAdd) {
         if (Components.ContainsKey(toAdd.Id))
-            throw new Exception("A component with the same " + toAdd.Id + " was already added to this Bond.");
+            throw new Exception("A component with the same " + toAdd.Id + " was already added to this Atom.");
         toAdd.OnBind(this, Molecule);
         Components.Add(toAdd.Id, toAdd);
     }
-    public void AddComponentSafe(Identifier id, Func<IBondComponent> ctor) {
+    public void AddComponentSafe(Identifier id, Func<IAtomComponent> ctor) {
         if (Components.ContainsKey(id)) return;
         var component = ctor();
         if (id != component.Id) throw new Exception($"Id of created component '{component.Id}' not matching provided '{id}'.");
         Components.Add(id, component);
     }
-    public bool TryGetComponent(Identifier toGet, out IBondComponent extension) {
+    public bool TryGetComponent(Identifier toGet, out IAtomComponent extension) {
         return Components.TryGetValue(toGet, out extension);
     }
-    public IBondComponent GetComponent(Identifier toGet) {
+    public IAtomComponent GetComponent(Identifier toGet) {
         if (!TryGetComponent(toGet, out var ext)) {
             throw new Exception("Identifier was not contained on object.");
         }
         return ext;
     }
     public bool RemoveComponent(Identifier toRemove) {
-        if (Components.TryGetValue(toRemove, out IBondComponent value))
+        if (Components.TryGetValue(toRemove, out IAtomComponent value))
             value.OnUnbind(this, Molecule);
         return Components.Remove(toRemove);
     }
@@ -71,28 +71,33 @@ public class patch_Bond : IComponentHolder<patch_Bond, IBondComponent>, ISimCall
         cursor.EmitLdloc(cloned);
     }
 
-    internal void OnClone(ref patch_Bond cloned) {
+    internal void OnClone(ref patch_Atom cloned) {
         foreach (var component in Components)
             component.Value.OnClone(ref cloned);
     }
-    internal void OnRemoveFromMolecule(patch_Molecule molecule) {
+    internal void OnReplace(AtomType newType) {
         foreach (var component in Components)
-            component.Value.OnRemoveFromMolecule(molecule);
+            component.Value.OnReplace(newType);
+    }
+    internal void OnRemoveFromMolecule(patch_Molecule molecule, HexIndex hexPos) {
+        foreach (var component in Components)
+            component.Value.OnRemoveFromMolecule(molecule, hexPos);
         Molecule = null;
     }
-    internal void OnAddToMolecule(patch_Molecule molecule) {
+    internal void OnAddToMolecule(patch_Molecule molecule, HexIndex hexPos) {
         Molecule = molecule;
         foreach (var component in Components)
-            component.Value.OnAddToMolecule(molecule);
+            component.Value.OnAddToMolecule(molecule, hexPos);
     }
-    public void RenderBond(Vector2 offset, HexIndex hexOffset, float rotationAngle, float opacityMultiplier, float height, SolutionEditorBase solutionEditor) {
+    public void RenderAtom(Vector2 translation, float scaleMultiplier, float opacityMultiplier, float height, float shadowStrength, float shadowOffset, float shadowAngle, Texture shadow, Texture overlayEffect, bool isOutputRender, SolutionEditorBase solutionEditor) {
+        AtomType atomType = ((Atom)(object)this).atomType;
         using var enumerator = Components.GetEnumerator();
         CallRecursive();
         void CallRecursive() {
             if (enumerator.MoveNext()) {
-                enumerator.Current.Value.OnRender(CallRecursive, ref offset, ref hexOffset, ref rotationAngle, ref opacityMultiplier, ref height, solutionEditor);
+                enumerator.Current.Value.OnRender(CallRecursive, ref atomType, ref translation, ref scaleMultiplier, ref opacityMultiplier, ref height, ref shadowStrength, ref shadowOffset, ref shadowAngle, shadow, overlayEffect, isOutputRender, solutionEditor);
             } else {
-                Editor.RenderBond((Bond)(object)this, offset, hexOffset, rotationAngle, opacityMultiplier, height, solutionEditor);
+                Editor.RenderAtom(atomType, translation, scaleMultiplier, opacityMultiplier, height, shadowStrength, shadowOffset, shadowAngle, shadow, overlayEffect, isOutputRender);
             }
         }
     }

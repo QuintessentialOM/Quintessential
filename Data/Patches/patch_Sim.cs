@@ -6,13 +6,140 @@ using MonoMod;
 using MonoMod.Cil;
 using MonoMod.InlineRT;
 using Quintessential;
+using Quintessential.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using static Quintessential.CycleEvent;
 using static Quintessential.PartCycleDelegate;
 
-public class patch_Sim : Sim {
+public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
+
+    #region ComponentSystem
+
+    private Dictionary<Identifier, ISimComponent> Components;
+
+    public void AddComponent(ISimComponent toAdd) {
+        if (Components.ContainsKey(toAdd.Id))
+            throw new Exception("A component with the same " + toAdd.Id + " was already added to this Sim.");
+        toAdd.OnBind(this);
+        Components.Add(toAdd.Id, toAdd);
+    }
+    public void AddComponentSafe(Identifier id, Func<ISimComponent> ctor) {
+        if (Components.ContainsKey(id)) return;
+        var component = ctor();
+        if (id != component.Id) throw new Exception($"Id of created component '{component.Id}' not matching provided '{id}'.");
+        Components.Add(id, component);
+    }
+    public bool TryGetComponent(Identifier toGet, out ISimComponent extension) {
+        return Components.TryGetValue(toGet, out extension);
+    }
+    public ISimComponent GetComponent(Identifier toGet) {
+        if (!TryGetComponent(toGet, out var ext)) {
+            throw new Exception("Identifier was not contained on object.");
+        }
+        return ext;
+    }
+    public bool RemoveComponent(Identifier toRemove) {
+        if (Components.TryGetValue(toRemove, out ISimComponent value))
+            value.OnUnbind(this);
+        return Components.Remove(toRemove);
+    }
+    public bool HasComponent(Identifier id) { return Components.ContainsKey(id); }
+
+    #endregion
+
+    #region ComponentCalls
+    [MonoModIgnore]
+    public Dictionary<patch_Part, patch_PartSimState> simulationDict;
+
+    protected void OnSpawnMolecules(HashSet<HexIndex> occupied) {
+        foreach (var keyValuePair in simulationDict) {
+            keyValuePair.Value.OnSpawnMolecules(occupied);
+        }
+    }
+
+    [MonoModILInject("ResetSimStates")]
+    static void PatchResetSimStates(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodDefinition onCall = MonoModRule.Modder.FindType("PartSimState").Resolve().Methods.First(f => f.Name.Equals("OnReset"));
+
+        cursor.GotoNext(MoveType.After, instr => instr.MatchCall(out var method) && method.Name.Equals("get_Value"));
+        cursor.EmitDup();
+        cursor.EmitCall(onCall);
+    }
+    [MonoModILInject("ResetGlyphs")]
+    static void PatchResetGlyphs(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodDefinition onCall = MonoModRule.Modder.FindType("PartSimState").Resolve().Methods.First(f => f.Name.Equals("OnResetForGlyphs"));
+
+        cursor.GotoNext(MoveType.After, instr => instr.MatchCall(out var method) && method.Name.Equals("get_Value"));
+        cursor.EmitDup();
+        cursor.EmitCall(onCall);
+    }
+    [MonoModILInject("SpawnMolecules")]
+    static void PatchSpawnMolecules(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodDefinition onCall = method.DeclaringType.Methods.First(f => f.Name.Equals("OnSpawnMolecules"));
+
+        cursor.GotoNext(MoveType.After, instr => instr.MatchRet());
+        cursor.Prev.OpCode = OpCodes.Ldarg_0;
+        cursor.EmitLdloc0();
+        cursor.EmitCall(onCall);
+        cursor.EmitRet();
+    }
+    [MonoModILInject("RunCycleInstructions")]
+    static void PatchOnInstruction(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodDefinition onCall = MonoModRule.Modder.FindType("PartSimState").Resolve().Methods.First(f => f.Name.Equals("OnInstruction"));
+
+        cursor.GotoNext(MoveType.After, instr => instr.MatchStloc3());
+        Instruction start = cursor.Prev;
+        cursor.GotoNext(MoveType.After, instr => instr.MatchLdfld("Sim", "simulationDict"));
+        FieldReference simulationDict = cursor.Prev.Operand as FieldReference;
+        MethodReference getItem = cursor.Next.Next.Operand as MethodReference;
+        cursor.Goto(start, MoveType.After);
+        cursor.EmitLdarg0();
+        cursor.EmitLdfld(simulationDict);
+        cursor.EmitLdloc1();
+        cursor.EmitCallvirt(getItem);
+        cursor.EmitLdloc3();
+        cursor.EmitLdloc2();
+        cursor.EmitLdarg1();
+        cursor.EmitCall(onCall);
+    }
+    [MonoModILInject("Grab")]
+    static void PatchGrab(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodDefinition onCall = MonoModRule.Modder.FindType("PartSimState").Resolve().Methods.First(f => f.Name.Equals("OnGrabStateChange"));
+
+        cursor.GotoNext(MoveType.Before, instr => instr.MatchDup());
+        cursor.EmitDup();
+        cursor.GotoNext(MoveType.Before, instr => instr.MatchRet());
+        FieldReference heldMolecule = cursor.Previous.Operand as FieldReference;
+        cursor.EmitDup();
+        cursor.EmitLdfld(heldMolecule);
+        cursor.EmitLdcI4(1);
+        cursor.EmitCall(onCall);
+    }
+    [MonoModILInject("Drop")]
+    static void PatchDrop(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodDefinition onCall = MonoModRule.Modder.FindType("PartSimState").Resolve().Methods.First(f => f.Name.Equals("OnGrabStateChange"));
+
+        cursor.GotoNext(MoveType.Before, instr => instr.MatchRet());
+        FieldReference heldMolecule = cursor.Previous.Operand as FieldReference;
+        cursor.Index = 0;
+        cursor.GotoNext(MoveType.Before, instr => instr.MatchDup());
+        cursor.EmitDup();
+        cursor.EmitDup();
+        cursor.EmitLdfld(heldMolecule);
+        cursor.EmitLdcI4(0);
+        cursor.EmitCall(onCall);
+    }
+
+    #endregion
+
     #region RecipeSystem
 
     public RecipeInputDictionary<HexIndex, IRecipeInput> RecipeInputs;
@@ -926,6 +1053,15 @@ public class patch_Sim : Sim {
                 cycleDelegate.Delegate.Invoke(this, executionType);
             }
         }
+        foreach (var simState in simulationDict) {
+            ((patch_PartSimState)(object)simState.Value).OnCycleCallback(this, executionType);
+        }
+        foreach (var molecule in molecules) {
+            ((patch_Molecule)(object)molecule).OnCycleCallback(this, executionType);
+        }
+        foreach (var component in Components) {
+            component.Value.OnCycleCallback(this, executionType);
+        }
     }
 
     [MonoModILInject("BeginCycle")]
@@ -992,9 +1128,12 @@ public class patch_Sim : Sim {
 
     #endregion
 
-    private void InitCustom() {
+    #region Ctor
+
+    private void InitObjectsInCtor() {
         RecipeInputs = [];
         RecipeOutputs = [];
+        Components = [];
     }
 
     [MonoModILInject(".ctor")]
@@ -1005,8 +1144,10 @@ public class patch_Sim : Sim {
             throw new Exception("Unable to patch Sim init. (no body)");
         }
         ILCursor cursor = new(new ILContext(method));
-        MethodReference init = MonoModRule.Modder.FindType("Sim").Resolve().Methods.First(f => f.Name.Equals("InitCustom"));
+        MethodReference init = method.DeclaringType.Methods.First(f => f.Name.Equals("InitObjectsInCtor"));
         cursor.EmitLdarg0();
         cursor.EmitCall(init);
     }
+
+    #endregion
 }
