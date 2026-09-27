@@ -27,7 +27,7 @@ public static class UI {
     /// <summary>
     /// The main text color.
     /// </summary>
-	public static readonly Color TextColor = class_181.field_1718;
+	public static readonly Color TextColor = UIConsts.lightTextColor;
 
     /// <summary>
     /// A larger version of <c><see cref="Assets.textures.window.background"/></c>

@@ -231,7 +231,7 @@ class patch_PuzzleEditorScreen {
                 } else if (isPersonal) {
                     Vector2 vector3 = new(-2f, -3f);
                     TextureRenderer.Render(Assets.textures.puzzle_editor.new_product, bounds2.Min + vector3);
-                    TextureRenderer.RenderText(text, bounds2.Center + new Vector2(-6f, 0f), Assets.fonts.crimson_13, class_181.field_1718, TextAlignment.Center, 1f, 0.6f, 120f, float.MaxValue, 0, default, null, int.MaxValue, false, true);
+                    TextureRenderer.RenderText(text, bounds2.Center + new Vector2(-6f, 0f), Assets.fonts.crimson_13, UIConsts.lightTextColor, TextAlignment.Center, 1f, 0.6f, 120f, float.MaxValue, 0, default, null, int.MaxValue, false, true);
                     if (bounds2.Contains(InputManager.MousePos())) {
                         TextureRenderer.Render(Assets.textures.puzzle_editor.new_product_hover, bounds2.Min + vector3);
                         if (InputManager.IsClickPressed(MouseButtonType.LeftClick)) {
