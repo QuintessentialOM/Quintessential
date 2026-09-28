@@ -16,17 +16,21 @@ public interface IDataMod {
     /// </summary>
     public void LoadTags() {
         if (this is QuintessentialMod mod) {
-            LoadTagsFromFile(mod);
+            LoadTagsFromFiles(mod);
         }
     }
 
     /// <summary>
     /// Called to load tags from the mod's contend directories.
     /// </summary>
-    public static sealed void LoadTagsFromFile(QuintessentialMod mod) {
+    public static sealed void LoadTagsFromFiles(QuintessentialMod mod) {
         if (File.Exists(Path.Combine(mod.Meta.PathToDirectory, "Content", "tags", AtomTag.FileName))) {
             DataSerializer.Deserialize<Dictionary<Identifier, AtomTag>>(Path.Combine(mod.Meta.PathToDirectory, "Content", "tags", AtomTag.FileName));
             Logger.Log($"Loaded {AtomTag.FileName} from '{mod.ModId}'");
+        }
+        if (File.Exists(Path.Combine(mod.Meta.PathToDirectory, "Content", "tags", PartTag.FileName))) {
+            DataSerializer.Deserialize<Dictionary<Identifier, PartTag>>(Path.Combine(mod.Meta.PathToDirectory, "Content", "tags", PartTag.FileName));
+            Logger.Log($"Loaded {PartTag.FileName} from '{mod.ModId}'");
         }
     }
 }
