@@ -96,4 +96,9 @@ public class patch_Solution
         cursor.Emit(OpCodes.Call, to);
 
     }
+
+    [MonoModILInject(".ctor")]
+    public static void PatchSolutionCtor(MethodDefinition method, CustomAttribute attrib) {
+        method.IsPublic = true;
+    }
 }

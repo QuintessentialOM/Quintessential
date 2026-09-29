@@ -10,7 +10,11 @@ class MonoModRemoveReadOnly : Attribute { }
 
 [MonoModCustomAttribute(nameof(MonoModRules.Internal))]
 [AttributeUsage(AttributeTargets.Field)]
-class MonoModInternal : Attribute { }
+class MonoModInternalF : Attribute { }
+
+[MonoModCustomAttribute(nameof(MonoModRules.InternalM))]
+[AttributeUsage(AttributeTargets.Method)]
+class MonoModInternalM : Attribute { }
 
 static class MonoModRules {
 
@@ -23,5 +27,8 @@ static class MonoModRules {
     }
     public static void Internal(FieldDefinition field, CustomAttribute attrib) {
         field.IsAssembly = true;
+    }
+    public static void InternalM(MethodDefinition method, CustomAttribute attrib) {
+        method.IsAssembly = true;
     }
 }
