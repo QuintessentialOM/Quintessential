@@ -5,29 +5,34 @@ using MonoMod.Cil;
 using MonoMod.InlineRT;
 using Quintessential;
 using Quintessential.Components;
+using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-public class patch_Part : IComponentHolder<patch_Part, IPartComponent> {
+public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponent> {
 
     #region ComponentSystem
     private Dictionary<Identifier, IPartComponent> Components;
 
     public void AddComponent(IPartComponent toAdd) {
+        if (!RegisteredComponents.ContainsKey(toAdd.Id))
+            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
         if (Components.ContainsKey(toAdd.Id))
             throw new Exception("A component with the same " + toAdd.Id + " was already added to this Part.");
         toAdd.OnBind(this);
         Components.Add(toAdd.Id, toAdd);
     }
-    public bool TryGetComponent(Identifier toGet, out IPartComponent extension) {
-        return Components.TryGetValue(toGet, out extension);
-    }
     public void AddComponentSafe(Identifier id, Func<IPartComponent> ctor) {
+        if (!RegisteredComponents.ContainsKey(id))
+            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
         if (Components.ContainsKey(id)) return;
         var component = ctor();
         if (id != component.Id) throw new Exception($"Id of created component '{component.Id}' not matching provided '{id}'.");
         Components.Add(id, component);
+    }
+    public bool TryGetComponent(Identifier toGet, out IPartComponent extension) {
+        return Components.TryGetValue(toGet, out extension);
     }
     public IPartComponent GetComponent(Identifier toGet) {
         if (!TryGetComponent(toGet, out var ext)) {
@@ -41,6 +46,11 @@ public class patch_Part : IComponentHolder<patch_Part, IPartComponent> {
         return Components.Remove(toRemove);
     }
     public bool HasComponent(Identifier id) { return Components.ContainsKey(id); }
+
+    private static readonly Dictionary<Identifier, Codec<IPartComponent>> RegisteredComponents = [];
+    public static void RegisterComponent(Identifier Id, Codec<IPartComponent> codec) {
+        RegisteredComponents[Id] = codec;
+    }
 
     #endregion
 
@@ -201,7 +211,7 @@ public class patch_Part : IComponentHolder<patch_Part, IPartComponent> {
         cursor.EmitLdarg1();
         cursor.EmitLdarg2();
         cursor.EmitCall(onCall);
-        cursor.GotoPrev(MoveType.After, instr => instr.MatchLdarg0());
+        cursor.GotoNext(MoveType.After, instr => instr.MatchCallvirt("Part", "SetRotation"));
         cursor.GotoNext(instr => instr.MatchCallvirt("Part", "SetRotation"));
         cursor.GotoPrev(MoveType.Before, instr => instr.MatchLdarg0());
         cursor.EmitLdarg0();
@@ -217,6 +227,55 @@ public class patch_Part : IComponentHolder<patch_Part, IPartComponent> {
         cursor.EmitLdarg1();
         cursor.EmitCall(onCall);
     }
+
+    #endregion
+
+    #region Serialization
+
+    [MonoModIgnore]
+    private extern void SetInputOutputIndex(int inputOutputIndex);
+    [MonoModIgnore]
+    private extern void SetRotation(HexRotation rotation);
+
+    private static readonly Codec<Dictionary<Identifier, IPartComponent>> componentsCodec = CatalogueCodec<Identifier, IPartComponent>.Create(
+        RegisteredComponents, id => id.ToString(), str => new Identifier(str)
+    );
+    private static readonly Codec<Dictionary<int,InstructionType>> programCodec = DictCodec<int, InstructionType>.Create(
+        Codecs.INSTRTYPE, (index) => index.ToString(), str => int.Parse(str)
+    );
+    internal static readonly Codec<Part> PART = Codec<Part>.Create(
+        Codecs.ID.Seal("Id", (Part part) => part.GetType().Id),
+        Codecs.BOOL.Seal("IsFixed", (Part part) => part.GetIsFixed()).WithDefaut(false),
+        Codecs.HEXINDEX.Seal("Pos", (Part part) => part.GetHexPos()),
+        Codecs.INT.Seal("Length", (Part part) => part.GetArmLength()).WithDefaut(1).WriteDefautIf(part => PartTag.PartTags["om:arm"].HasPart(part)),
+        Codecs.INT.Seal("Rotation", (Part part) => part.GetRotation().GetNumberOfTurns()).WithDefaut(0).WriteDefautIf(part => part.GetType().canRotateInEditor),
+        Codecs.INT.Seal("IOIndex", (Part part) => part.GetInputOutputIndex()).WithDefaut(0).WriteDefautIf(part => PartTag.PartTags["om:inputoutput"].HasPart(part)),
+        Codecs.INT.Seal("ProgramIndex", (Part part) => part.programIndex).WithDefaut(0).WriteDefautIf(part => PartTag.PartTags["om:programmable"].HasPart(part)),
+        programCodec.Seal("Program", (Part part) => new Dictionary<int, InstructionType>(part.program.method_902().ToList().Select(indexed => KeyValuePair.Create(indexed.index, indexed.instruction)))).WithDefaut([]).WriteDefautIf(part => PartTag.PartTags["om:programmable"].HasPart(part)),
+        Codecs.LIST_HEXINDEX.Seal("Track", (Part part) => part.GetTrack()?.ToList() ?? []).WithDefaut([]),
+        Codecs.INT.Seal("ConduitId", (Part part) => part.conduitId).WithDefaut(0).WriteDefautIf(part => part.GetType().Id == "om:conduit"),
+        Codecs.LIST_HEXINDEX.Seal("Conduit", (Part part) => part?.GetConduitHexes() ?? []).WithDefaut([]),
+        componentsCodec.Seal("Components", (Part part) => ((patch_Part)(object)part).Components).WithDefaut([]),
+        (id, isFixed, pos, lenght, rotation, ioIndex, programIndex, program, track, conduitId, conduit, components) => {
+            Part part = new(PartTypes.GetById(id).GetValue(), isFixed);
+            part.SetHexPosAndUpdate(pos);
+            part.SetAllowedLength(lenght);
+            ((patch_Part)(object)part).SetRotation(new HexRotation(rotation));
+            ((patch_Part)(object)part).SetInputOutputIndex(ioIndex); // TODO setup from solution
+            part.programIndex = programIndex;
+            foreach (var instruction in program)
+                part.program.SetInstruction(instruction.Key, instruction.Value);
+            if (track.Count != 0) {
+                part.RemoveTrackBack();
+                foreach (var hexPos in track)
+                    part.AddTrackBack(hexPos);
+            } 
+            part.conduitId = conduitId;
+            if(conduit.Count != 0) part.InitConduit(conduit);
+            ((patch_Part)(object)part).Components = components;
+            return part;
+        }
+    );
 
     #endregion
 

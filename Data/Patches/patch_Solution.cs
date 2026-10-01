@@ -5,22 +5,30 @@ using MonoMod.Cil;
 using MonoMod.InlineRT;
 using Quintessential;
 using Quintessential.Components;
+using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Globalization;
 using System.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
-public class patch_Solution : IComponentHolder<patch_Solution, ISolutionComponent> {
+public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolutionComponent> {
 
     #region ComponentSystem
     private Dictionary<Identifier, ISolutionComponent> Components;
 
     public void AddComponent(ISolutionComponent toAdd) {
+        if (!RegisteredComponents.ContainsKey(toAdd.Id))
+            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
         if (Components.ContainsKey(toAdd.Id))
             throw new Exception("A component with the same " + toAdd.Id + " was already added to this Solution.");
         toAdd.OnBind(this);
         Components.Add(toAdd.Id, toAdd);
     }
     public void AddComponentSafe(Identifier id, Func<ISolutionComponent> ctor) {
+        if (!RegisteredComponents.ContainsKey(id))
+            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
         if (Components.ContainsKey(id)) return;
         var component = ctor();
         if (id != component.Id) throw new Exception($"Id of created component '{component.Id}' not matching provided '{id}'.");
@@ -41,6 +49,11 @@ public class patch_Solution : IComponentHolder<patch_Solution, ISolutionComponen
         return Components.Remove(toRemove);
     }
     public bool HasComponent(Identifier id) { return Components.ContainsKey(id); }
+
+    private static Dictionary<Identifier, Codec<ISolutionComponent>> RegisteredComponents = [];
+    public static void RegisterComponent(Identifier Id, Codec<ISolutionComponent> codec) {
+        RegisteredComponents[Id] = codec;
+    }
 
     #endregion
 
@@ -114,6 +127,52 @@ public class patch_Solution : IComponentHolder<patch_Solution, ISolutionComponen
         cursor.EmitLdloca(1);
         cursor.EmitCall(onCall);
     }
+
+    #endregion
+
+    #region Serialization
+    [MonoModIgnore]
+    private Puzzle puzzle;
+    internal void TestSetPuzzle(Puzzle p) {
+        puzzle = p;
+    }
+
+    [MonoModIgnore]
+    private extern PartsSnapshot CreatePartsSnapshot();
+    [MonoModIgnore]
+    private extern void OrderProgrammables();
+    private static readonly Codec<Dictionary<Identifier, ISolutionComponent>> componentsCodec = CatalogueCodec<Identifier, ISolutionComponent>.Create(
+        RegisteredComponents, id => id.ToString(), str => new Identifier(str)
+    );
+    private static readonly Codec<Dictionary<ScoreMetric, int>> scoreCodec = DictCodec<ScoreMetric, int>.Create(
+        Codecs.INT, (index) => index.ToString(), str => Enum.Parse<ScoreMetric>(str)
+    );
+    private static readonly Codec<List<Part>> partsCodec = ListCodec<Part>.Create(Codecs.PART);
+    internal static readonly Codec<Solution> SOLUTION = Codec<Solution>.Create(
+        Codecs.STRING.Seal("PuzzleId", (Solution solution) => solution.GetPuzzle().puzzleId),
+        Codecs.STRING.Seal("NameOnDisc", (Solution solution) => solution.nameOnDisk.ToString()),
+        Codecs.STRING.Seal("CreationTime", (Solution solution) => solution.creationTime.ToInvariant()),
+        Codecs.STRING.Seal("Name", (Solution solution) => solution.name),
+        scoreCodec.Seal("Scores", (Solution solution) => solution.scores),
+        partsCodec.Seal("Parts", (Solution solution) => [.. solution.CollectPartsAndSubparts().Where(part => !part.GetIsFixed() && !part.GetType().isSubpart)]),
+        componentsCodec.Seal("Components", (Solution solution) => ((patch_Solution)(object)solution).Components).WithDefaut([]),
+        (id, nameOnDisc, creationTime, name, scores, parts, components) => {
+            if (!Puzzles.GetById(id).GetOrDefault(out Puzzle puzzle))
+                throw new Exception($"Failed loading puzzle '{name}' puzzle with id '{id}' not found.");
+            Solution solution = new(puzzle, name, SolutionNameOnDisk.Parse(nameOnDisc), DateTime.Parse(creationTime, CultureInfo.InvariantCulture)) {
+                scores = scores,
+                parts = parts.Where(part => puzzle.HasPermissionForPart(part.GetType())).ToList()
+            };
+            for (int i = 0; i < solution.parts.Count; i++) {
+                solution.parts[0].SetupInputOutputFromSolution(solution, solution.parts[0].GetInputOutputIndex());
+                solution.RepositionPart(solution.parts[0], solution.parts[0].GetHexPos()); // Replaces the part
+            }
+            ((patch_Solution)(object)solution).Components = components;
+            solution.undoRedoBuffer.ClearAndAdd(((patch_Solution)(object)solution).CreatePartsSnapshot());
+            ((patch_Solution)(object)solution).OrderProgrammables();
+            return solution;
+        }
+    );
 
     #endregion
 

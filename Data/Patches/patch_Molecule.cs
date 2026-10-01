@@ -5,24 +5,29 @@ using MonoMod.Cil;
 using MonoMod.InlineRT;
 using Quintessential;
 using Quintessential.Components;
+using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using static Quintessential.Components.IMoleculeComponent;
 using static Quintessential.CycleEvent;
 
-public class patch_Molecule : IComponentHolder<patch_Molecule, IMoleculeComponent>, ISimCallbacks, IRecipeOutput, IRecipeInput {
+public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMoleculeComponent>, ISimCallbacks, IRecipeOutput, IRecipeInput {
 
     #region ComponentSystem
     private Dictionary<Identifier, IMoleculeComponent> Components;
 
     public void AddComponent(IMoleculeComponent toAdd) {
+        if (!RegisteredComponents.ContainsKey(toAdd.Id))
+            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
         if (Components.ContainsKey(toAdd.Id))
             throw new Exception("A component with the same " + toAdd.Id + " was already added to this Molecule.");
         toAdd.OnBind(this);
         Components.Add(toAdd.Id, toAdd);
     }
     public void AddComponentSafe(Identifier id, Func<IMoleculeComponent> ctor) {
+        if (!RegisteredComponents.ContainsKey(id))
+            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
         if (Components.ContainsKey(id)) return;
         var component = ctor();
         if (id != component.Id) throw new Exception($"Id of created component '{component.Id}' not matching provided '{id}'.");
@@ -43,6 +48,11 @@ public class patch_Molecule : IComponentHolder<patch_Molecule, IMoleculeComponen
         return Components.Remove(toRemove);
     }
     public bool HasComponent(Identifier id) { return Components.ContainsKey(id); }
+
+    private static readonly Dictionary<Identifier, Codec<IMoleculeComponent>> RegisteredComponents = [];
+    public static void RegisterComponent(Identifier Id, Codec<IMoleculeComponent> codec) {
+        RegisteredComponents[Id] = codec;
+    }
 
     [MonoModIgnore] Dictionary<HexIndex, Atom> atoms;
     [MonoModIgnore] List<Bond> bonds;
@@ -484,6 +494,37 @@ public class patch_Molecule : IComponentHolder<patch_Molecule, IMoleculeComponen
     }
 
     #endregion
+
+    #endregion
+
+    #region Serialization
+    [MonoModIgnore]
+    public extern patch_Molecule GetMonomer();
+    [MonoModIgnore]
+    public static extern patch_Molecule RepeatMonomer(patch_Molecule monomer);
+
+    private static readonly Codec<Dictionary<Identifier, IMoleculeComponent>> componentsCodec = CatalogueCodec<Identifier, IMoleculeComponent>.Create(
+        RegisteredComponents, id => id.ToString(), str => new Identifier(str)
+    );
+    private static readonly Codec<Dictionary<HexIndex, Atom>> atomsCodec = DictCodec<HexIndex, Atom>.Create(Codecs.ATOM,
+        (hexPos) => $"{hexPos.Q},{hexPos.R}",
+        (str) => new HexIndex(int.Parse(str.Split(',')[0]), int.Parse(str.Split(',')[1]))
+    );
+    private static readonly Codec<List<Bond>> bondsCodec = ListCodec<Bond>.Create(Codecs.BOND);
+    internal static readonly Codec<patch_Molecule> MOLECULE = Codec<patch_Molecule>.Create(
+        Codecs.M_LOCSTRING.Seal("Name", (patch_Molecule molec) => ((Molecule)(object)molec).GetMonomer().displayName.GetOrDefault(LocString.emptyString)).WithDefaut(LocString.emptyString),
+        atomsCodec.Seal("Atoms", (patch_Molecule molec) => molec.GetMonomer().atoms).WithDefaut([]),
+        bondsCodec.Seal("Bonds", (patch_Molecule molec) => molec.GetMonomer().bonds).WithDefaut([]),
+        componentsCodec.Seal("Components", (patch_Molecule molec) => molec.GetMonomer().Components).WithDefaut([]),
+        (name, atoms, bonds, components) => {
+            patch_Molecule molec = (patch_Molecule)(object)new Molecule();
+            ((Molecule)(object)molec).displayName = name;
+            molec.atoms = atoms;
+            molec.bonds = bonds;
+            molec.Components = components;
+            return RepeatMonomer(molec);
+        }
+    );
 
     #endregion
 

@@ -11,3 +11,9 @@ public interface IComponentHolder<THold, TComp> where TComp : IComponentBase<THo
     public abstract TComp GetComponent(Identifier toGet);
     public abstract bool HasComponent(Identifier id);
 }
+
+public interface ISerializableComponentHolder<THold, TComp> : IComponentHolder<THold, TComp> where TComp : IComponentBase<THold> where THold : ISerializableComponentHolder<THold, TComp> {
+    public static abstract void RegisterComponent(Identifier Id, Codec<TComp> codec);
+}
+
+////public class ComponentCatalogue<THold, TComp> : Dictionary<Identifier, Codec<TComp>> { }

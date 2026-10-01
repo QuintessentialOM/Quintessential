@@ -96,6 +96,49 @@ public class DictCodec<T> : PrimitiveCodec<Dictionary<string, T>> {
         return map.WriteObject(dict);
     }
 }
+public class DictCodec<TKey, TValue> : PrimitiveCodec<Dictionary<TKey, TValue>> {
+    private DictCodec(Codec<TValue> innerCodec, Func<TKey, string> keyEncoding, Func<string, TKey> keyDecoding) { InnerCodec = innerCodec; KeyEncoding = keyEncoding; KeyDecoding = keyDecoding; }
+    public static DictCodec<TKey, TValue> Create(Codec<TValue> innerCodec, Func<TKey, string> keyEncoding, Func<string, TKey> keyDecoding) => new(innerCodec, keyEncoding, keyDecoding);
+
+    private readonly Codec<TValue> InnerCodec;
+    private readonly Func<TKey, string> KeyEncoding;
+    private readonly Func<string, TKey> KeyDecoding;
+
+    public override Dictionary<TKey, TValue> Decode<TData>(CodecMap<TData> map, TData encoding) {
+        Dictionary<string, TData> dict = map.ReadObject(encoding);
+        return new(dict.Select(item => KeyValuePair.Create(KeyDecoding(item.Key), InnerCodec.Decode(map, item.Value))));
+    }
+    public override TData Encode<TData>(CodecMap<TData> map, Dictionary<TKey, TValue> items) {
+        Dictionary<string, TData> dict = new(items.Select(item => KeyValuePair.Create(KeyEncoding(item.Key), InnerCodec.Encode(map, item.Value))));
+        return map.WriteObject(dict);
+    }
+}
+public class CatalogueCodec<TKey, TValue> : PrimitiveCodec<Dictionary<TKey, TValue>> {
+    private CatalogueCodec(Dictionary<TKey, Codec<TValue>> innerCodecCatalogue, Func<TKey, string> keyEncoding, Func<string, TKey> keyDecoding) { InnerCodecCatalogue = innerCodecCatalogue; KeyEncoding = keyEncoding; KeyDecoding = keyDecoding; }
+    public static CatalogueCodec<TKey, TValue> Create(Dictionary<TKey, Codec<TValue>> innerCodecCatalogue, Func<TKey, string> keyEncoding, Func<string, TKey> keyDecoding) => new(innerCodecCatalogue, keyEncoding, keyDecoding);
+
+    private readonly Dictionary<TKey, Codec<TValue>> InnerCodecCatalogue;
+    private readonly Func<TKey, string> KeyEncoding;
+    private readonly Func<string, TKey> KeyDecoding;
+
+    public override Dictionary<TKey, TValue> Decode<TData>(CodecMap<TData> map, TData encoding) {
+        Dictionary<string, TData> dict = map.ReadObject(encoding);
+        return new(dict.Select(item => {
+            TKey key = KeyDecoding(item.Key);
+            if (!InnerCodecCatalogue.TryGetValue(key, out Codec<TValue> value))
+                throw new Exception("Failed to decode key from catalogue: " + item.Key);
+            return KeyValuePair.Create(key, value.Decode(map, item.Value));
+        }));
+    }
+    public override TData Encode<TData>(CodecMap<TData> map, Dictionary<TKey, TValue> items) {
+        Dictionary<string, TData> dict = new(items.Select(item => {
+            if (!InnerCodecCatalogue.TryGetValue(item.Key, out Codec<TValue> value))
+                throw new Exception("Failed to encode key from catalogue: " + KeyEncoding(item.Key));
+            return KeyValuePair.Create(KeyEncoding(item.Key), value.Encode(map, item.Value));
+        }));
+        return map.WriteObject(dict);
+    }
+}
 public class ListOrDictCodec<T> : PrimitiveCodec<Tuple<List<T>, Dictionary<string, T>, bool>> {
     private ListOrDictCodec(Codec<T> innerCodec) { InnerCodec = innerCodec; }
     public static ListOrDictCodec<T> Create(Codec<T> innerCodec) => new(innerCodec);
@@ -143,6 +186,21 @@ public class EnumCodec<T> : PrimitiveCodec<T> where T : struct, Enum {
         return map.WriteInt((int)(object)item);
     }
 }
+public class ConverterCodec<TResult, TOriginal> : PrimitiveCodec<TResult> {
+    private ConverterCodec(Codec<TOriginal> innerCodec, Func<TResult, TOriginal> encodingConversion, Func<TOriginal, TResult> decodingConversion) { InnerCodec = innerCodec; EncodingConversion = encodingConversion; DecodingConversion = decodingConversion; }
+    public static ConverterCodec<TResult, TOriginal> Create(Codec<TOriginal> innerCodec, Func<TResult, TOriginal> encodingConversion, Func<TOriginal, TResult> decodingConversion) => new(innerCodec, encodingConversion, decodingConversion);
+
+    private readonly Codec<TOriginal> InnerCodec;
+    private readonly Func<TResult, TOriginal> EncodingConversion;
+    private readonly Func<TOriginal, TResult> DecodingConversion;
+
+    public override TResult Decode<TData>(CodecMap<TData> map, TData encoding) {
+        return DecodingConversion(InnerCodec.Decode(map, encoding));
+    }
+    public override TData Encode<TData>(CodecMap<TData> map, TResult item) {
+        return InnerCodec.Encode(map, EncodingConversion(item));
+    }
+}
 
 internal class IdentifierCodec : PrimitiveCodec<Identifier> {
     public override Identifier Decode<TData>(CodecMap<TData> map, TData encoding) {
@@ -167,6 +225,26 @@ internal class PartTypeCodec : PrimitiveCodec<PartType> {
     }
     public override TData Encode<TData>(CodecMap<TData> map, PartType item) {
         return map.WriteString(item.Id);
+    }
+}
+internal class MLocStringCodec : PrimitiveCodec<Maybe<LocString>> {
+    public override Maybe<LocString> Decode<TData>(CodecMap<TData> map, TData encoding) {
+        var key = map.ReadString(encoding);
+        if (string.IsNullOrEmpty(key)) return MaybeHelper.empty;
+        return Translations.TranslateByType(key);
+    }
+    public override TData Encode<TData>(CodecMap<TData> map, Maybe<LocString> item) {
+        if (!item.HasValue()) return map.WriteString("");
+        return map.WriteString(item.GetValue().Key);
+    }
+}
+internal class LocStringCodec : PrimitiveCodec<LocString> {
+    public override LocString Decode<TData>(CodecMap<TData> map, TData encoding) {
+        var key = map.ReadString(encoding);
+        return Translations.TranslateByType(key);
+    }
+    public override TData Encode<TData>(CodecMap<TData> map, LocString item) {
+        return map.WriteString(item.Key);
     }
 }
 

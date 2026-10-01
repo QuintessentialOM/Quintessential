@@ -22,14 +22,14 @@ public class patch_PartSimState : IComponentHolder<patch_PartSimState, ISimState
         toAdd.OnBind(this, Part, Sim);
         Components.Add(toAdd.Id, toAdd);
     }
-    public bool TryGetComponent(Identifier toGet, out ISimStateComponent extension) {
-        return Components.TryGetValue(toGet, out extension);
-    }
     public void AddComponentSafe(Identifier id, Func<ISimStateComponent> ctor) {
         if (Components.ContainsKey(id)) return;
         var component = ctor();
         if (id != component.Id) throw new Exception($"Id of created component '{component.Id}' not matching provided '{id}'.");
         Components.Add(id, component);
+    }
+    public bool TryGetComponent(Identifier toGet, out ISimStateComponent extension) {
+        return Components.TryGetValue(toGet, out extension);
     }
     public ISimStateComponent GetComponent(Identifier toGet) {
         if (!TryGetComponent(toGet, out var ext)) {

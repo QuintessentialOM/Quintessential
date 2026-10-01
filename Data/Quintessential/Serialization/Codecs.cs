@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 namespace Quintessential.Serialization;
 
@@ -17,6 +15,8 @@ public static class Codecs {
 
     public static readonly Codec<List<int>> LIST_INT = ListCodec<int>.Create(INT);
     public static readonly Codec<List<float>> LIST_FLOAT = ListCodec<float>.Create(FLOAT);
+    public static readonly Codec<List<string>> LIST_STRING = ListCodec<string>.Create(STRING);
+    public static readonly Codec<List<Identifier>> LIST_ID = ListCodec<Identifier>.Create(ID);
 
     public static readonly Codec<Vector2> VECTOR2 = Codec<Vector2>.Create(
         FLOAT.Seal("X", (Vector2 vec) =>  vec.X),
@@ -59,10 +59,23 @@ public static class Codecs {
             values[8], values[9], values[10], values[11], values[12], values[13], values[14], values[15]
         )
     );
-    
+    public static readonly Codec<List<HexIndex>> LIST_HEXINDEX = ListCodec<HexIndex>.Create(HEXINDEX);
+
+    public static readonly Codec<Maybe<LocString>> M_LOCSTRING = new MLocStringCodec();
+    public static readonly Codec<LocString> LOCSTRING = new LocStringCodec();
     public static readonly Codec<AtomType> ATOMTYPE = new AtomTypeCodec();
     public static readonly Codec<PartType> PARTTYPE = new PartTypeCodec();
+    public static readonly Codec<InstructionType> INSTRTYPE = ConverterCodec<InstructionType, Identifier>.Create(
+        ID, (instr) => instr.Id, (id) => InstructionTypes.GetById(id).GetValue()
+    );
     public static readonly Codec<PuzzlePermissions> PERMISSIONS = EnumCodec<PuzzlePermissions>.Create(true);
+
+    public static Codec<Atom> ATOM => patch_Atom.ATOM;
+    public static Codec<Bond> BOND => patch_Bond.BOND;
+    public static Codec<patch_Molecule> MOLECULE => patch_Molecule.MOLECULE;
+    public static Codec<Part> PART => patch_Part.PART;
+    public static Codec<Solution> SOLUTION => patch_Solution.SOLUTION;
+    public static Codec<Puzzle> PUZZLE => patch_Puzzle.PUZZLE;
 
     public static readonly Codec<ModMeta> MOD = new ModMetaCodec();
     public static readonly Codec<Version> VERSION = new VersionCodec();
@@ -76,19 +89,9 @@ public static class Codecs {
 }
 
 /*// TODO: Additional Codecs of type.
- * Atom,
- * BondType,
- * Bond,
- * Molecule,
- * Part,
- * InstructionType,
  * Campaign,
  * CampaignChapter,
  * CampaignItem,
- * Sim,
- * Solution,
- * Puzzle,
- * Tip,
  * 
  * PuzzleOption
  */

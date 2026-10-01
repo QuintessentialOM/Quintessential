@@ -5,23 +5,28 @@ using MonoMod.Cil;
 using MonoMod.InlineRT;
 using Quintessential;
 using Quintessential.Components;
+using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using static Quintessential.CycleEvent;
 
-public class patch_Atom : IComponentHolder<patch_Atom, IAtomComponent>, ISimCallbacks {
+public class patch_Atom : ISerializableComponentHolder<patch_Atom, IAtomComponent>, ISimCallbacks {
 
     #region ComponentSystem
     private Dictionary<Identifier, IAtomComponent> Components;
 
     public void AddComponent(IAtomComponent toAdd) {
+        if (!RegisteredComponents.ContainsKey(toAdd.Id))
+            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
         if (Components.ContainsKey(toAdd.Id))
             throw new Exception("A component with the same " + toAdd.Id + " was already added to this Atom.");
         toAdd.OnBind(this, Molecule);
         Components.Add(toAdd.Id, toAdd);
     }
     public void AddComponentSafe(Identifier id, Func<IAtomComponent> ctor) {
+        if (!RegisteredComponents.ContainsKey(id))
+            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
         if (Components.ContainsKey(id)) return;
         var component = ctor();
         if (id != component.Id) throw new Exception($"Id of created component '{component.Id}' not matching provided '{id}'.");
@@ -42,6 +47,11 @@ public class patch_Atom : IComponentHolder<patch_Atom, IAtomComponent>, ISimCall
         return Components.Remove(toRemove);
     }
     public bool HasComponent(Identifier id) { return Components.ContainsKey(id); }
+
+    private static readonly Dictionary<Identifier, Codec<IAtomComponent>> RegisteredComponents = [];
+    public static void RegisterComponent(Identifier Id, Codec<IAtomComponent> codec) {
+        RegisteredComponents[Id] = codec; 
+    }
 
     public CycleEventExecutionType CallbackType => (CycleEventExecutionType)0b_0111_1111;
     public void OnCycleCallback(patch_Sim sim, CycleEventExecutionType executionType) {
@@ -101,6 +111,19 @@ public class patch_Atom : IComponentHolder<patch_Atom, IAtomComponent>, ISimCall
             }
         }
     }
+
+    #endregion
+
+    #region Serialization
+
+    private static readonly Codec<Dictionary<Identifier, IAtomComponent>> componentsCodec = CatalogueCodec<Identifier, IAtomComponent>.Create(
+        RegisteredComponents, id => id.ToString(), str => new Identifier(str)
+    );
+    internal static readonly Codec<Atom> ATOM = Codec<Atom>.Create(
+        Codecs.ATOMTYPE.Seal("Type", (Atom atom) => atom.atomType),
+        componentsCodec.Seal("Components", (Atom atom) => ((patch_Atom)(object)atom).Components).WithDefaut([]),
+        (type, components) => { Atom atom = new(type); ((patch_Atom)(object)atom).Components = components; return atom; }
+    );
 
     #endregion
 
