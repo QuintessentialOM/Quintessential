@@ -30,18 +30,11 @@ class patch_MoleculeEditorScreen
     public static int currentPage = 0;
 
 
-    private bool ShowExtraUI => editing is { IsModdedPuzzle: true } && QApi.ModAtomTypes.Count > 0;
 
-    //[PatchMoleculeEditorScreenAtomTray]
     public extern void orig_RenderFrame(float detalTime);
     public void RenderFrame(float detalTime)
     {
         orig_RenderFrame(detalTime);
-        if (!ShowExtraUI)
-        {
-            currentPage = 0;
-            return;
-        }
 
         // This was being instantiated before all other mods could call LoadContent, causing the list to be unpopulated.
         // This only occurred when Reductive Metallurgy Campaign is loaded for me, though I've had other mods on.

@@ -52,7 +52,7 @@ public static class DataSerializer {
 
             if (filename.EndsWith(".json") || filename.EndsWith(".jsonc")) {
                 string data = File.ReadAllText(filePath, Encoding.UTF8);
-                if (filename.EndsWith(".jsonc")) data = PreparseJsonc(data);
+                if (filename.EndsWith(".jsonc")) data = JsoncToJson(data);
 
                 return JsonSerializer.Deserialize(data, type, GetCurrentOption());
             }
@@ -73,7 +73,7 @@ public static class DataSerializer {
 
             if (filename.EndsWith(".json") || filename.EndsWith(".jsonc")) {
                 string data = File.ReadAllText(filePath, Encoding.UTF8);
-                if (filename.EndsWith(".jsonc")) data = PreparseJsonc(data);
+                if (filename.EndsWith(".jsonc")) data = JsoncToJson(data);
 
                 return JsonSerializer.Deserialize<T>(data, GetCurrentOption());
             }
@@ -95,7 +95,7 @@ public static class DataSerializer {
             if (filename.EndsWith(".jsonc") || filename.EndsWith(".jsonc")) {
                 using var reader = new StreamReader(fileDataStream, Encoding.UTF8);
                 string data = reader.ReadToEnd();
-                if (filename.EndsWith(".jsonc")) data = PreparseJsonc(data);
+                if (filename.EndsWith(".jsonc")) data = JsoncToJson(data);
 
                 return JsonSerializer.Deserialize<T>(data, GetCurrentOption());
             }
@@ -128,7 +128,7 @@ public static class DataSerializer {
         throw new SerializationException("Invalid file extension while serializing: " + filePath);
     }
 
-    private static string PreparseJsonc(string jsoncData) {
+    public static string JsoncToJson(string jsoncData) {
         StringBuilder jsonData = new();
 
         bool isComment = false;

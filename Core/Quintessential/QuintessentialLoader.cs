@@ -371,11 +371,14 @@ public class QuintessentialLoader
         {
             string baseName = Path.Combine(basePath, puzzleFileName);
             if (File.Exists(baseName + ".puzzle")) {
+                //throw new Exception("Attempted to load a vanilla puzzle.");
                 puzzle = Puzzle.LoadFromFile(baseName + ".puzzle");
             } else if (File.Exists(baseName + ".puzzle.jsonc")) {
-                puzzle = PuzzleModel.FromModel(DataSerializer.Deserialize<PuzzleModel>(baseName + ".puzzle.jsonc"));
+                if (!IsModPresent("quintessential_data")) throw new Exception("The mod 'quintessential_data' is requered for loading json based puzzles.");
+                puzzle = Puzzle.LoadFromFile(baseName + ".puzzle.jsonc");
             } else if (File.Exists(baseName + ".puzzle.json")) {
-                puzzle = PuzzleModel.FromModel(DataSerializer.Deserialize<PuzzleModel>(baseName + ".puzzle.json"));
+                if (!IsModPresent("quintessential_data")) throw new Exception("The mod 'quintessential_data' is requered for loading json based puzzles.");
+                puzzle = Puzzle.LoadFromFile(baseName + ".puzzle.json");
             } else if (File.Exists(baseName + ".puzzle.yaml")) {
                 puzzle = PuzzleModel.FromModel(DataSerializer.Deserialize<PuzzleModel>(baseName + ".puzzle.yaml"));
             } else {
@@ -386,7 +389,7 @@ public class QuintessentialLoader
 
             // even if it was loaded from a vanilla format puzzle file, it was included in a mod and may rely on modded behaviour
             // these are never saved over and could have been modified directly by the campaign mod, so this is safe
-            ((patch_Puzzle)(object)puzzle).IsModdedPuzzle = true;
+            //((patch_Puzzle)(object)puzzle).IsModdedPuzzle = true;
 
             return true;
         }

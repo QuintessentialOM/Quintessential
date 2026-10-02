@@ -3,7 +3,6 @@ using Mono.Cecil.Cil;
 using MonoMod;
 using MonoMod.Cil;
 using MonoMod.InlineRT;
-using Quintessential;
 using System;
 using System.Linq;
 
@@ -16,22 +15,10 @@ public class patch_Solution
             return true;
         }
         return ((patch_Puzzle)(object)puzzle).EngineConduits.GetOrDefault(out conduits);
-    } 
+    }
 
-    public static void ApplyChanges(Puzzle puzzle, Solution solution)
-    {
-        if (((patch_Puzzle)(object)puzzle).Payloads.GetOrDefault(out Payloads payloads)) {
-            foreach (Payloads.Payload p in payloads.SolutionInitialization)
-            {
-                foreach (var handler in QApi.SolutionPayloadHandler)
-                {
-                    if (p.Address.Equals(handler.Item1))
-                    {
-                        handler.Item2(solution, p.Data);
-                    }
-                }
-            }
-        }
+    public static void ApplyChanges(Puzzle puzzle, Solution solution) {
+
     }
 
     [MonoModILInject("FromPuzzle")]
@@ -77,24 +64,9 @@ public class patch_Solution
         cursor.Emit(OpCodes.Call, to);
         // if body skipping
         cursor.Emit(OpCodes.Brfalse, ifEnd);
-        Instruction branch = cursor.Prev;
         // assign the first conduit's ID to 100
         cursor.Emit(OpCodes.Ldc_I4, 100);
         cursor.Emit(OpCodes.Stloc, 2);
-
-        // jump to end of if statement
-        if (!cursor.TryGotoNext(instr => instr == ifEnd)) {
-            Console.WriteLine("Failed to modify solution initializer (no end of if body)");
-            throw new Exception();
-        }
-        to = holder.Methods.First(m => m.Name.Equals("ApplyChanges"));
-
-        // Why does cursor.MoveAfterLabels not work like I expect?
-        cursor.Emit(OpCodes.Ldarg_0);
-        branch.Operand = cursor.Prev;
-        cursor.Emit(OpCodes.Ldloc_0);
-        cursor.Emit(OpCodes.Call, to);
-
     }
 
     [MonoModILInject(".ctor")]

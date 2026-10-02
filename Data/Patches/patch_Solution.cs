@@ -10,8 +10,9 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
+using System.IO;
 using System.Linq;
-using static System.Net.Mime.MediaTypeNames;
+using System.Text.Json.Nodes;
 
 public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolutionComponent> {
 
@@ -131,11 +132,6 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
     #endregion
 
     #region Serialization
-    [MonoModIgnore]
-    private Puzzle puzzle;
-    internal void TestSetPuzzle(Puzzle p) {
-        puzzle = p;
-    }
 
     [MonoModIgnore]
     private extern PartsSnapshot CreatePartsSnapshot();
@@ -174,12 +170,81 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
         }
     );
 
+    private string ExtraFileExtension;
+
+    [MonoModReplace]
+    public void Save() {
+        if (ExtraFileExtension == "") {
+            ChangeFileExtension(".json");
+        } else if (ExtraFileExtension == ".json") {
+            OrderProgrammables();
+            class_269.field_2104.method_1356(GetFilePath(), SOLUTION.Encode(JsonCodecMap.Instance, (Solution)(object)this).ToJsonString());
+        } else if (ExtraFileExtension == ".jsonc") { // Human readable version of json
+            OrderProgrammables();
+            class_269.field_2104.method_1356(GetFilePath(), SOLUTION.Encode(JsonCodecMap.Instance, (Solution)(object)this).ToString());
+        } else
+            throw new Exception("Invalid extra file extension '" + ExtraFileExtension + "' for solution from: " + GetFilePath());
+    }
+
+    private void ChangeFileExtension(string newExtension) {
+        if (newExtension == ExtraFileExtension) return;
+        string toDelete = File.Exists(GetFilePath()) ? GetFilePath() : "";
+        ExtraFileExtension = newExtension;
+        Save();
+        if (toDelete != "") {
+             // Can't do this because Save is async.
+            //var creationTime = File.GetCreationTime(toDelete);
+            File.Delete(toDelete);
+            //if (creationTime != default) File.SetCreationTime(GetFilePath(), creationTime);
+        }
+    }
+
+    [MonoModReplace]
+    public string GetFilePath() {
+        return Path.Combine(class_269.field_2102, ((Solution)(object)this).nameOnDisk + Solution.fileExtension + ExtraFileExtension);
+    }
+
+    [MonoModIgnore] public static extern Maybe<Solution> orig_GetSolutionAt(string path);
+    public static Maybe<Solution> GetSolutionAt(string path) {
+        if (Path.GetExtension(path) == ".solution") {
+            var orig = orig_GetSolutionAt(path);
+            return orig;
+        }
+        if (Path.GetExtension(path) == ".json" || Path.GetExtension(path) == ".jsonc") {
+            string file = File.ReadAllText(path);
+            if (Path.GetExtension(path) == ".jsonc") file = DataSerializer.JsoncToJson(file);
+
+            var orig = SOLUTION.Decode(JsonCodecMap.Instance, JsonNode.Parse(file));
+            ((patch_Solution)(object)orig).ExtraFileExtension = Path.GetExtension(path);
+            return orig;
+        }
+        throw new Exception("Invalid extra file extension for solution file, failed to load. " + Path.GetExtension(path));
+    }
+
+    private Solution Clone() {
+        var json = SOLUTION.Encode(JsonCodecMap.Instance, (Solution)(object)this);
+        return SOLUTION.Decode(JsonCodecMap.Instance, json);
+    }
+    [MonoModILInject("MakeCopyOfSolution")]
+    static void PatchMakeCopyDataEdit(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        cursor.GotoNext(MoveType.Before, instr => instr.MatchCall("Solution", "FromData"));
+        cursor.GotoNext(MoveType.Before, instr => instr.MatchStloc1());
+        int index = cursor.Index;
+        cursor.GotoPrev(MoveType.Before, instr => instr.MatchCallvirt("Solution", "ToData"));
+        cursor.RemoveRange(index - cursor.Index);
+
+        MethodDefinition clone = method.DeclaringType.Methods.First(m => m.Name == "Clone");
+        cursor.EmitCall(clone);
+    }
+
     #endregion
 
     #region Ctor
 
     public void InitObjectsInCtor() {
         Components = [];
+        ExtraFileExtension = "";
     }
 
     [MonoModILInject(".ctor")]
@@ -193,6 +258,11 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
         MethodReference init = method.DeclaringType.Methods.First(f => f.Name.Equals("InitObjectsInCtor"));
         cursor.EmitLdarg0();
         cursor.EmitCall(init);
+    }
+
+    [MonoModILInject(".ctor")]
+    public static void PatchSolutionCtor(MethodDefinition method, CustomAttribute attrib) {
+        method.IsAssembly = true;
     }
 
     #endregion

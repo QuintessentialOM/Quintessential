@@ -148,8 +148,19 @@ class ModsScreen : IScreen {
 					y = progress.curY;
 					y += 10;
 				}
+			// TODO Add enum Settings
+			//} else if (typeof(Enum).IsAssignableFrom(field.FieldType)) {
+			//	var fileds = field.FieldType.GetFields()[1..];
+			//	var textPos = pos + new Vector2(20, bgSize.Y - y + 5);
+			//	int value = (int)field.GetValue(settings);
+			//	string selectedName = "--##--";
+			//	string[] fieldNames = new string[fileds.Length];
+			//	for (int i = 0; i < fileds.Length; i++) {
+			//		fieldNames[i] = fileds[i].Name;
+			//		if (value == (int)fileds[i].GetRawConstantValue()) selectedName = fieldNames[i];
+			//	}
 			}
-			y += 40;
+            y += 40;
 		}
 		return new DrawProgress { pressed = settingsChanged, curY = y };
 	}

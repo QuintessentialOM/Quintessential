@@ -7,7 +7,9 @@ using Quintessential.Components;
 using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json.Nodes;
 
 public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleComponent> {
 
@@ -134,6 +136,23 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
             return puzzle;
         }
     );
+
+    [MonoModReplace]
+    public void SaveToFile(string path) {
+        File.WriteAllText(path, PUZZLE.Encode(JsonCodecMap.Instance,(Puzzle)(object)this).ToJsonString());
+    }
+
+    [MonoModIgnore] public static extern Puzzle orig_LoadFromFile(string path);
+    public static Puzzle LoadFromFile(string path) {
+        if (Path.GetExtension(path) == ".json" || Path.GetExtension(path) == ".jsonc") {
+            string file = File.ReadAllText(path);
+            if (Path.GetExtension(path) == ".jsonc") file = DataSerializer.JsoncToJson(file);
+
+            Puzzle p = PUZZLE.Decode(JsonCodecMap.Instance,JsonNode.Parse(file));
+            return p;
+        }
+        return orig_LoadFromFile(path);
+    }
 
     #endregion
 

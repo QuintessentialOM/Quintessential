@@ -20,7 +20,6 @@ public class PuzzleModel {
     [DataMember(EmitDefaultValue = false)] public HashSet<HexIndexM> Highlights { get; set; } = [];
     [DataMember(EmitDefaultValue = false)] public ProductionInfoM ProductionInfo { get; set; } = null;
     [DataMember(EmitDefaultValue = false)] public List<ConduitM> Conduits { get; set; } = null;
-    [DataMember(EmitDefaultValue = false)] public PayloadsM Payloads { get; set; } = null;
 
 	public static PuzzleModel FromPuzzle(Puzzle puzzle) {
 		PuzzleModel model = new(){
@@ -44,10 +43,6 @@ public class PuzzleModel {
 		{
 			// otherwise, populate the engine conduits
 			model.Conduits = [.. ((patch_Puzzle)(object)puzzle).EngineConduits.GetValue()];
-		}
-		if (((patch_Puzzle)(object)puzzle).Payloads.HasValue())
-		{
-			model.Payloads = ((patch_Puzzle)(object)puzzle).Payloads.GetValue();
 		}
 
 		return model;
@@ -78,10 +73,6 @@ public class PuzzleModel {
 			((patch_Puzzle)(object)ret).EngineConduits = (PlacedConduit[])[.. model.Conduits];
 		}
 		((patch_Puzzle)(object)ret).CustomPermissions = [..model.CustomPermissions];
-
-		if (model.Payloads != null) {
-			((patch_Puzzle)(object)ret).Payloads = (Payloads)model.Payloads;
-		}
 
 		return ret;
 	}
@@ -316,62 +307,4 @@ public class PuzzleModel {
 			return name;
 		}
 	}
-
-    [DataContract]
-    public class PayloadsM
-	{
-        // change puzzle behaviour at runtime
-        //public List<PayloadM> PuzzleInitialization = new();
-        // changes new solutions
-        [DataMember] public List<PayloadM> SolutionInitialization { get; set; } = [];
-
-        public PayloadsM() { }
-        public static implicit operator PayloadsM (Payloads p) {
-			/*
-			foreach (Payloads.Payload pl in p.PuzzleInitialization)
-			{
-				PuzzleInitialization.Add(new(pl));
-			}
-			*/
-			PayloadsM toReturn = new();
-			foreach (Payloads.Payload pl in p.SolutionInitialization) {
-                toReturn.SolutionInitialization.Add(pl);
-			}
-			return toReturn;
-		}
-        public static implicit operator Payloads (PayloadsM p)
-        {
-            Payloads ret = new();
-			/*
-			foreach (PayloadM pl in PuzzleInitialization)
-			{
-				ret.PuzzleInitialization.Add(pl.FromModel());
-			}
-			*/
-			foreach (PayloadM pl in p.SolutionInitialization) {
-				ret.SolutionInitialization.Add(pl);
-			}
-			return ret;
-        }
-    }
-    [DataContract]
-    public class PayloadM {
-        [DataMember] public string Address { get; set; }
-        [DataMember] public string Data { get; set; }
-
-        public PayloadM() { }
-        public static implicit operator PayloadM (Payloads.Payload pl) {
-			return new() {
-				Address = pl.Address,
-				Data = pl.Data,
-			};
-        }
-        public static implicit operator Payloads.Payload (PayloadM pl) {
-			if (!QApi.SolutionPayloadHandler.Exists(sph => sph.Item1 == pl.Address))
-			{
-	           throw new Exception("No payload handler for address \"" + pl.Address + "\"");
-			}
-			return new(pl.Address, pl.Data);
-        }
-    }
 }

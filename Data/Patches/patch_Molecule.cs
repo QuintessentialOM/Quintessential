@@ -518,7 +518,8 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
         componentsCodec.Seal("Components", (patch_Molecule molec) => molec.GetMonomer().Components).WithDefaut([]),
         (name, atoms, bonds, components) => {
             patch_Molecule molec = (patch_Molecule)(object)new Molecule();
-            ((Molecule)(object)molec).displayName = name;
+            if (name != LocString.emptyString)
+                ((Molecule)(object)molec).displayName = name;
             molec.atoms = atoms;
             molec.bonds = bonds;
             molec.Components = components;
