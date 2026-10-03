@@ -119,16 +119,32 @@ public class patch_Bond : ISerializableComponentHolder<patch_Bond, IBondComponen
         bondTypeCodec.Seal("Type", (Bond bond) => bond.type),
         Codecs.HEXINDEX.Seal("Pos1", (Bond bond) => bond.hexPos1),
         Codecs.HEXINDEX.Seal("Pos2", (Bond bond) => bond.hexPos2),
-        componentsCodec.Seal("Components", (Bond bond) => ((patch_Bond)(object)bond).Components).WithDefaut([]),
-        (type, pos1, pos2, components) => { Bond bond = new(type, pos1, pos2); ((patch_Bond)(object)bond).Components = components; return bond; }
+        componentsCodec.Seal("Components", (Bond bond) => ((patch_Bond)(object)bond).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
+        (type, pos1, pos2, components) => {
+            Bond bond = new(type, pos1, pos2);
+            foreach (var component in components) {
+                if (((patch_Bond)(object)bond).HasComponent(component.Key))
+                    ((patch_Bond)(object)bond).RemoveComponent(component.Key);
+                ((patch_Bond)(object)bond).AddComponent(component.Value);
+            }
+            return bond;
+        }
     );
 
     #endregion
 
     #region Ctor
+    public static event Action<patch_Bond> OnCreate;
+    internal static Dictionary<Identifier, List<Func<patch_Bond, IBondComponent>>> CtorsByID = [];
 
     public void InitObjectsInCtor() {
         Components = [];
+    }
+    public void AfterCreate() {
+        //if (CtorsByID.TryGetValue(((Bond)(object)this).Id, out var componentCtors))
+        //    foreach (var item in componentCtors)
+        //        AddComponent(item(this));
+        OnCreate?.Invoke(this);
     }
 
     [MonoModILInject(".ctor")]
@@ -140,8 +156,14 @@ public class patch_Bond : ISerializableComponentHolder<patch_Bond, IBondComponen
         }
         ILCursor cursor = new(new ILContext(method));
         MethodReference init = method.DeclaringType.Methods.First(f => f.Name.Equals("InitObjectsInCtor"));
+        MethodReference after = method.DeclaringType.Methods.First(f => f.Name.Equals("AfterCreate"));
         cursor.EmitLdarg0();
         cursor.EmitCall(init);
+
+        cursor.Index = cursor.Instrs.Count;
+        cursor.GotoPrev(MoveType.Before, instr => instr.MatchRet());
+        cursor.EmitLdarg0();
+        cursor.EmitCall(after);
     }
 
     #endregion

@@ -5,7 +5,6 @@ namespace Quintessential.Components;
 
 public interface IPuzzleComponent : IComponent<patch_Puzzle> { }
 public interface ISolutionComponent : IComponent<patch_Solution> {
-    //public abstract void FromPuzzle(ref Solution created, Puzzle puzzle, string solutionName);
     public virtual void OnPlacementCheck(ref bool orig, Part part, HexIndex otherInputOutputIndex, HexIndex offset, HexRotation rotationOffset, ref string? errorMessage) { }
     public virtual void OnCreateSnapshot(ref PartsSnapshot created) { }
     public virtual void OnRestoreSnapshot(PartsSnapshot restored) { }
@@ -32,7 +31,6 @@ public interface ISimStateComponent : IComponent<patch_PartSimState, Part, Sim?>
     public virtual void OnSpawnMolecules(HashSet<HexIndex> occupied) { }
     public virtual void OnInstruction(InstructionType instruction, Maybe<int> index, InstructionCycleState instructionState) { }
     public virtual void OnGrabStateChange(Maybe<Molecule> molecule, bool newState) { }
-    //§ public abstract void Part.GetSimState(ref PartSimState resoult, Part orig); // generate ISimStateComponent here
 }
 public interface IMoleculeComponent : IComponent<patch_Molecule>, ISimCallbacks {
     public abstract void OnClone(ref patch_Molecule cloned);

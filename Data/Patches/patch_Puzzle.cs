@@ -119,7 +119,7 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
         moleculesCodec.Seal("Outputs", (Puzzle puzzle) => [.. puzzle.outputs.Select(io => (patch_Molecule)(object)io.molecule)]),
         Codecs.INT.Seal("OutputMultiplier", (Puzzle puzzle) => puzzle.outputMultiplier).WithDefaut(1),
         productionInfoCodec.Seal("ProductionInfo", (Puzzle puzzle) => puzzle.productionInfo.HasValue() ? puzzle.productionInfo.GetValue() : null).WithDefaut(null),
-        componentsCodec.Seal("Components", (Puzzle puzzle) => ((patch_Puzzle)(object)puzzle).Components).WithDefaut([]),
+        componentsCodec.Seal("Components", (Puzzle puzzle) => ((patch_Puzzle)(object)puzzle).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
         (id, name, author, permissions, customPermissions, inputs, outputs, multiplier, prodInfo, components) => {
             Puzzle puzzle = new() {
                 puzzleId = id,
@@ -132,7 +132,11 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
                 outputMultiplier = multiplier,
                 productionInfo = prodInfo != null ? MaybeHelper.Create(prodInfo) : MaybeHelper.empty,
             };
-            ((patch_Puzzle)(object)puzzle).Components = components;
+            foreach (var component in components) {
+                if (((patch_Puzzle)(object)puzzle).HasComponent(component.Key))
+                    ((patch_Puzzle)(object)puzzle).RemoveComponent(component.Key);
+                ((patch_Puzzle)(object)puzzle).AddComponent(component.Value);
+            }
             return puzzle;
         }
     );

@@ -88,6 +88,9 @@ public class patch_Atom : ISerializableComponentHolder<patch_Atom, IAtomComponen
     internal void OnReplace(AtomType newType) {
         foreach (var component in Components)
             component.Value.OnReplace(newType);
+        if (CtorsByIDAfterReplace.TryGetValue(newType.Id, out var componentCtors))
+            foreach (var item in componentCtors)
+                AddComponent(item(this, newType));
     }
     internal void OnRemoveFromMolecule(patch_Molecule molecule, HexIndex hexPos) {
         foreach (var component in Components)
@@ -121,16 +124,33 @@ public class patch_Atom : ISerializableComponentHolder<patch_Atom, IAtomComponen
     );
     internal static readonly Codec<Atom> ATOM = Codec<Atom>.Create(
         Codecs.ATOMTYPE.Seal("Type", (Atom atom) => atom.atomType),
-        componentsCodec.Seal("Components", (Atom atom) => ((patch_Atom)(object)atom).Components).WithDefaut([]),
-        (type, components) => { Atom atom = new(type); ((patch_Atom)(object)atom).Components = components; return atom; }
+        componentsCodec.Seal("Components", (Atom atom) => ((patch_Atom)(object)atom).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
+        (type, components) => {
+            Atom atom = new(type);
+            foreach (var component in components) {
+                if (((patch_Atom)(object)atom).HasComponent(component.Key))
+                    ((patch_Atom)(object)atom).RemoveComponent(component.Key);
+                ((patch_Atom)(object)atom).AddComponent(component.Value);
+            }
+            return atom;
+        }
     );
 
     #endregion
 
     #region Ctor
+    public static event Action<patch_Atom> OnCreate;
+    internal static Dictionary<Identifier, List<Func<patch_Atom, IAtomComponent>>> CtorsByID = [];
+    internal static Dictionary<Identifier, List<Func<patch_Atom, AtomType, IAtomComponent>>> CtorsByIDAfterReplace = [];
 
     public void InitObjectsInCtor() {
         Components = [];
+    }
+    public void AfterCreate() {
+        if (CtorsByID.TryGetValue(((Atom)(object)this).atomType.Id, out var componentCtors))
+            foreach (var item in componentCtors)
+                AddComponent(item(this));
+        OnCreate?.Invoke(this);
     }
 
     [MonoModILInject(".ctor")]
@@ -142,8 +162,14 @@ public class patch_Atom : ISerializableComponentHolder<patch_Atom, IAtomComponen
         }
         ILCursor cursor = new(new ILContext(method));
         MethodReference init = method.DeclaringType.Methods.First(f => f.Name.Equals("InitObjectsInCtor"));
+        MethodReference after = method.DeclaringType.Methods.First(f => f.Name.Equals("AfterCreate"));
         cursor.EmitLdarg0();
         cursor.EmitCall(init);
+
+        cursor.Index = cursor.Instrs.Count;
+        cursor.GotoPrev(MoveType.Before, instr => instr.MatchRet());
+        cursor.EmitLdarg0();
+        cursor.EmitCall(after);
     }
 
     #endregion

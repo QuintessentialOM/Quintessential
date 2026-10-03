@@ -515,14 +515,18 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
         Codecs.M_LOCSTRING.Seal("Name", (patch_Molecule molec) => ((Molecule)(object)molec).GetMonomer().displayName.GetOrDefault(LocString.emptyString)).WithDefaut(LocString.emptyString),
         atomsCodec.Seal("Atoms", (patch_Molecule molec) => molec.GetMonomer().atoms).WithDefaut([]),
         bondsCodec.Seal("Bonds", (patch_Molecule molec) => molec.GetMonomer().bonds).WithDefaut([]),
-        componentsCodec.Seal("Components", (patch_Molecule molec) => molec.GetMonomer().Components).WithDefaut([]),
+        componentsCodec.Seal("Components", (patch_Molecule molec) => molec.GetMonomer().Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
         (name, atoms, bonds, components) => {
             patch_Molecule molec = (patch_Molecule)(object)new Molecule();
             if (name != LocString.emptyString)
                 ((Molecule)(object)molec).displayName = name;
             molec.atoms = atoms;
             molec.bonds = bonds;
-            molec.Components = components;
+            foreach (var component in components) {
+                if (molec.HasComponent(component.Key))
+                    molec.RemoveComponent(component.Key);
+                molec.AddComponent(component.Value);
+            }
             return RepeatMonomer(molec);
         }
     );
@@ -530,9 +534,13 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
     #endregion
 
     #region Ctor
+    public static event Action<patch_Molecule> OnCreate;
 
     public void InitObjectsInCtor() {
         Components = [];
+    }
+    public void AfterCreate() {
+        OnCreate?.Invoke(this);
     }
 
     [MonoModILInject(".ctor")]
@@ -544,8 +552,14 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
         }
         ILCursor cursor = new(new ILContext(method));
         MethodReference init = method.DeclaringType.Methods.First(f => f.Name.Equals("InitObjectsInCtor"));
+        MethodReference after = method.DeclaringType.Methods.First(f => f.Name.Equals("AfterCreate"));
         cursor.EmitLdarg0();
         cursor.EmitCall(init);
+
+        cursor.Index = cursor.Instrs.Count;
+        cursor.GotoPrev(MoveType.Before, instr => instr.MatchRet());
+        cursor.EmitLdarg0();
+        cursor.EmitCall(after);
     }
 
     #endregion

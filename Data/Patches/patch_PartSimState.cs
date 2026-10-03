@@ -80,11 +80,17 @@ public class patch_PartSimState : IComponentHolder<patch_PartSimState, ISimState
     #endregion
 
     #region Ctor
+    internal static Dictionary<Identifier, List<Func<patch_PartSimState, Part, Sim?, ISimStateComponent>>> CtorsByID = [];
 
     public void InitObjectsInCtor(Part? part, Sim? sim) {
         Components = [];
         Part = part;
         Sim = sim;
+    }
+    public void AfterCreate(Part? part, Sim? sim) {
+        if (part != null && CtorsByID.TryGetValue(part.GetType().Id, out var componentCtors))
+            foreach (var item in componentCtors)
+                AddComponent(item(this, part, sim));
     }
 
     [MonoModILInject(".ctor")]
@@ -115,10 +121,19 @@ public class patch_PartSimState : IComponentHolder<patch_PartSimState, ISimState
         }
         ILCursor cursor = new(new ILContext(method));
         MethodReference init = MonoModRule.Modder.FindType("PartSimState").Resolve().Methods.First(f => f.Name.Equals("InitObjectsInCtor"));
+        MethodReference after = method.DeclaringType.Methods.First(f => f.Name.Equals("AfterCreate"));
+
         cursor.EmitLdarg0();
         cursor.EmitLdarg1();
         cursor.EmitLdarg2();
         cursor.EmitCall(init);
+
+        cursor.Index = cursor.Instrs.Count;
+        cursor.GotoPrev(MoveType.Before, instr => instr.MatchRet());
+        cursor.EmitLdarg0();
+        cursor.EmitLdarg1();
+        cursor.EmitLdarg2();
+        cursor.EmitCall(after);
     }
 
     #endregion

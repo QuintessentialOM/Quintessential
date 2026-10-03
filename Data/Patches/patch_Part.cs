@@ -255,7 +255,7 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
         Codecs.LIST_HEXINDEX.Seal("Track", (Part part) => part.GetTrack()?.ToList() ?? []).WithDefaut([]),
         Codecs.INT.Seal("ConduitId", (Part part) => part.conduitId).WithDefaut(0).WriteDefautIf(part => part.GetType().Id == "om:conduit"),
         Codecs.LIST_HEXINDEX.Seal("Conduit", (Part part) => part?.GetConduitHexes() ?? []).WithDefaut([]),
-        componentsCodec.Seal("Components", (Part part) => ((patch_Part)(object)part).Components).WithDefaut([]),
+        componentsCodec.Seal("Components", (Part part) => ((patch_Part)(object)part).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
         (id, isFixed, pos, lenght, rotation, ioIndex, programIndex, program, track, conduitId, conduit, components) => {
             Part part = new(PartTypes.GetById(id).GetValue(), isFixed);
             part.SetHexPosAndUpdate(pos);
@@ -272,7 +272,11 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
             } 
             part.conduitId = conduitId;
             if(conduit.Count != 0) part.InitConduit(conduit);
-            ((patch_Part)(object)part).Components = components;
+            foreach (var component in components) {
+                if (((patch_Part)(object)part).HasComponent(component.Key))
+                    ((patch_Part)(object)part).RemoveComponent(component.Key);
+                ((patch_Part)(object)part).AddComponent(component.Value);
+            }
             return part;
         }
     );
@@ -280,9 +284,17 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
     #endregion
 
     #region Ctor
+    public static event Action<patch_Part> OnCreate;
+    internal static Dictionary<Identifier, List<Func<patch_Part, IPartComponent>>> CtorsByID = [];
 
     public void InitObjectsInCtor() {
         Components = [];
+    }
+    public void AfterCreate() {
+        if (CtorsByID.TryGetValue(((Part)(object)this).GetType().Id, out var componentCtors))
+            foreach (var item in componentCtors)
+                AddComponent(item(this));
+        OnCreate?.Invoke(this);
     }
 
     [MonoModILInject(".ctor")]
@@ -294,8 +306,14 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
         }
         ILCursor cursor = new(new ILContext(method));
         MethodReference init = method.DeclaringType.Methods.First(f => f.Name.Equals("InitObjectsInCtor"));
+        MethodReference after = method.DeclaringType.Methods.First(f => f.Name.Equals("AfterCreate"));
         cursor.EmitLdarg0();
         cursor.EmitCall(init);
+
+        cursor.Index = cursor.Instrs.Count;
+        cursor.GotoPrev(MoveType.Before, instr => instr.MatchRet());
+        cursor.EmitLdarg0();
+        cursor.EmitCall(after);
     }
 
     // # Related to the .ctor of PartSimStates, adding arguments

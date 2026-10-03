@@ -151,19 +151,23 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
         Codecs.STRING.Seal("Name", (Solution solution) => solution.name),
         scoreCodec.Seal("Scores", (Solution solution) => solution.scores),
         partsCodec.Seal("Parts", (Solution solution) => [.. solution.CollectPartsAndSubparts().Where(part => !part.GetIsFixed() && !part.GetType().isSubpart)]),
-        componentsCodec.Seal("Components", (Solution solution) => ((patch_Solution)(object)solution).Components).WithDefaut([]),
+        componentsCodec.Seal("Components", (Solution solution) => ((patch_Solution)(object)solution).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
         (id, nameOnDisc, creationTime, name, scores, parts, components) => {
             if (!Puzzles.GetById(id).GetOrDefault(out Puzzle puzzle))
                 throw new Exception($"Failed loading puzzle '{name}' puzzle with id '{id}' not found.");
             Solution solution = new(puzzle, name, SolutionNameOnDisk.Parse(nameOnDisc), DateTime.Parse(creationTime, CultureInfo.InvariantCulture)) {
                 scores = scores,
-                parts = parts.Where(part => puzzle.HasPermissionForPart(part.GetType())).ToList()
+                parts = [.. parts.Where(part => puzzle.HasPermissionForPart(part.GetType()))]
             };
             for (int i = 0; i < solution.parts.Count; i++) {
                 solution.parts[0].SetupInputOutputFromSolution(solution, solution.parts[0].GetInputOutputIndex());
                 solution.RepositionPart(solution.parts[0], solution.parts[0].GetHexPos()); // Replaces the part
             }
-            ((patch_Solution)(object)solution).Components = components;
+            foreach (var component in components) {
+                if (((patch_Solution)(object)solution).HasComponent(component.Key))
+                    ((patch_Solution)(object)solution).RemoveComponent(component.Key);
+                ((patch_Solution)(object)solution).AddComponent(component.Value);
+            }
             solution.undoRedoBuffer.ClearAndAdd(((patch_Solution)(object)solution).CreatePartsSnapshot());
             ((patch_Solution)(object)solution).OrderProgrammables();
             return solution;
