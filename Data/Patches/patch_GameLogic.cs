@@ -24,7 +24,7 @@ internal class patch_GameLogic {
             throw new Exception("Unable to patch bond types init. (no call)");
         }
 
-        TypeDefinition holder = MonoModRule.Modder.FindType("Quintessential.BondAPI.BondTypes").Resolve();
+        TypeDefinition holder = MonoModRule.Modder.FindType("BondTypes").Resolve();
         MethodDefinition call = holder.Methods.First((f) => f.Name == "InitBonds");
 
         cursor.Emit(OpCodes.Call, call);

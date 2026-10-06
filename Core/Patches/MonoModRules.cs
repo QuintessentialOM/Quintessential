@@ -10,11 +10,11 @@ class MonoModRemoveReadOnly : Attribute { }
 
 [MonoModCustomAttribute(nameof(MonoModRules.Internal))]
 [AttributeUsage(AttributeTargets.Field)]
-class MonoModInternalF : Attribute { }
+public class MonoModInternalF : Attribute { }
 
 [MonoModCustomAttribute(nameof(MonoModRules.InternalM))]
 [AttributeUsage(AttributeTargets.Method)]
-class MonoModInternalM : Attribute { }
+public class MonoModInternalM : Attribute { }
 
 static class MonoModRules {
 

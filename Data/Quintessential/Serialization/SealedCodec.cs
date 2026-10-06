@@ -11,10 +11,11 @@ public class SealedCodec<TReturn, T> {
     Maybe<TReturn> DefautValue;
     public bool IsDefaultNull = false;
     Maybe<Func<T, bool>> DefautValueSkip;
+    public bool IsReadOnly = false;
 
     public virtual KeyValuePair<string, TData> EncodeAsProperty<TData>(CodecMap<TData> map, T item) {
         var ret = Getter(item);
-        if (IsDefaultNull && ret == null)
+        if (IsReadOnly || IsDefaultNull && ret == null)
             return KeyValuePair.Create("", default(TData)); // Discarded value, don't add to serialized file
         if (DefautValue.HasValue() && (!map.IsHumanReadable() || !DefautValueSkip.HasValue() || !DefautValueSkip.GetValue().Invoke(item))) {
             if (ret is ICollection collection && DefautValue.GetValue() is ICollection defColl) {
@@ -70,6 +71,10 @@ public class SealedCodec<TReturn, T> {
     public SealedCodec<TReturn, T> WriteDefautIf(Func<T, bool> predicate) {
         if (DefautValueSkip.HasValue()) throw new InvalidOperationException("The Codec already has a default value predicate!");
         DefautValueSkip = predicate;
+        return this;
+    }
+    public SealedCodec<TReturn, T> AsReadOnly() {
+        IsReadOnly = true;
         return this;
     }
 }

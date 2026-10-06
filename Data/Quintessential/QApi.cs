@@ -47,6 +47,9 @@ public static class QApi {
         patch_Sim.CycleEvents.Add(cycleEvent);
     }
 
+    public static void AddBondType(this QuintessentialMod mod, BondType type, bool isUnbondable = true) {
+        BondTypes.RegisterBondType(type, isUnbondable);
+    }
 
 
     public static void AddComponentToAtom(Identifier atomTypeID, Func<patch_Atom, IAtomComponent> componentCtor) {
@@ -63,12 +66,8 @@ public static class QApi {
         }
         ctors.Add(componentCtor);
     }
-    public static void AddComponentToBond(Identifier bondTypeID, Func<patch_Bond, IBondComponent> componentCtor) {
-        if (!patch_Bond.CtorsByID.TryGetValue(bondTypeID, out var ctors)) {
-            ctors = [];
-            patch_Bond.CtorsByID[bondTypeID] = ctors;
-        }
-        ctors.Add(componentCtor);
+    public static void AddComponentToBond(Identifier[] bondTypeIDs, Func<patch_Bond, IBondComponent> componentCtor) {
+        patch_Bond.CtorsByID.Add(new(bondTypeIDs, componentCtor));
     }
     public static void AddComponentToPart(Identifier partTypeID, Func<patch_Part, IPartComponent> componentCtor) {
         if (!patch_Part.CtorsByID.TryGetValue(partTypeID, out var ctors)) {

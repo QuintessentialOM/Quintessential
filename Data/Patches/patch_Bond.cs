@@ -1,8 +1,4 @@
-﻿using Mono.Cecil;
-using Mono.Cecil.Cil;
-using MonoMod;
-using MonoMod.Cil;
-using MonoMod.InlineRT;
+﻿using MonoMod;
 using Quintessential;
 using Quintessential.Components;
 using Quintessential.Serialization;
@@ -67,20 +63,6 @@ public class patch_Bond : ISerializableComponentHolder<patch_Bond, IBondComponen
 
     protected patch_Molecule Molecule;
 
-    [MonoModILInject("Clone")]
-    static void PatchClone(MethodDefinition method, CustomAttribute attribute) {
-        ILCursor cursor = new(new ILContext(method));
-        MethodReference onCall = method.DeclaringType.Methods.First(f => f.Name.Equals("OnClone"));
-        cursor.GotoNext(instr => instr.MatchRet());
-        method.Body.Variables.Add(new VariableDefinition(method.DeclaringType));
-        VariableDefinition cloned = method.Body.Variables[^1];
-        cursor.EmitStloc(cloned);
-        cursor.EmitLdarg0();
-        cursor.EmitLdloca(cloned);
-        cursor.EmitCall(onCall);
-        cursor.EmitLdloc(cloned);
-    }
-
     internal void OnClone(ref patch_Bond cloned) {
         foreach (var component in Components)
             component.Value.OnClone(ref cloned);
@@ -102,10 +84,89 @@ public class patch_Bond : ISerializableComponentHolder<patch_Bond, IBondComponen
             if (enumerator.MoveNext()) {
                 enumerator.Current.Value.OnRender(CallRecursive, ref offset, ref hexOffset, ref rotationAngle, ref opacityMultiplier, ref height, solutionEditor);
             } else {
-                Editor.RenderBond((Bond)(object)this, offset, hexOffset, rotationAngle, opacityMultiplier, height, solutionEditor);
+                patch_Editor.layer_0_RenderBond(this, offset, hexOffset, rotationAngle, opacityMultiplier, height, solutionEditor);
             }
         }
     }
+
+    #endregion
+
+    #region CustomBonds
+    private List<BondType> bondTypes;
+
+    [Obsolete]
+    [MonoModIgnore] public BondTypeEnum type;
+    [MonoModIgnore] public HexIndex hexPos1;
+    [MonoModIgnore] public HexIndex hexPos2;
+    [MonoModIgnore] public List<BondEffect> effects;
+
+    [Obsolete]
+    [MonoModReplace]
+    [MonoModConstructor]
+    public patch_Bond(BondTypeEnum type, HexIndex hexPos1, HexIndex hexPos2) {
+        effects = [];
+        this.type = type;
+        this.hexPos1 = hexPos1;
+        this.hexPos2 = hexPos2;
+        bondTypes = [];
+        if ((type & BondTypeEnum.Standard) == BondTypeEnum.Standard) bondTypes.Add("om:standard");
+        if ((type & BondTypeEnum.Prisma0) == BondTypeEnum.Prisma0) bondTypes.Add("om:prisma0");
+        if ((type & BondTypeEnum.Prisma1) == BondTypeEnum.Prisma1) bondTypes.Add("om:prisma1");
+        if ((type & BondTypeEnum.Prisma2) == BondTypeEnum.Prisma2) bondTypes.Add("om:prisma2");
+        bondTypes = [.. bondTypes.OrderByDescending(type => type.renderPriority)];
+        InitObjectsInCtor();
+        AfterCreate();
+    }
+
+    [MonoModConstructor]
+    public patch_Bond(BondType bondType, HexIndex hexPos1, HexIndex hexPos2) {
+        effects = new List<BondEffect>();
+        type = (BondTypeEnum)BondTypes.GetBondIndex(bondType.Id);
+        this.hexPos1 = hexPos1;
+        this.hexPos2 = hexPos2;
+        bondTypes = [bondType];
+        InitObjectsInCtor();
+        AfterCreate();
+    }
+
+    [MonoModConstructor]
+    public patch_Bond(List<BondType> bondTypes, HexIndex hexPos1, HexIndex hexPos2) {
+        effects = new List<BondEffect>();
+        this.hexPos1 = hexPos1;
+        this.hexPos2 = hexPos2;
+        this.bondTypes = bondTypes;
+        type = bondTypes.Count > 0 ? (BondTypeEnum)BondTypes.GetBondIndex(bondTypes[0].Id) : BondTypeEnum.None;
+        InitObjectsInCtor();
+        AfterCreate();
+    }
+
+    [MonoModReplace]
+    public patch_Bond Clone() {
+        patch_Bond bond = new([..bondTypes], hexPos1, hexPos2) {
+            effects = [.. effects]
+        };
+        OnClone(ref bond);
+        return bond;
+    }
+
+    // Returns true if it was added
+    internal bool AddTypeSafe(BondType type) {
+        if (bondTypes.Contains(type)) return false;
+        int i = 0;
+        while (bondTypes.Count > i && bondTypes[i].renderPriority > type.renderPriority) i++;
+        bondTypes.Insert(i, type);
+        this.type = this.type | (BondTypeEnum)BondTypes.GetBondIndex(type.Id);
+        return true;
+    }
+
+    // Returns true if it was removed
+    internal bool RemoveTypeSafe(BondType type) {
+        if (!bondTypes.Contains(type)) return false;
+        bondTypes.Remove(type);
+        this.type = this.type & ~(BondTypeEnum)BondTypes.GetBondIndex(type.Id);
+        return true;
+    }
+    public IReadOnlyList<BondType> GetBondTypes() => bondTypes;
 
     #endregion
 
@@ -114,20 +175,20 @@ public class patch_Bond : ISerializableComponentHolder<patch_Bond, IBondComponen
     private static readonly Codec<Dictionary<Identifier, IBondComponent>> componentsCodec = CatalogueCodec<Identifier, IBondComponent>.Create(
         RegisteredComponents, id => id.ToString(), str => new Identifier(str)
     );
-    private static readonly Codec<BondTypeEnum> bondTypeCodec = EnumCodec<BondTypeEnum>.Create();
     internal static readonly Codec<Bond> BOND = Codec<Bond>.Create(
-        bondTypeCodec.Seal("Type", (Bond bond) => bond.type),
+        Codecs.LIST_ID.Seal("Types", (Bond bond) => [.. ((patch_Bond)(object)bond).bondTypes.Select(bondType => bondType.Id)]).WithDefaut([]),
         Codecs.HEXINDEX.Seal("Pos1", (Bond bond) => bond.hexPos1),
         Codecs.HEXINDEX.Seal("Pos2", (Bond bond) => bond.hexPos2),
         componentsCodec.Seal("Components", (Bond bond) => ((patch_Bond)(object)bond).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
-        (type, pos1, pos2, components) => {
-            Bond bond = new(type, pos1, pos2);
+        (types, pos1, pos2, components) => {
+            patch_Bond bond;
+            bond = new([.. types.Select(id => BondTypes.GetBondType(id))], pos1, pos2);
             foreach (var component in components) {
-                if (((patch_Bond)(object)bond).HasComponent(component.Key))
-                    ((patch_Bond)(object)bond).RemoveComponent(component.Key);
-                ((patch_Bond)(object)bond).AddComponent(component.Value);
+                if (bond.HasComponent(component.Key))
+                    bond.RemoveComponent(component.Key);
+                bond.AddComponent(component.Value);
             }
-            return bond;
+            return (Bond)(object)bond;
         }
     );
 
@@ -135,36 +196,22 @@ public class patch_Bond : ISerializableComponentHolder<patch_Bond, IBondComponen
 
     #region Ctor
     public static event Action<patch_Bond> OnCreate;
-    internal static Dictionary<Identifier, List<Func<patch_Bond, IBondComponent>>> CtorsByID = [];
+    internal static List<Tuple<Identifier[], Func<patch_Bond, IBondComponent>>> CtorsByID = [];
 
     public void InitObjectsInCtor() {
         Components = [];
     }
     public void AfterCreate() {
-        //if (CtorsByID.TryGetValue(((Bond)(object)this).Id, out var componentCtors))
-        //    foreach (var item in componentCtors)
-        //        AddComponent(item(this));
+        foreach (var ctor in CtorsByID)
+            if (ctor.Item1.Any(id => bondTypes.Any(bondT => bondT.Id == id)))
+                AddComponent(ctor.Item2(this));
         OnCreate?.Invoke(this);
     }
 
-    [MonoModILInject(".ctor")]
-    static void PatchCtor(MethodDefinition method, CustomAttribute attribute) {
-
-        MonoModRule.Modder.Log("Patching Sim init.");
-        if (!method.HasBody) {
-            throw new Exception("Unable to patch Sim init. (no body)");
-        }
-        ILCursor cursor = new(new ILContext(method));
-        MethodReference init = method.DeclaringType.Methods.First(f => f.Name.Equals("InitObjectsInCtor"));
-        MethodReference after = method.DeclaringType.Methods.First(f => f.Name.Equals("AfterCreate"));
-        cursor.EmitLdarg0();
-        cursor.EmitCall(init);
-
-        cursor.Index = cursor.Instrs.Count;
-        cursor.GotoPrev(MoveType.Before, instr => instr.MatchRet());
-        cursor.EmitLdarg0();
-        cursor.EmitCall(after);
-    }
+    // Handled in #region CustomBonds
+    //[MonoModILInject(".ctor")]
+    //static void PatchCtor(MethodDefinition method, CustomAttribute attribute) {
+    //}
 
     #endregion
 }
