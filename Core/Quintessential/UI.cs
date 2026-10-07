@@ -143,7 +143,7 @@ public static class UI {
     public static void HandleCloseButton() {
 		CloseScreen();
 		// Play close sound
-		Assets.sounds.ui_modal_close.method_28(1f);
+		Assets.sounds.ui_modal_close.PlaySound(1f);
 	}
 
 	/// <summary>
@@ -209,7 +209,7 @@ public static class UI {
 			DrawTexture(Assets.textures.UI.checkbox_hover, boxBounds.Min);
 			if(!InputManager.IsClickPressed(MouseButtonType.LeftClick))
 				return false;
-            Assets.sounds.click_button.method_28(1f);
+            Assets.sounds.click_button.PlaySound(1f);
 			return true;
 		}
 		DrawTexture(Assets.textures.UI.checkbox, boxBounds.Min);

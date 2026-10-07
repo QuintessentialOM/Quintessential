@@ -43,7 +43,7 @@ public class patch_JournalScreen{
         UI.DrawText($"{currentJournal + 1}/{QuintessentialLoader.AllJournals.Count}", corner + new Vector2(157, 824f), UI.Text, UI.TextColor, TextAlignment.Center);
         
 		if(InputManager.IsClickPressed(MouseButtonType.LeftClick) && (inLeftBound || inRightBound)){
-            Assets.sounds.click_button.method_28(1f);
+            Assets.sounds.click_button.PlaySound(1f);
 			
 			if(inLeftBound){
 				var next = currentJournal - 1;

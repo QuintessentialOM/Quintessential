@@ -35,7 +35,7 @@ class patch_PuzzleSelectScreen {
 			bool keyRight = settings.SwitchCampaignRight.Pressed();
 
 			if((leftBounds.Contains(InputManager.MousePos()) && InputManager.IsClickPressed(MouseButtonType.LeftClick)) || keyLeft){
-				Assets.sounds.click_button.method_28(1f);
+				Assets.sounds.click_button.PlaySound(1f);
 				var next = currentCampaign - 1;
 				if(next < 0)
 					next += QuintessentialLoader.AllCampaigns.Count;
@@ -45,7 +45,7 @@ class patch_PuzzleSelectScreen {
 				UI.InstantCloseScreen();
 				UI.OpenScreen(new PuzzleSelectScreen());
 			}else if((rightBounds.Contains(InputManager.MousePos()) && InputManager.IsClickPressed(MouseButtonType.LeftClick)) || keyRight) {
-				Assets.sounds.click_button.method_28(1f);
+				Assets.sounds.click_button.PlaySound(1f);
 				currentCampaign = (currentCampaign + 1) % QuintessentialLoader.AllCampaigns.Count;
 				Campaigns.opusMagnum = QuintessentialLoader.AllCampaigns[currentCampaign];
 				Campaigns.campaigns[0] = QuintessentialLoader.AllCampaigns[currentCampaign];

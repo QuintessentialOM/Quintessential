@@ -249,19 +249,19 @@ public class QuintessentialLoader
                                 }
 
                                 // TODO: optimize
-                                cItem = AddEntryToCampaign(campaign, j, entry.ID, Translations.Translate(entry.TitleKey), CampaignItemType.Puzzle, MaybeHelper.empty, puzzle, Assets.musicTracks.solving3Music, Assets.sounds.fanfare_solving3, requirement, entry.NoStoryPanel);
+                                cItem = AddEntryToCampaign(campaign, j, entry.ID, Translations.Translate(entry.TitleKey), CampaignItemType.Puzzle, MaybeHelper.empty, puzzle, Assets.musicTracks.solving3, Assets.sounds.fanfare_solving3, requirement, entry.NoStoryPanel);
                                 Array.Resize(ref Puzzles.campaignPuzzles, Puzzles.campaignPuzzles.Length + 1);
                                 Puzzles.campaignPuzzles[^1] = puzzle;
                                 break;
                         case "solitaire":
-                                cItem = new(entry.ID, Translations.Translate("Sigmar's Garden"), CampaignItemType.Solitaire, MaybeHelper.empty, requirement, Assets.musicTracks.solving1Music, Assets.sounds.fanfare_solving1, campaign);
+                                cItem = new(entry.ID, Translations.Translate("Sigmar's Garden"), CampaignItemType.Solitaire, MaybeHelper.empty, requirement, Assets.musicTracks.solving1, Assets.sounds.fanfare_solving1, campaign);
                                 campaign.chapters[j].campaignItems.Add(cItem);
                                 break;
                         case "cutscene":
-                                cItem = new(entry.ID, Translations.Translate(entry.TitleKey), CampaignItemType.Cutscene, MaybeHelper.empty, requirement, Assets.musicTracks.solving1Music, Assets.sounds.fanfare_solving1, campaign);
+                                cItem = new(entry.ID, Translations.Translate(entry.TitleKey), CampaignItemType.Cutscene, MaybeHelper.empty, requirement, Assets.musicTracks.solving1, Assets.sounds.fanfare_solving1, campaign);
                                 break;
                         case "document":
-                                cItem = new(entry.ID, Translations.Translate(entry.TitleKey), CampaignItemType.Letter, MaybeHelper.empty, requirement, Assets.musicTracks.solving1Music, Assets.sounds.fanfare_solving1, campaign);
+                                cItem = new(entry.ID, Translations.Translate(entry.TitleKey), CampaignItemType.Letter, MaybeHelper.empty, requirement, Assets.musicTracks.solving1, Assets.sounds.fanfare_solving1, campaign);
                                 break;
                         default:
                             Logger.Log($"Campaign entry in {c.Name} has unknown type {entry.Type}, skipping");
