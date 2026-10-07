@@ -54,8 +54,6 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
         RegisteredComponents[Id] = codec;
     }
 
-    [MonoModIgnore] Dictionary<HexIndex, Atom> atoms;
-    [MonoModIgnore] List<Bond> bonds;
     public CycleEventExecutionType CallbackType => (CycleEventExecutionType) 0b_0111_1111;
     public void OnCycleCallback(patch_Sim sim, CycleEventExecutionType executionType) {
         foreach (var atom in atoms) {
@@ -152,9 +150,11 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
         ILCursor referenceCulsor = new(new ILContext(referenceCode));
         MethodReference getItemAtom = null;
         MethodReference findAllBonds = null;
+        MethodReference containsKey = null;
         referenceCulsor.GotoNext(MoveType.After, instr => instr.MatchCallvirt(out getItemAtom));
         referenceCulsor.GotoNext(MoveType.After, instr => instr.MatchLdarg2());
         referenceCulsor.GotoNext(MoveType.After, instr => instr.MatchCallvirt(out findAllBonds));
+        referenceCulsor.GotoNext(MoveType.After, instr => instr.MatchCallvirt(out containsKey));
 
         cursor.Index = 0;
         cursor.GotoNext(MoveType.After, instr => instr.MatchStloc0());
@@ -182,47 +182,56 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
         cursor.EmitCall(onCallBond);
 
         referenceCode.DeclaringType.Methods.Remove(referenceCode);
+
+        cursor.Index = 0;
+        cursor.EmitLdarg0();
+        cursor.EmitLdfld(atoms);
+        cursor.EmitLdarg1();
+        cursor.EmitCallvirt(containsKey);
+        cursor.Emit(OpCodes.Brtrue_S, cursor.Next);
+        cursor.EmitRet();
     }
     static void PatchRemoveAtomCodeReference(Dictionary<HexIndex, Atom> atoms, HexIndex pos, List<Bond> bonds, Predicate<Bond> predicate) {
         atoms[pos].ToString();
         bonds.FindAll(predicate);
+        atoms.ContainsKey(pos);
     }
 
-    [MonoModILInject("RemoveBond")]
-    static void PatchRemoveBond(MethodDefinition method, CustomAttribute attribute) {
-        ILCursor cursor = new(new ILContext(method));
-        MethodReference onCallBond = method.DeclaringType.Methods.First(f => f.Name.Equals("OnRemoveBonds"));
-        cursor.GotoNext(MoveType.Before, instr => instr.MatchLdfld("Molecule", "bonds"));
-        FieldReference bonds = cursor.Next.Operand as FieldReference;
-        MethodReference isMatchingBond = null;
-        cursor.GotoNext(MoveType.After, instr => instr.MatchLdftn(out isMatchingBond));
-        MethodReference predicateCtor = cursor.Next.Operand as MethodReference;
+    //[MonoModILInject("RemoveBond")]
+    //static void PatchRemoveBond(MethodDefinition method, CustomAttribute attribute) {
+    //    ILCursor cursor = new(new ILContext(method));
+    //    MethodReference onCallBond = method.DeclaringType.Methods.First(f => f.Name.Equals("OnRemoveBonds"));
+    //    cursor.GotoNext(MoveType.Before, instr => instr.MatchLdfld("Molecule", "bonds"));
+    //    FieldReference bonds = cursor.Next.Operand as FieldReference;
+    //    MethodReference isMatchingBond = null;
+    //    cursor.GotoNext(MoveType.After, instr => instr.MatchLdftn(out isMatchingBond));
+    //    MethodReference predicateCtor = cursor.Next.Operand as MethodReference;
 
-        MethodDefinition referenceCode = method.DeclaringType.Methods.First(f => f.Name.Equals("PatchRemoveBondCodeReference"));
-        ILCursor referenceCulsor = new(new ILContext(referenceCode));
-        MethodReference findAllBonds = null;
-        referenceCulsor.GotoNext(MoveType.After, instr => instr.MatchCallvirt(out findAllBonds));
+    //    MethodDefinition referenceCode = method.DeclaringType.Methods.First(f => f.Name.Equals("PatchRemoveBondCodeReference"));
+    //    ILCursor referenceCulsor = new(new ILContext(referenceCode));
+    //    MethodReference findAllBonds = null;
+    //    referenceCulsor.GotoNext(MoveType.After, instr => instr.MatchCallvirt(out findAllBonds));
 
-        cursor.Index = 0;
-        cursor.GotoNext(MoveType.After, instr => instr.MatchStloc0());
-        cursor.GotoNext(MoveType.After, instr => instr.MatchStfld(out _));
-        cursor.GotoNext(MoveType.After, instr => instr.MatchStfld(out _));
+    //    cursor.Index = 0;
+    //    cursor.GotoNext(MoveType.After, instr => instr.MatchStloc0());
+    //    cursor.GotoNext(MoveType.After, instr => instr.MatchStfld(out _));
+    //    cursor.GotoNext(MoveType.After, instr => instr.MatchStfld(out _));
 
-        // this.OnRemoveBonds(this.bonds.FindAll( new Predicate(IsBondToHex)));
-        cursor.EmitLdarg0();
-        cursor.EmitLdarg0();
-        cursor.EmitLdfld(bonds);
-        cursor.EmitLdloc0();
-        cursor.EmitLdftn(isMatchingBond);
-        cursor.EmitNewobj(predicateCtor);
-        cursor.EmitCallvirt(findAllBonds);
-        cursor.EmitCall(onCallBond);
+    //    // this.OnRemoveBonds(this.bonds.FindAll( new Predicate(IsBondToHex)));
+    //    cursor.EmitLdarg0();
+    //    cursor.EmitLdarg0();
+    //    cursor.EmitLdfld(bonds);
+    //    cursor.EmitLdloc0();
+    //    cursor.EmitLdftn(isMatchingBond);
+    //    cursor.EmitNewobj(predicateCtor);
+    //    cursor.EmitCallvirt(findAllBonds);
+    //    cursor.EmitCall(onCallBond);
 
-        referenceCode.DeclaringType.Methods.Remove(referenceCode);
-    }
-    static void PatchRemoveBondCodeReference(List<Bond> bonds, Predicate<Bond> predicate) {
-        bonds.FindAll(predicate);
-    }
+    //    referenceCode.DeclaringType.Methods.Remove(referenceCode);
+    //}
+    //static void PatchRemoveBondCodeReference(List<Bond> bonds, Predicate<Bond> predicate) {
+    //    bonds.FindAll(predicate);
+    //}
 
     [MonoModILInject("AddAtom")]
     static void PatchAddAtom(MethodDefinition method, CustomAttribute attribute) {
@@ -237,19 +246,19 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
         cursor.EmitCall(onCall);
     }
 
-    [MonoModILInject("System.Boolean Molecule::AddBond(BondTypeEnum,HexIndex,HexIndex,Maybe`1<BondEffect>)")]
-    static void PatchAddBond(MethodDefinition method, CustomAttribute attribute) {
-        ILCursor cursor = new(new ILContext(method));
-        MethodReference onCall = method.DeclaringType.Methods.First(f => f.Name.Equals("OnAddSingleBond"));
-        cursor.GotoNext(MoveType.After, instr => instr.MatchCallvirt(out var add) && add.Name == "Add");
-        FieldReference bond = cursor.Previous.Previous.Operand as FieldReference;
+    //[MonoModILInject("System.Boolean Molecule::AddBond(BondTypeEnum,HexIndex,HexIndex,Maybe`1<BondEffect>)")]
+    //static void PatchAddBond(MethodDefinition method, CustomAttribute attribute) {
+    //    ILCursor cursor = new(new ILContext(method));
+    //    MethodReference onCall = method.DeclaringType.Methods.First(f => f.Name.Equals("OnAddSingleBond"));
+    //    cursor.GotoNext(MoveType.After, instr => instr.MatchCallvirt(out var add) && add.Name == "Add");
+    //    FieldReference bond = cursor.Previous.Previous.Operand as FieldReference;
 
-        //& bondAdder.bond.OnAddToMolecule(this);
-        cursor.EmitLdarg0();
-        cursor.EmitLdloc(4);
-        cursor.EmitLdfld(bond);
-        cursor.EmitCall(onCall);
-    }
+    //    //& bondAdder.bond.OnAddToMolecule(this);
+    //    cursor.EmitLdarg0();
+    //    cursor.EmitLdloc(4);
+    //    cursor.EmitLdfld(bond);
+    //    cursor.EmitCall(onCall);
+    //}
 
     [MonoModILInject("MergeWith")]
     static void PatchMergeWithAddBond(MethodDefinition method, CustomAttribute attribute) {
@@ -494,6 +503,129 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
     }
 
     #endregion
+
+    #endregion
+
+    #region CustomBonds
+    [MonoModIgnore] Dictionary<HexIndex, Atom> atoms;
+    [MonoModIgnore] List<Bond> bonds;
+    [MonoModIgnore] bool shouldRecomputeConnectivity;
+
+    public Maybe<Bond> GetBondAt(HexIndex pos1, HexIndex pos2) =>
+        bonds.Where(bond => (bond.hexPos1 == pos1 && bond.hexPos2 == pos2) || (bond.hexPos1 == pos2 && bond.hexPos2 == pos1)).FirstOrNone();
+
+    public void SetBond(Bond bond, HexIndex pos1, HexIndex pos2) {
+        if (HexIndex.Distance(pos1, pos2) != 1) {
+            throw new OpusMagnumException("Invalid distance between ends of bond");
+        }
+        RemoveBond(pos1, pos2);
+        var created = bond.Clone();
+        created.hexPos1 = pos1;
+        created.hexPos2 = pos2;
+        bonds.Add(created);
+        OnAddSingleBond((patch_Bond)(object)created);
+        return;
+    }
+    public bool AddBond(BondType type, HexIndex pos1, HexIndex pos2) {
+        return AddBond(type, pos1, pos2, MaybeHelper.empty);
+    }
+    public bool AddBond(BondType type, HexIndex pos1, HexIndex pos2, Maybe<BondEffect> effects) {
+        if (HexIndex.Distance(pos1, pos2) != 1) {
+            throw new OpusMagnumException("Invalid distance between ends of bond");
+        }
+        Maybe<Bond> thisBond = GetBondAt(pos1, pos2);
+
+        if (!thisBond.HasValue()) {
+            Bond bond = (Bond)(object)new patch_Bond(type, pos1, pos2);
+            effects.ApplyIfPresent(bond.effects.Add);
+            bonds.Add(bond);
+            OnAddSingleBond((patch_Bond)(object)bond);
+            return true;
+        }
+        patch_Bond bond2 = (patch_Bond)(object)thisBond.GetValue();
+        if (!bond2.GetBondTypes().All( bondType => bondType.CanOverlapBond(type) )) return false;
+        if (bond2.AddTypeSafe(type)) {
+            // TODO add on add bondType Callback!
+            effects.ApplyIfPresent(bond2.effects.Add);
+            return true;
+        }
+        return false;
+    }
+    public bool RemoveBond(BondType toRemove, HexIndex pos1, HexIndex pos2) {
+        Maybe<Bond> thisBond = GetBondAt(pos1, pos2);
+        if (thisBond.HasValue() && ((patch_Bond)(object)thisBond.GetValue()).RemoveTypeSafe(toRemove)) {
+            if (((patch_Bond)(object)thisBond.GetValue()).GetBondTypes().Count == 0) {
+                RemoveBond(pos1, pos2);
+            } //else // TODO add on add bondType Callback!
+            return true;
+        }
+        return false;
+    }
+
+    [MonoModReplace]
+    public bool RemoveBond(HexIndex pos1, HexIndex pos2) {
+        OnRemoveBonds((List<patch_Bond>)(object)bonds.FindAll(bond => (bond.hexPos1 == pos1 && bond.hexPos2 == pos2) || (bond.hexPos1 == pos2 && bond.hexPos2 == pos1)));
+        if (bonds.RemoveAll(new Predicate<Bond>(bond => (bond.hexPos1 == pos1 && bond.hexPos2 == pos2) || (bond.hexPos1 == pos2 && bond.hexPos2 == pos1))) > 0) {
+            shouldRecomputeConnectivity = true;
+            return true;
+        }
+        return false;
+    }
+
+    [MonoModReplace]
+    public static Molecule CreateDiatomic(AtomType atom1, AtomType atom2) {
+        Molecule molecule = new();
+        molecule.AddAtom(new Atom(atom1), new HexIndex(0, 0));
+        molecule.AddAtom(new Atom(atom2), new HexIndex(1, 0));
+        ((patch_Molecule)(object)molecule).AddBond("om:standard", new HexIndex(0, 0), new HexIndex(1, 0));
+        return molecule;
+    }
+    public static Molecule CreateDiatomic(AtomType atom1, AtomType atom2, BondType bond) {
+        Molecule molecule = new();
+        molecule.AddAtom(new Atom(atom1), new HexIndex(0, 0));
+        molecule.AddAtom(new Atom(atom2), new HexIndex(1, 0));
+        ((patch_Molecule)(object)molecule).AddBond(bond, new HexIndex(0, 0), new HexIndex(1, 0));
+        return molecule;
+    }
+
+    [MonoModILInject("Molecule Molecule::RepeatMonomer(Molecule,HexIndex)")]
+    static void PatchRepeatMonomerAddBond(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodReference newAdd = method.DeclaringType.Methods.First(f => f.Name.Equals("SetBond"));
+        cursor.GotoNext(MoveType.After, instr => instr.MatchCallvirt(out var m) && m.FullName == "System.Boolean Molecule::AddBond(BondTypeEnum,HexIndex,HexIndex)");
+        cursor.Prev.Operand = newAdd;
+        cursor.Remove(); // Remove a Pop instruction since SetBond doesn't return a boolean.
+        cursor.GotoPrev(MoveType.Before, instr => instr.MatchLdfld("Bond", "type"));
+        cursor.Remove();
+    }
+    [MonoModILInject("SplitIntoConnectedComponents")]
+    static void PatchSplitAddBond(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodReference newAdd = method.DeclaringType.Methods.First(f => f.Name.Equals("SetBond"));
+        cursor.GotoNext(MoveType.After, instr => instr.MatchCallvirt(out var m) && m.FullName == "System.Boolean Molecule::AddBond(BondTypeEnum,HexIndex,HexIndex)");
+        cursor.Prev.Operand = newAdd;
+        cursor.Remove(); // Remove a Pop instruction since SetBond doesn't return a boolean.
+        cursor.GotoPrev(MoveType.Before, instr => instr.MatchLdfld("Bond", "type"));
+        cursor.Remove();
+    }
+
+
+    [Obsolete(" Use the BondType version instead.")]
+    [MonoModInternalM] [MonoModReplace]
+    internal bool AddBond(BondTypeEnum type, HexIndex pos1, HexIndex pos2) {
+        bool added = false;
+        if (type.HasFlag(BondTypeEnum.Standard)) added = AddBond("om:standard", pos1, pos2, MaybeHelper.empty) || added;
+        if (type.HasFlag(BondTypeEnum.Prisma0)) added = AddBond("om:prisma0", pos1, pos2, MaybeHelper.empty) || added;
+        if (type.HasFlag(BondTypeEnum.Prisma1)) added = AddBond("om:prisma1", pos1, pos2, MaybeHelper.empty) || added;
+        if (type.HasFlag(BondTypeEnum.Prisma2)) added = AddBond("om:prisma2", pos1, pos2, MaybeHelper.empty) || added;
+        return added;
+    }
+    [MonoModRemove]
+    internal bool AddBond(BondTypeEnum type, HexIndex pos1, HexIndex pos2, Maybe<BondEffect> effects) { return false; }
+
+    [Obsolete(" Use the BondType version instead.")]
+    [MonoModInternalM] [MonoModIgnore]
+    internal bool GetBondTypeAt(HexIndex hexPos1, HexIndex hexPos2) { return false; }
 
     #endregion
 

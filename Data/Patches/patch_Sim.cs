@@ -7,13 +7,9 @@ using MonoMod.Cil;
 using MonoMod.InlineRT;
 using Quintessential;
 using Quintessential.Components;
-using Quintessential.Internal;
-using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using static Quintessential.CycleEvent;
 using static Quintessential.PartCycleDelegate;
 
@@ -142,6 +138,156 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
         cursor.EmitCall(onCall);
     }
 
+    #endregion
+
+    #region CustomBonds
+
+    [MonoModILInject("System.Boolean Sim::IsSameMolecule(Molecule,Molecule)")]
+    static void PatchMoleculeComparison(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        cursor.GotoNext(MoveType.After, instr => instr.MatchNewobj(out var ctor) && ctor.DeclaringType.FullName == "Sim/BondMatcher");
+        Instruction start = cursor.Next;
+        int startIndex = cursor.Index;
+        MethodReference getCurrent = null;
+        cursor.GotoNext(MoveType.After, instr => instr.MatchCallvirt(out getCurrent));
+        cursor.GotoNext(MoveType.Before, instr => instr.OpCode == OpCodes.Leave_S || instr.OpCode == OpCodes.Leave);
+        Instruction continueTarget = cursor.Next.Next;
+        cursor.Index--;
+        int length = cursor.Index - startIndex;
+        cursor.Goto(start);
+        cursor.RemoveRange(length);
+
+        cursor.Prev.OpCode = OpCodes.Nop;
+        cursor.Prev.Operand = null;
+
+        cursor.EmitLdloc(4);
+        cursor.EmitCall(getCurrent);
+        cursor.EmitLdarg1();
+        MethodDefinition compare = method.DeclaringType.Methods.First(f => f.Name.Equals("IsSameMoleculeBond"));
+        cursor.EmitCall(compare);
+        cursor.Emit(OpCodes.Brtrue_S, continueTarget);
+        cursor.EmitLdcI4(0);
+
+        method.DeclaringType.NestedTypes.Remove(method.Body.Variables[5].VariableType.Resolve());
+        method.Body.Variables.Remove(method.Body.Variables[5]);
+    }
+    public static bool IsSameMoleculeBond(patch_Bond other, Molecule molecule) {
+        return molecule.GetBonds().Any(bond => {
+            return ((bond.hexPos1 == other.hexPos1 && bond.hexPos2 == other.hexPos2) || (bond.hexPos1 == other.hexPos2 && bond.hexPos2 == other.hexPos1)) &&
+                other.GetBondTypes().Count == ((patch_Bond)(object)bond).GetBondTypes().Count &&
+                other.GetBondTypes().All(bondType => ((patch_Bond)(object)bond).GetBondTypes().Contains(bondType));
+        });
+    }
+
+
+
+    [MonoModIgnore]
+    private extern void PlaySound(Sound sound);
+    private void HandleCycleBonder(Part part, PartSimState partSimState) {
+        foreach (var bonder in part.GetType().bonders) {
+            var bonderInfo = (patch_BonderInfo)(object)bonder;
+            if (GetAtomReference(part, bonderInfo.hexPos1, false, out AtomReference atomReference1) &&
+                GetAtomReference(part, bonderInfo.hexPos2, false, out AtomReference atomReference2) &&
+                (bonderInfo.uniqueAtoms.Count == 0 || (bonderInfo.uniqueAtoms.Contains(atomReference1.atomType) && bonderInfo.uniqueAtoms.Contains(atomReference2.atomType))))
+            {
+                HexIndex pos1 = part.InFrontBy(bonderInfo.hexPos1);
+                HexIndex pos2 = part.InFrontBy(bonderInfo.hexPos2);
+                if (bonderInfo.isUnbond) {
+                    if (atomReference1.molecule == atomReference2.molecule) {
+                        patch_Molecule moleculeP = (patch_Molecule)(object)atomReference1.molecule;
+                        Maybe<Bond> targeted = moleculeP.GetBondAt(pos1, pos2);
+                        if (targeted.HasValue()) {
+                            patch_Bond bond = (patch_Bond)(object)targeted.GetValue();
+                            bool wasRemoved = false;
+                            List<BondType> removedTypes = [];
+                            foreach (var bondType in bonderInfo.bondTypes) {
+                                if (bond.GetBondTypes().Contains(bondType)) {
+                                    wasRemoved = true;
+                                    moleculeP.RemoveBond(bondType, pos1, pos2);
+                                    removedTypes.Add(bondType);
+                                }
+                            }
+                            if (wasRemoved) {
+                                Vector2 center = Utils.InterpolateVect(HexGrid.standardGrid.ToPixelCoords(pos1), HexGrid.standardGrid.ToPixelCoords(pos2), 0.5f);
+                                foreach (var type in removedTypes) {
+                                    Texture[] anim = type.unbondAnim;
+                                    solutionEditor.field_3936.Add(new GlyphEffect(solutionEditor, EffectTimescaleType.RealTime, center, anim, 75f, new Vector2(1.5f, -5f), HexGrid.standardGrid.ToPixelCoords(pos2 - pos1).Angle()));
+                                    PlaySound(Assets.sounds.glyph_unbonding);
+                                    partSimState.wasActivated = true;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Molecule molecule1 = atomReference1.molecule;
+                    if (atomReference1.molecule != atomReference2.molecule) {
+                        molecules.Remove(atomReference1.molecule);
+                        molecules.Remove(atomReference2.molecule);
+                        molecule1 = molecule1.MergeWith(atomReference2.molecule);
+                        molecules.Add(molecule1);
+                    }
+                    foreach (var bondType in bonderInfo.bondTypes) {
+                        BondTexture bondTexture = bondType.bondTexture;
+                        BondEffect bondEffect = new(solutionEditor, bondTexture.bondAnim, 60f, bondTexture.textureOffset);
+                        if (((patch_Molecule)(object)molecule1).AddBond(bondType, pos1, pos2, bondEffect)) {
+
+                            Vector2 center = Utils.InterpolateVect(HexGrid.standardGrid.ToPixelCoords(pos1), HexGrid.standardGrid.ToPixelCoords(pos2), 0.5f);
+                            solutionEditor.field_3936.Add(new GlyphEffect(solutionEditor, EffectTimescaleType.RealTime, center, bondTexture.glyphAnim, 30f, Vector2.Zero, HexGrid.standardGrid.ToPixelCoords(pos2 - pos1).Angle()));
+                            PlaySound(bondTexture.bondSound);
+                            partSimState.wasActivated = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    [MonoModILInject("RunCycleGlyphs")]
+    static void PatchBonders(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+
+        FieldReference getPart = null;
+        MethodReference hadleBonders = method.DeclaringType.Methods.First(f => f.Name.Equals("HandleCycleBonder"));
+
+        if (!cursor.TryGotoNext(MoveType.After,
+            instr => instr.MatchLdloc(6),
+            instr => instr.MatchLdfld(out getPart) && getPart.Name == "part",
+            instr => instr.MatchCallvirt(out MethodReference m) && m.Name == "GetType",
+            instr => instr.MatchLdfld(out FieldReference f) && f.Name == "bonders",
+            instr => instr.MatchLdlen(),
+            instr => instr.OpCode == OpCodes.Brfalse || instr.OpCode == OpCodes.Brfalse_S
+        )) {
+            Console.WriteLine("Unable to patch bonder behaviour (no bonder check)");
+            throw new Exception();
+        }
+        Instruction start = cursor.Prev;
+
+        cursor.Goto(start.Operand as Instruction);
+        int last = cursor.Index;
+        cursor.Goto(start, MoveType.After);
+        cursor.RemoveRange(last - cursor.Index);
+
+        cursor.EmitLdarg0();
+        cursor.EmitLdloc(6);
+        cursor.EmitLdfld(getPart);
+        cursor.EmitLdloc(7);
+        cursor.EmitCall(hadleBonders);
+
+        method.Body.Variables.Remove(method.Body.Variables[95]);
+    }
+
+
+    [MonoModILInject("GetCompletedRepeats")]
+    static void PatchCompletedRepeatsAddBond(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodReference newAdd = MonoModRule.Modder.FindType("Molecule").Resolve().Methods.First(f => f.Name.Equals("SetBond"));
+        while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt(out var m) && m.FullName == "System.Boolean Molecule::AddBond(BondTypeEnum,HexIndex,HexIndex)")) {
+            cursor.Prev.Operand = newAdd;
+            cursor.Remove(); // Remove a Pop instruction since SetBond doesn't return a boolean.
+            cursor.GotoPrev(MoveType.Before, instr => instr.MatchLdfld("Bond", "type"));
+            cursor.Remove();
+        }
+    }
     #endregion
 
     #region RecipeSystem
