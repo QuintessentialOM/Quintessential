@@ -75,66 +75,65 @@ class patch_PuzzleEditorScreen {
 					istructionPos += new Vector2(3, -3);
 				}
 
-				bool hovered = Bounds2.WithSize(basePos, @base.size.ToVector2()).Contains(InputManager.MousePos());
-				Texture highlight = Assets.textures.solution_editor.program_panel.instruction_highlight;
-
 				TextureRenderer.Render(@base, basePos);
 				TextureRenderer.Render(type.enabledTexture, istructionPos + new Vector2(1, 2));
-				if (hovered)
-					TextureRenderer.Render(highlight, istructionPos + new Vector2(2, 4));
 
-				if (hovered && InputManager.IsClickPressed(MouseButtonType.LeftClick)) {
-					puzzle.permissionFlags ^= type.permissionCategory;
-                    puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
-				}
+				if (isPersonal && Bounds2.WithSize(basePos, @base.size.ToVector2()).Contains(InputManager.MousePos())) {
+                    Texture highlight = Assets.textures.solution_editor.program_panel.instruction_highlight;
+                    TextureRenderer.Render(highlight, istructionPos + new Vector2(2, 4));
 
+                    if (InputManager.IsClickPressed(MouseButtonType.LeftClick)) {
+                        puzzle.permissionFlags ^= type.permissionCategory;
+                        puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
+                    }
+                }
 				i++;
 			}
 
-			// quintessential rules
-			var rulesCorner = instructionsCorner + new Vector2(0, ruleSize.Y * 3.5f);
-			UIUtils.RenderScreenTitle(QuintessentialUI.Instance.Translate("editor.sections.quint"), rulesCorner - new Vector2(0, ruleSize.Y * .5f), 900, false, true);
-			if (UI.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 0 + 5, ruleSize.Y * 1), QuintessentialUI.Instance.Translate("editor.sections.quint.toggle"), conv.IsModdedPuzzle))
-				conv.ConvertFormat(!conv.IsModdedPuzzle);
-			if (conv.IsModdedPuzzle) {
-				TextureRenderer.RenderText(QuintessentialUI.Instance.Translate("editor.sections.quint.warning"), rulesCorner + new Vector2(5, ruleSize.Y * 1.5f), Assets.fonts.crimson_13, Color.Red, TextAlignment.Left, 1, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), null, int.MaxValue, false, true);
-			}
+            // quintessential rules
+            var cursor = instructionsCorner + new Vector2(0, ruleSize.Y * 3.5f);
+            //UIUtils.RenderScreenTitle(QuintessentialUI.Instance.Translate("editor.sections.quint"), rulesCorner - new Vector2(0, ruleSize.Y * .5f), 900, false, true);
+            //if (UI.DrawCheckbox(rulesCorner + new Vector2(ruleSize.X * 0 + 5, ruleSize.Y * 1), QuintessentialUI.Instance.Translate("editor.sections.quint.toggle"), conv.IsModdedPuzzle)) {
+            //    //conv.ConvertFormat(!conv.IsModdedPuzzle);
+            //}
+            //if (conv.IsModdedPuzzle) {
+            //    TextureRenderer.RenderText(QuintessentialUI.Instance.Translate("editor.sections.quint.warning"), rulesCorner + new Vector2(5, ruleSize.Y * 1.5f), Assets.fonts.crimson_13, Color.Red, TextAlignment.Left, 1, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), null, int.MaxValue, false, true);
+            //}
+            //Vector2 cursor = rulesCorner + new Vector2(0, ruleSize.Y * 2.5f);
 
-			// modded categories, if enabled
-			Vector2 cursor = rulesCorner + new Vector2(0, ruleSize.Y * 2.5f);
-			if (conv.IsModdedPuzzle)
-				foreach (var category in QApi.PuzzleOptions.GroupBy(k => k.SectionName)) {
-					UIUtils.RenderScreenTitle(category.Key, cursor, 900, false, true);
+            // modded categories, if enabled
+            foreach (var category in QApi.PuzzleOptions.GroupBy(k => k.SectionName)) {
+                UIUtils.RenderScreenTitle(category.Key, cursor, 900, false, true);
 
-					var idx = 0;
-					foreach (var option in category) {
-						// ReSharper disable once PossibleLossOfFraction
-						Vector2 selectorPos = cursor + new Vector2(ruleSize.X / 2f * (idx % 8) + 5, ruleSize.Y * (idx / 8 + 1.5f));
-						// TODO: other option types
-						if (option.Type == PuzzleOptionType.Boolean) {
-							bool enabled = conv.CustomPermissions.Contains(option.ID);
-							if (UI.DrawCheckbox(selectorPos, option.Name, enabled)) {
-								if (enabled)
-									conv.CustomPermissions.Remove(option.ID);
-								else
-									conv.CustomPermissions.Add(option.ID);
-                                puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
-                            }
-                            if (option.length == 0) idx += 2;
-                            else idx += option.length;
-                        } else if (option.Type == PuzzleOptionType.Atom) {
-                            var currentChoice = option.AtomIn(puzzle);
-                            if (DrawAtomSelector(selectorPos, option.Name, currentChoice ?? AtomTypes.repeat))
-                                UI.OpenScreen(new AtomSelectScreen(QuintessentialUI.Instance.Translate("editor.select_option") + " " + option.Name, type => {
-                                    option.SetAtomIn(puzzle, type);
-                                    puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
-                                }, currentChoice));
-                            idx++;
+                var idx = 0;
+                foreach (var option in category) {
+                    // ReSharper disable once PossibleLossOfFraction
+                    Vector2 selectorPos = cursor + new Vector2(ruleSize.X / 2f * (idx % 8) + 5, ruleSize.Y * (idx / 8 + 1.5f));
+                    // TODO: other option types
+                    if (option.Type == PuzzleOptionType.Boolean) {
+                        bool enabled = conv.CustomPermissions.Contains(option.ID);
+                        if (UI.DrawCheckbox(selectorPos, option.Name, enabled) && isPersonal) {
+                            if (enabled)
+                                conv.CustomPermissions.Remove(option.ID);
+                            else
+                                conv.CustomPermissions.Add(option.ID);
+                            puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
                         }
+                        if (option.length == 0) idx += 2;
+                        else idx += option.length;
+                    } else if (option.Type == PuzzleOptionType.Atom) {
+                        var currentChoice = option.AtomIn(puzzle);
+                        if (DrawAtomSelector(selectorPos, option.Name, currentChoice ?? AtomTypes.repeat))
+                            UI.OpenScreen(new AtomSelectScreen(QuintessentialUI.Instance.Translate("editor.select_option") + " " + option.Name, type => {
+                                option.SetAtomIn(puzzle, type);
+                                puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
+                            }, currentChoice));
+                        idx++;
                     }
-                    var rows = (int)Math.Ceiling(idx / 8f);
-                    cursor += new Vector2(0, ruleSize.Y * (rows + 2));
                 }
+                var rows = (int)Math.Ceiling(idx / 8f);
+                cursor += new Vector2(0, ruleSize.Y * (rows + 2));
+            }
 
             // expand the scroll area to cover the entire displayed area
             // we're off by one row
@@ -198,14 +197,7 @@ class patch_PuzzleEditorScreen {
                                 Assets.sounds.click_button.method_28(1f);
                             }
                         }
-                    }
-                    Texture renderedTexture = Editor.RenderMoleculeForDisplay(array[j].molecule, i != 0, flag, new Vector2(156f, 146f), false, MaybeHelper.empty).GetTarget().renderedTexture;
-                    Vector2 vector = (renderedTexture.size.ToVector2() / 2).Rounded();
-                    Vector2 vector2 = bounds2.Center.Rounded() - vector + new Vector2(-8f, 0f);
-                    TextureRenderer.Render(renderedTexture, vector2);
 
-
-                    if (puzzle.IsModdedPuzzle) {
                         Vector2 namePos = bounds2.BottomLeft + new Vector2(bounds2.Width / 2f - 7, -17);
                         var isElement = array[j].molecule.GetAtoms().Count == 1;
                         var fallbackPvw = isElement ? ("_(" + array[j].molecule.GetAtoms().Values.First().atomType.elementalName + ")_") : QuintessentialUI.Instance.ModId + ".editor.unnamed_molecule";
@@ -228,6 +220,10 @@ class patch_PuzzleEditorScreen {
                             Assets.sounds.click_button.method_28(1f);
                         }
                     }
+                    Texture renderedTexture = Editor.RenderMoleculeForDisplay(array[j].molecule, i != 0, flag, new Vector2(156f, 146f), false, MaybeHelper.empty).GetTarget().renderedTexture;
+                    Vector2 vector = (renderedTexture.size.ToVector2() / 2).Rounded();
+                    Vector2 vector2 = bounds2.Center.Rounded() - vector + new Vector2(-8f, 0f);
+                    TextureRenderer.Render(renderedTexture, vector2);
                 } else if (isPersonal) {
                     Vector2 vector3 = new(-2f, -3f);
                     TextureRenderer.Render(Assets.textures.puzzle_editor.new_product, bounds2.Min + vector3);

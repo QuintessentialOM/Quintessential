@@ -2,3 +2,9 @@
 
 # CS1591: Missing XML comment for publicly visible type or member
 dotnet_diagnostic.CS1591.severity = silent
+
+# CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+dotnet_diagnostic.CS8632.severity = silent
+
+# CS0649: Field is never assigned to, and will always have its default value null
+dotnet_diagnostic.CS8632.severity = silent

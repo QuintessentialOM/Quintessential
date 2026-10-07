@@ -6,42 +6,301 @@ using MonoMod;
 using MonoMod.Cil;
 using MonoMod.InlineRT;
 using Quintessential;
+using Quintessential.Components;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using static Quintessential.CycleEvent;
 using static Quintessential.PartCycleDelegate;
 
-public class patch_Sim : Sim {
+public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
+
+    #region ComponentSystem
+
+    private Dictionary<Identifier, ISimComponent> Components;
+
+    public void AddComponent(ISimComponent toAdd) {
+        if (Components.ContainsKey(toAdd.Id))
+            throw new Exception("A component with the same " + toAdd.Id + " was already added to this Sim.");
+        toAdd.OnBind(this);
+        Components.Add(toAdd.Id, toAdd);
+    }
+    public void AddComponentSafe(Identifier id, Func<ISimComponent> ctor) {
+        if (Components.ContainsKey(id)) return;
+        var component = ctor();
+        if (id != component.Id) throw new Exception($"Id of created component '{component.Id}' not matching provided '{id}'.");
+        Components.Add(id, component);
+    }
+    public bool TryGetComponent(Identifier toGet, out ISimComponent extension) {
+        return Components.TryGetValue(toGet, out extension);
+    }
+    public ISimComponent GetComponent(Identifier toGet) {
+        if (!TryGetComponent(toGet, out var ext)) {
+            throw new Exception("Identifier was not contained on object.");
+        }
+        return ext;
+    }
+    public bool RemoveComponent(Identifier toRemove) {
+        if (Components.TryGetValue(toRemove, out ISimComponent value))
+            value.OnUnbind(this);
+        return Components.Remove(toRemove);
+    }
+    public bool HasComponent(Identifier id) { return Components.ContainsKey(id); }
+
+    #endregion
+
+    #region ComponentCalls
+    [MonoModIgnore]
+    public Dictionary<patch_Part, patch_PartSimState> simulationDict;
+
+    protected void OnSpawnMolecules(HashSet<HexIndex> occupied) {
+        foreach (var keyValuePair in simulationDict) {
+            keyValuePair.Value.OnSpawnMolecules(occupied);
+        }
+    }
+
+    [MonoModILInject("ResetSimStates")]
+    static void PatchResetSimStates(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodDefinition onCall = MonoModRule.Modder.FindType("PartSimState").Resolve().Methods.First(f => f.Name.Equals("OnReset"));
+
+        cursor.GotoNext(MoveType.After, instr => instr.MatchCall(out var method) && method.Name.Equals("get_Value"));
+        cursor.EmitDup();
+        cursor.EmitCall(onCall);
+    }
+    [MonoModILInject("ResetGlyphs")]
+    static void PatchResetGlyphs(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodDefinition onCall = MonoModRule.Modder.FindType("PartSimState").Resolve().Methods.First(f => f.Name.Equals("OnResetForGlyphs"));
+
+        cursor.GotoNext(MoveType.After, instr => instr.MatchCall(out var method) && method.Name.Equals("get_Value"));
+        cursor.EmitDup();
+        cursor.EmitCall(onCall);
+    }
+    [MonoModILInject("SpawnMolecules")]
+    static void PatchSpawnMolecules(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodDefinition onCall = method.DeclaringType.Methods.First(f => f.Name.Equals("OnSpawnMolecules"));
+
+        cursor.GotoNext(MoveType.After, instr => instr.MatchRet());
+        cursor.Prev.OpCode = OpCodes.Ldarg_0;
+        cursor.EmitLdloc0();
+        cursor.EmitCall(onCall);
+        cursor.EmitRet();
+    }
+    [MonoModILInject("RunCycleInstructions")]
+    static void PatchOnInstruction(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodDefinition onCall = MonoModRule.Modder.FindType("PartSimState").Resolve().Methods.First(f => f.Name.Equals("OnInstruction"));
+
+        cursor.GotoNext(MoveType.After, instr => instr.MatchStloc3());
+        Instruction start = cursor.Prev;
+        cursor.GotoNext(MoveType.After, instr => instr.MatchLdfld("Sim", "simulationDict"));
+        FieldReference simulationDict = cursor.Prev.Operand as FieldReference;
+        MethodReference getItem = cursor.Next.Next.Operand as MethodReference;
+        cursor.Goto(start, MoveType.After);
+        cursor.EmitLdarg0();
+        cursor.EmitLdfld(simulationDict);
+        cursor.EmitLdloc1();
+        cursor.EmitCallvirt(getItem);
+        cursor.EmitLdloc3();
+        cursor.EmitLdloc2();
+        cursor.EmitLdarg1();
+        cursor.EmitCall(onCall);
+    }
+    [MonoModILInject("Grab")]
+    static void PatchGrab(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodDefinition onCall = MonoModRule.Modder.FindType("PartSimState").Resolve().Methods.First(f => f.Name.Equals("OnGrabStateChange"));
+
+        cursor.GotoNext(MoveType.Before, instr => instr.MatchDup());
+        cursor.EmitDup();
+        cursor.GotoNext(MoveType.Before, instr => instr.MatchRet());
+        FieldReference heldMolecule = cursor.Previous.Operand as FieldReference;
+        cursor.EmitDup();
+        cursor.EmitLdfld(heldMolecule);
+        cursor.EmitLdcI4(1);
+        cursor.EmitCall(onCall);
+    }
+    [MonoModILInject("Drop")]
+    static void PatchDrop(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodDefinition onCall = MonoModRule.Modder.FindType("PartSimState").Resolve().Methods.First(f => f.Name.Equals("OnGrabStateChange"));
+
+        cursor.GotoNext(MoveType.Before, instr => instr.MatchRet());
+        FieldReference heldMolecule = cursor.Previous.Operand as FieldReference;
+        cursor.Index = 0;
+        cursor.GotoNext(MoveType.Before, instr => instr.MatchDup());
+        cursor.EmitDup();
+        cursor.EmitDup();
+        cursor.EmitLdfld(heldMolecule);
+        cursor.EmitLdcI4(0);
+        cursor.EmitCall(onCall);
+    }
+
+    #endregion
+
+    #region CustomBonds
+
+    [MonoModILInject("System.Boolean Sim::IsSameMolecule(Molecule,Molecule)")]
+    static void PatchMoleculeComparison(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        cursor.GotoNext(MoveType.After, instr => instr.MatchNewobj(out var ctor) && ctor.DeclaringType.FullName == "Sim/BondMatcher");
+        Instruction start = cursor.Next;
+        int startIndex = cursor.Index;
+        MethodReference getCurrent = null;
+        cursor.GotoNext(MoveType.After, instr => instr.MatchCallvirt(out getCurrent));
+        cursor.GotoNext(MoveType.Before, instr => instr.OpCode == OpCodes.Leave_S || instr.OpCode == OpCodes.Leave);
+        Instruction continueTarget = cursor.Next.Next;
+        cursor.Index--;
+        int length = cursor.Index - startIndex;
+        cursor.Goto(start);
+        cursor.RemoveRange(length);
+
+        cursor.Prev.OpCode = OpCodes.Nop;
+        cursor.Prev.Operand = null;
+
+        cursor.EmitLdloc(4);
+        cursor.EmitCall(getCurrent);
+        cursor.EmitLdarg1();
+        MethodDefinition compare = method.DeclaringType.Methods.First(f => f.Name.Equals("IsSameMoleculeBond"));
+        cursor.EmitCall(compare);
+        cursor.Emit(OpCodes.Brtrue_S, continueTarget);
+        cursor.EmitLdcI4(0);
+
+        method.DeclaringType.NestedTypes.Remove(method.Body.Variables[5].VariableType.Resolve());
+        method.Body.Variables.Remove(method.Body.Variables[5]);
+    }
+    public static bool IsSameMoleculeBond(patch_Bond other, Molecule molecule) {
+        return molecule.GetBonds().Any(bond => {
+            return ((bond.hexPos1 == other.hexPos1 && bond.hexPos2 == other.hexPos2) || (bond.hexPos1 == other.hexPos2 && bond.hexPos2 == other.hexPos1)) &&
+                other.GetBondTypes().Count == ((patch_Bond)(object)bond).GetBondTypes().Count &&
+                other.GetBondTypes().All(bondType => ((patch_Bond)(object)bond).GetBondTypes().Contains(bondType));
+        });
+    }
+
+
+
+    [MonoModIgnore]
+    private extern void PlaySound(Sound sound);
+    private void HandleCycleBonder(Part part, PartSimState partSimState) {
+        foreach (var bonder in part.GetType().bonders) {
+            var bonderInfo = (patch_BonderInfo)(object)bonder;
+            if (GetAtomReference(part, bonderInfo.hexPos1, false, out AtomReference atomReference1) &&
+                GetAtomReference(part, bonderInfo.hexPos2, false, out AtomReference atomReference2) &&
+                (bonderInfo.uniqueAtoms.Count == 0 || (bonderInfo.uniqueAtoms.Contains(atomReference1.atomType) && bonderInfo.uniqueAtoms.Contains(atomReference2.atomType))))
+            {
+                HexIndex pos1 = part.InFrontBy(bonderInfo.hexPos1);
+                HexIndex pos2 = part.InFrontBy(bonderInfo.hexPos2);
+                if (bonderInfo.isUnbond) {
+                    if (atomReference1.molecule == atomReference2.molecule) {
+                        patch_Molecule moleculeP = (patch_Molecule)(object)atomReference1.molecule;
+                        Maybe<Bond> targeted = moleculeP.GetBondAt(pos1, pos2);
+                        if (targeted.HasValue()) {
+                            patch_Bond bond = (patch_Bond)(object)targeted.GetValue();
+                            bool wasRemoved = false;
+                            List<BondType> removedTypes = [];
+                            foreach (var bondType in bonderInfo.bondTypes) {
+                                if (bond.GetBondTypes().Contains(bondType)) {
+                                    wasRemoved = true;
+                                    moleculeP.RemoveBond(bondType, pos1, pos2);
+                                    removedTypes.Add(bondType);
+                                }
+                            }
+                            if (wasRemoved) {
+                                Vector2 center = Utils.InterpolateVect(HexGrid.standardGrid.ToPixelCoords(pos1), HexGrid.standardGrid.ToPixelCoords(pos2), 0.5f);
+                                foreach (var type in removedTypes) {
+                                    Texture[] anim = type.unbondAnim;
+                                    solutionEditor.field_3936.Add(new GlyphEffect(solutionEditor, EffectTimescaleType.RealTime, center, anim, 75f, new Vector2(1.5f, -5f), HexGrid.standardGrid.ToPixelCoords(pos2 - pos1).Angle()));
+                                    PlaySound(Assets.sounds.glyph_unbonding);
+                                    partSimState.wasActivated = true;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Molecule molecule1 = atomReference1.molecule;
+                    if (atomReference1.molecule != atomReference2.molecule) {
+                        molecules.Remove(atomReference1.molecule);
+                        molecules.Remove(atomReference2.molecule);
+                        molecule1 = molecule1.MergeWith(atomReference2.molecule);
+                        molecules.Add(molecule1);
+                    }
+                    foreach (var bondType in bonderInfo.bondTypes) {
+                        BondTexture bondTexture = bondType.bondTexture;
+                        BondEffect bondEffect = new(solutionEditor, bondTexture.bondAnim, 60f, bondTexture.textureOffset);
+                        if (((patch_Molecule)(object)molecule1).AddBond(bondType, pos1, pos2, bondEffect)) {
+
+                            Vector2 center = Utils.InterpolateVect(HexGrid.standardGrid.ToPixelCoords(pos1), HexGrid.standardGrid.ToPixelCoords(pos2), 0.5f);
+                            solutionEditor.field_3936.Add(new GlyphEffect(solutionEditor, EffectTimescaleType.RealTime, center, bondTexture.glyphAnim, 30f, Vector2.Zero, HexGrid.standardGrid.ToPixelCoords(pos2 - pos1).Angle()));
+                            PlaySound(bondTexture.bondSound);
+                            partSimState.wasActivated = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    [MonoModILInject("RunCycleGlyphs")]
+    static void PatchBonders(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+
+        FieldReference getPart = null;
+        MethodReference hadleBonders = method.DeclaringType.Methods.First(f => f.Name.Equals("HandleCycleBonder"));
+
+        if (!cursor.TryGotoNext(MoveType.After,
+            instr => instr.MatchLdloc(6),
+            instr => instr.MatchLdfld(out getPart) && getPart.Name == "part",
+            instr => instr.MatchCallvirt(out MethodReference m) && m.Name == "GetType",
+            instr => instr.MatchLdfld(out FieldReference f) && f.Name == "bonders",
+            instr => instr.MatchLdlen(),
+            instr => instr.OpCode == OpCodes.Brfalse || instr.OpCode == OpCodes.Brfalse_S
+        )) {
+            Console.WriteLine("Unable to patch bonder behaviour (no bonder check)");
+            throw new Exception();
+        }
+        Instruction start = cursor.Prev;
+
+        cursor.Goto(start.Operand as Instruction);
+        int last = cursor.Index;
+        cursor.Goto(start, MoveType.After);
+        cursor.RemoveRange(last - cursor.Index);
+
+        cursor.EmitLdarg0();
+        cursor.EmitLdloc(6);
+        cursor.EmitLdfld(getPart);
+        cursor.EmitLdloc(7);
+        cursor.EmitCall(hadleBonders);
+
+        method.Body.Variables.Remove(method.Body.Variables[95]);
+    }
+
+
+    [MonoModILInject("GetCompletedRepeats")]
+    static void PatchCompletedRepeatsAddBond(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodReference newAdd = MonoModRule.Modder.FindType("Molecule").Resolve().Methods.First(f => f.Name.Equals("SetBond"));
+        while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt(out var m) && m.FullName == "System.Boolean Molecule::AddBond(BondTypeEnum,HexIndex,HexIndex)")) {
+            cursor.Prev.Operand = newAdd;
+            cursor.Remove(); // Remove a Pop instruction since SetBond doesn't return a boolean.
+            cursor.GotoPrev(MoveType.Before, instr => instr.MatchLdfld("Bond", "type"));
+            cursor.Remove();
+        }
+    }
+    #endregion
+
+    #region RecipeSystem
 
     public RecipeInputDictionary<HexIndex, IRecipeInput> RecipeInputs;
     public RecipeOutputDictionary<HexIndex, IRecipeOutput> RecipeOutputs;
     public List<Part> HoldingParts;
-
-    private void InitRecipeDictionaries() {
-        RecipeInputs = [];
-        RecipeOutputs = [];
-    }
 
     public bool GetAtomReference(Part part, HexIndex offset, bool allowPartAttachedAtoms, out AtomReference atomReference) {
         return GetAtomReference(part, offset, HoldingParts, allowPartAttachedAtoms).GetOrDefault(out atomReference);
     }
     public bool HasAtomAt(Part part, HexIndex offset, bool allowPartAttachedAtoms) {
         return GetAtomReference(part, offset, HoldingParts, allowPartAttachedAtoms).HasValue();
-    }
-
-    [MonoModILInject(".ctor")]
-    static void PatchCtor(MethodDefinition method, CustomAttribute attribute) {
-
-        MonoModRule.Modder.Log("Patching Sim init.");
-        if (!method.HasBody) {
-            throw new Exception("Unable to patch Sim init. (no body)");
-        }
-        ILCursor cursor = new(new ILContext(method));
-        MethodReference init = MonoModRule.Modder.FindType("Sim").Resolve().Methods.First(f => f.Name.Equals("InitRecipeDictionaries"));
-        cursor.EmitLdarg0();
-        cursor.EmitCall(init);
     }
 
     [MonoModILInject("RunCycleGlyphs")]
@@ -867,6 +1126,10 @@ public class patch_Sim : Sim {
         cursor.EmitLdfld(wasActivated);
     }
 
+    #endregion
+
+    #region PartCycleDelegates
+
     public void RunPartCycleDelegate(ReferredPart referredPart, PartSimState simState, bool isCycleStart, GlyphRecipe recipe, PartCycleExecutionType executionType) {
         PartCycleDelegate cycleDelegate = ((patch_PartType)(object)referredPart.part.GetType()).CycleDelegate;
         if (cycleDelegate != null && cycleDelegate.ExecutionType.HasFlag(executionType)) {
@@ -929,6 +1192,9 @@ public class patch_Sim : Sim {
         cursor.Next.Operand = newTarget;
     }
 
+    #endregion
+
+    #region CycleEvents
 
     public static List<CycleEvent> CycleEvents = [];
     public void RunCycleEvents(CycleEventExecutionType executionType) {
@@ -937,6 +1203,30 @@ public class patch_Sim : Sim {
                 cycleDelegate.Delegate.Invoke(this, executionType);
             }
         }
+        foreach (var simState in simulationDict) {
+            ((patch_PartSimState)(object)simState.Value).OnCycleCallback(this, executionType);
+        }
+        foreach (var molecule in molecules) {
+            ((patch_Molecule)(object)molecule).OnCycleCallback(this, executionType);
+        }
+        foreach (var component in Components) {
+            component.Value.OnCycleCallback(this, executionType);
+        }
+        //if (QuintessentialDataSettings.Puzzle == null) {
+
+        //    if (executionType == CycleEventExecutionType.First && GetCycle() == 0) {
+        //        QuintessentialDataSettings.Puzzle = Codecs.PUZZLE.Encode(JsonCodecMap.Instance, solutionEditor.GetSolution().GetPuzzle());
+        //        Logger.LogNoTime(QuintessentialDataSettings.Puzzle.ToString());
+        //    }
+        //    if (executionType == CycleEventExecutionType.First && GetCycle() == 0) {
+        //        QuintessentialDataSettings.Solution = Codecs.SOLUTION.Encode(JsonCodecMap.Instance, solutionEditor.GetSolution());
+        //        Logger.LogNoTime(QuintessentialDataSettings.Solution.ToString());
+        //    }
+        //}
+        //if (executionType == CycleEventExecutionType.First && GetCycle() < solutionEditor.GetSolution().parts.Count) {
+        //    var json = patch_Part.PART.Encode(JsonCodecMap.Instance, solutionEditor.GetSolution().parts[GetCycle()]);
+        //    Logger.LogNoTime(json.ToString());
+        //}
     }
 
     [MonoModILInject("BeginCycle")]
@@ -1000,4 +1290,29 @@ public class patch_Sim : Sim {
         cursor.EmitLdcI4(64); // CycleEventExecutionType - 64
         cursor.EmitCall(to);
     }
+
+    #endregion
+
+    #region Ctor
+
+    private void InitObjectsInCtor() {
+        RecipeInputs = [];
+        RecipeOutputs = [];
+        Components = [];
+    }
+
+    [MonoModILInject(".ctor")]
+    static void PatchCtor(MethodDefinition method, CustomAttribute attribute) {
+
+        MonoModRule.Modder.Log("Patching Sim init.");
+        if (!method.HasBody) {
+            throw new Exception("Unable to patch Sim init. (no body)");
+        }
+        ILCursor cursor = new(new ILContext(method));
+        MethodReference init = method.DeclaringType.Methods.First(f => f.Name.Equals("InitObjectsInCtor"));
+        cursor.EmitLdarg0();
+        cursor.EmitCall(init);
+    }
+
+    #endregion
 }

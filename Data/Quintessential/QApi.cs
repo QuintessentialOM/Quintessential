@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Quintessential.Components;
+using System;
 
 namespace Quintessential;
 public static class QApi {
@@ -44,6 +45,43 @@ public static class QApi {
     /// <param name="cycleEvent">The event to be called.</param>
     public static void AddCycleEvent(CycleEvent cycleEvent) {
         patch_Sim.CycleEvents.Add(cycleEvent);
+    }
+
+    public static void AddBondType(this QuintessentialMod mod, BondType type, bool isUnbondable = true) {
+        BondTypes.RegisterBondType(type, isUnbondable);
+    }
+
+
+    public static void AddComponentToAtom(Identifier atomTypeID, Func<patch_Atom, IAtomComponent> componentCtor) {
+        if(!patch_Atom.CtorsByID.TryGetValue(atomTypeID, out var ctors)) {
+            ctors = [];
+            patch_Atom.CtorsByID[atomTypeID] = ctors;
+        }
+        ctors.Add(componentCtor);
+    }
+    public static void AddComponentToAtomOnReplace(Identifier atomTypeID, Func<patch_Atom, AtomType, IAtomComponent> componentCtor) {
+        if (!patch_Atom.CtorsByIDAfterReplace.TryGetValue(atomTypeID, out var ctors)) {
+            ctors = [];
+            patch_Atom.CtorsByIDAfterReplace[atomTypeID] = ctors;
+        }
+        ctors.Add(componentCtor);
+    }
+    public static void AddComponentToBond(Identifier[] bondTypeIDs, Func<patch_Bond, IBondComponent> componentCtor) {
+        patch_Bond.CtorsByID.Add(new(bondTypeIDs, componentCtor));
+    }
+    public static void AddComponentToPart(Identifier partTypeID, Func<patch_Part, IPartComponent> componentCtor) {
+        if (!patch_Part.CtorsByID.TryGetValue(partTypeID, out var ctors)) {
+            ctors = [];
+            patch_Part.CtorsByID[partTypeID] = ctors;
+        }
+        ctors.Add(componentCtor);
+    }
+    public static void AddComponentToSimState(Identifier partTypeID, Func<patch_PartSimState, Part, Sim?, ISimStateComponent> componentCtor) {
+        if (!patch_PartSimState.CtorsByID.TryGetValue(partTypeID, out var ctors)) {
+            ctors = [];
+            patch_PartSimState.CtorsByID[partTypeID] = ctors;
+        }
+        ctors.Add(componentCtor);
     }
 
 

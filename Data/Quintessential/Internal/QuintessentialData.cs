@@ -1,13 +1,20 @@
 ﻿using Quintessential.Serialization;
+//using Quintessential.Settings;
+//using System;
+//using System.IO;
+//using System.Text.Json.Nodes;
+//using YamlDotNet.Serialization;
 
 namespace Quintessential.Internal;
 
 internal class QuintessentialData : QuintessentialMod, IDataMod {
     public override string ModId => "quintessential_data";
     public static QuintessentialData Instance { get; }
+    //public override Type SettingsType => typeof(QuintessentialDataSettings);
 
     public override void Load() {
         DataSerializer.AssignConverter(AtomTagJsonConverter.Get());
+        DataSerializer.AssignConverter(PartTagJsonConverter.Get());
     }
 
     public override void LoadContent() {
@@ -148,3 +155,45 @@ internal class QuintessentialData : QuintessentialMod, IDataMod {
     public override void PostLoad() { }
     public override void Unload() { }
 }
+
+//public class QuintessentialDataSettings {
+
+//    [SettingsLabelKey("quintessential_data.settings.run_test")]
+//    [YamlIgnore]
+//    public SettingsButton DumpAtomSprites = OpenSecretLevel;
+
+//    public static JsonNode Solution;
+//    public static JsonNode Puzzle;
+//    public static Puzzle Pu;
+//    public static Solution Solu;
+//    static bool WasInit = false;
+//    private static void OpenSecretLevel() {
+//        //if (Solution == null || Puzzle == null) return;
+
+//        string puzzlePath = Path.Combine(QuintessentialLoader.PathModSaves, "Quintessential", "test.puzzle.json");
+//        string solutionPath = Path.Combine(QuintessentialLoader.PathModSaves, "Quintessential", "test.solution.json");
+//        //File.WriteAllText(solutionPath, Solution.ToString());
+//        //File.WriteAllText(puzzlePath, Puzzle.ToString());
+
+
+
+//        if (!WasInit) {
+//            WasInit = true;
+//            Pu = Codecs.PUZZLE.Decode(JsonCodecMap.Instance, JsonNode.Parse(File.ReadAllText(puzzlePath)));
+
+//            Array.Resize(ref Puzzles.campaignPuzzles, Puzzles.campaignPuzzles.Length + 1);
+//            Puzzles.campaignPuzzles[^1] = Pu;
+
+//            Solu = Codecs.SOLUTION.Decode(JsonCodecMap.Instance, JsonNode.Parse(File.ReadAllText(solutionPath)));
+//            GameLogic.instance.field_2461.Add(Solu);
+//        }
+
+//        //Logger.LogNoTime(p.puzzleId);
+//        //Logger.LogNoTime(GameLogic.instance.field_2461[^1].GetPuzzle().puzzleId);
+//        //p.puzzleId = "TestClone";
+//        //GameLogic.instance.field_2461[^1].name = "Loaded Puzzle";
+//        //((patch_Solution)(object)GameLogic.instance.field_2461[^1]).TestSetPuzzle(p);
+//        GameLogic.instance.PopScreen();
+//        GameLogic.instance.PushScreen(new PuzzleInfoScreen(Pu, Assets.musicTracks.field_4507, Assets.sounds.fanfare_solving4, MaybeHelper.empty), MaybeHelper.empty, Transitions.raise);
+//    }
+//}

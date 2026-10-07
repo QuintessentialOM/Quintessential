@@ -12,7 +12,7 @@ class patch_PartType{
 	// When true, this part type can't be cloned or removed from the board, Akin to a conduit.
 	public bool IsForced = false;
 
-    [MonoModInternal]
+    [MonoModInternalF]
     [Obsolete("This shouldn't be used. Use `Id` instead.")]
     public string id;
 
