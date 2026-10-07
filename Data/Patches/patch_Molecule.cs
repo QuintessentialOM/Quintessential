@@ -537,7 +537,7 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
 
         if (!thisBond.HasValue()) {
             Bond bond = (Bond)(object)new patch_Bond(type, pos1, pos2);
-            effects.ApplyIfPresent(bond.effects.Add);
+            effects.OnValue(bond.effects.Add);
             bonds.Add(bond);
             OnAddSingleBond((patch_Bond)(object)bond);
             return true;
@@ -546,7 +546,7 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
         if (!bond2.GetBondTypes().All( bondType => bondType.CanOverlapBond(type) )) return false;
         if (bond2.AddTypeSafe(type)) {
             // TODO add on add bondType Callback!
-            effects.ApplyIfPresent(bond2.effects.Add);
+            effects.OnValue(bond2.effects.Add);
             return true;
         }
         return false;

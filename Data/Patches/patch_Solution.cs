@@ -64,11 +64,11 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
         foreach (var component in Components)
             component.Value.OnPlacementCheck(ref origReturnVal, part, otherInputOutputIndex, offset, rotationOffset, ref errorMessage);
     }
-    internal void OnCreateSnapshot(ref PartsSnapshot created) {
+    internal void OnCreateSnapshot(ref Snapshot created) {
         foreach (var component in Components)
             component.Value.OnCreateSnapshot(ref created);
     }
-    internal void OnRestoreSnapshot(PartsSnapshot restored) {
+    internal void OnRestoreSnapshot(Snapshot restored) {
         foreach (var component in Components)
             component.Value.OnRestoreSnapshot(restored);
     }
@@ -97,7 +97,7 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
             cursor.TryGotoNext(MoveType.After, instr => instr.MatchRet());
         }
     }
-    [MonoModILInject("CreatePartsSnapshot")]
+    [MonoModILInject("CreateSnapshot")]
     static void PatchSaveSnapshot(MethodDefinition method, CustomAttribute attribute) {
         ILCursor cursor = new(new ILContext(method));
         MethodReference onCall = method.DeclaringType.Methods.First(f => f.Name.Equals("OnCreateSnapshot"));
@@ -110,8 +110,8 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
         cursor.EmitCall(onCall);
         cursor.EmitLdloc(cloned);
     }
-    [MonoModILInject("RestorePartsSnapshot")]
-    static void RestorePartsSnapshot(MethodDefinition method, CustomAttribute attribute) {
+    [MonoModILInject("RestoreSnapshot")]
+    static void RestoreSnapshot(MethodDefinition method, CustomAttribute attribute) {
         ILCursor cursor = new(new ILContext(method));
         MethodReference onCall = method.DeclaringType.Methods.First(f => f.Name.Equals("OnRestoreSnapshot"));
         cursor.EmitLdarg0();
@@ -134,7 +134,7 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
     #region Serialization
 
     [MonoModIgnore]
-    private extern PartsSnapshot CreatePartsSnapshot();
+    private extern Snapshot CreateSnapshot();
     [MonoModIgnore]
     private extern void OrderProgrammables();
     private static readonly Codec<Dictionary<Identifier, ISolutionComponent>> componentsCodec = CatalogueCodec<Identifier, ISolutionComponent>.Create(
@@ -168,7 +168,7 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
                     ((patch_Solution)(object)solution).RemoveComponent(component.Key);
                 ((patch_Solution)(object)solution).AddComponent(component.Value);
             }
-            solution.undoRedoBuffer.ClearAndAdd(((patch_Solution)(object)solution).CreatePartsSnapshot());
+            solution.undoRedoBuffer.ClearAndAdd(((patch_Solution)(object)solution).CreateSnapshot());
             ((patch_Solution)(object)solution).OrderProgrammables();
             return solution;
         }
@@ -215,12 +215,13 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
             return orig;
         }
         if (Path.GetExtension(path) == ".json" || Path.GetExtension(path) == ".jsonc") {
-            string file = File.ReadAllText(path);
-            if (Path.GetExtension(path) == ".jsonc") file = DataSerializer.JsoncToJson(file);
-
-            var orig = SOLUTION.Decode(JsonCodecMap.Instance, JsonNode.Parse(file));
-            ((patch_Solution)(object)orig).ExtraFileExtension = Path.GetExtension(path);
-            return orig;
+            try {
+                string file = File.ReadAllText(path);
+                if (Path.GetExtension(path) == ".jsonc") file = DataSerializer.JsoncToJson(file);
+                var orig = SOLUTION.Decode(JsonCodecMap.Instance, JsonNode.Parse(file));
+                ((patch_Solution)(object)orig).ExtraFileExtension = Path.GetExtension(path);
+                return orig;
+            } catch { return MaybeHelper.empty; }
         }
         throw new Exception("Invalid extra file extension for solution file, failed to load. " + Path.GetExtension(path));
     }
