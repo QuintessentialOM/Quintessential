@@ -19,7 +19,7 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
 
     public void AddComponent(IMoleculeComponent toAdd) {
         if (!RegisteredComponents.ContainsKey(toAdd.Id))
-            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
+            throw new Exception("Attempted to add a component that wasn't Registered.\nTry to register the component type with RegisterComponent() first.");
         if (Components.ContainsKey(toAdd.Id))
             throw new Exception("A component with the same " + toAdd.Id + " was already added to this Molecule.");
         toAdd.OnBind(this);
@@ -27,7 +27,7 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
     }
     public void AddComponentSafe(Identifier id, Func<IMoleculeComponent> ctor) {
         if (!RegisteredComponents.ContainsKey(id))
-            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
+            throw new Exception("Attempted to add a component that wasn't Registered.\nTry to register the component type with RegisterComponent() first.");
         if (Components.ContainsKey(id)) return;
         var component = ctor();
         if (id != component.Id) throw new Exception($"Id of created component '{component.Id}' not matching provided '{id}'.");

@@ -5,7 +5,7 @@ using System;
 class patch_AtomType {
     [Obsolete("This shouldn't be used. Use `Id` instead.")]
     public byte byteId;
-    [Obsolete("This field is never used it's only here for legacy compat reasons.")]
+    [Obsolete("This field is never used, it's only here for legacy compat reasons.")]
     public bool isQuicksilver;
     [Obsolete("This shouldn't be used. Use the `om:$successor_proj/purif` tags instead.")]
     public Maybe<AtomType> successorMetal;

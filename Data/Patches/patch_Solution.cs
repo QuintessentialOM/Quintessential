@@ -21,7 +21,7 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
 
     public void AddComponent(ISolutionComponent toAdd) {
         if (!RegisteredComponents.ContainsKey(toAdd.Id))
-            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
+            throw new Exception("Attempted to add a component that wasn't Registered.\nTry to register the component type with RegisterComponent() first.");
         if (Components.ContainsKey(toAdd.Id))
             throw new Exception("A component with the same " + toAdd.Id + " was already added to this Solution.");
         toAdd.OnBind(this);
@@ -29,7 +29,7 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
     }
     public void AddComponentSafe(Identifier id, Func<ISolutionComponent> ctor) {
         if (!RegisteredComponents.ContainsKey(id))
-            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
+            throw new Exception("Attempted to add a component that wasn't Registered.\nTry to register the component type with RegisterComponent() first.");
         if (Components.ContainsKey(id)) return;
         var component = ctor();
         if (id != component.Id) throw new Exception($"Id of created component '{component.Id}' not matching provided '{id}'.");
