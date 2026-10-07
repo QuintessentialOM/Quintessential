@@ -6,8 +6,8 @@ namespace Quintessential.Components;
 public interface IPuzzleComponent : IComponent<patch_Puzzle> { }
 public interface ISolutionComponent : IComponent<patch_Solution> {
     public virtual void OnPlacementCheck(ref bool orig, Part part, HexIndex otherInputOutputIndex, HexIndex offset, HexRotation rotationOffset, ref string? errorMessage) { }
-    public virtual void OnCreateSnapshot(ref PartsSnapshot created) { }
-    public virtual void OnRestoreSnapshot(PartsSnapshot restored) { }
+    public virtual void OnCreateSnapshot(ref Snapshot created) { }
+    public virtual void OnRestoreSnapshot(Snapshot restored) { }
     public virtual void OnMakeCopyOfSolution(ref Solution copy) { } // Should've been created with serialize-deserialize no need for change
 }
 public interface IPartComponent : IComponent<patch_Part> {
