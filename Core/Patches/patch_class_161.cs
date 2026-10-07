@@ -2,10 +2,10 @@
 using MonoMod;
 using MonoMod.Cil;
 
-[MonoModPatch("class_161")]
-internal class patch_class_161 {
+[MonoModPatch("OSInfo")]
+internal class patch_OSInfo {
 
-    [MonoModILInject("method_402")]
+    [MonoModILInject("GetSavePath")]
     private static void PatchSetSaveFolder(MethodDefinition method, CustomAttribute attribute) {
         ILCursor cursor = new(new ILContext(method));
 

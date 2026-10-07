@@ -55,9 +55,9 @@ class ChangeKeybindScreen : IScreen {
 		if(ctrl)
 			preview = "Control + " + preview;
 		if(!string.IsNullOrWhiteSpace(preview))
-			UI.DrawText(preview, InputManager.screenSize / 2, UI.Title, class_181.field_1718, TextAlignment.Center);
+			UI.DrawText(preview, InputManager.screenSize / 2, UI.Title, UIConsts.lightTextColor, TextAlignment.Center);
 		// "press esc to CANCEL"
-		Bounds2 labelBounds = UI.DrawText(QuintessentialCore.Instance.Translate("display_text.escape_prompt") + " ", (InputManager.screenSize / 2) + new Vector2(-40, -170), UI.SubTitle, class_181.field_1718, TextAlignment.Center);
+		Bounds2 labelBounds = UI.DrawText(QuintessentialCore.Instance.Translate("display_text.escape_prompt") + " ", (InputManager.screenSize / 2) + new Vector2(-40, -170), UI.SubTitle, UIConsts.lightTextColor, TextAlignment.Center);
         if (InputManager.IsKeyPressed(SDL.SDLKey.SDLK_ESCAPE) || UI.DrawAndCheckSimpleButton(QuintessentialCore.Instance.Translate("display_text.cancel_keybind"), labelBounds.BottomRight + new Vector2(10, -7), new Vector2(70, (int)labelBounds.Height + 10)))
 			UI.HandleCloseButton();
 		// handle keypresses

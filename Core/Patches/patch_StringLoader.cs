@@ -4,7 +4,7 @@ using System;
 
 #pragma warning disable CS0626 // Method, operator, or accessor is marked external and has no attributes on it
 
-[MonoModPatch("class_103")]
+[MonoModPatch("StringLoader")]
 class patch_StringLoader {
 
 	// string loader patches

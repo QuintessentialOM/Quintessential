@@ -182,10 +182,10 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
             ChangeFileExtension(".json");
         } else if (ExtraFileExtension == ".json") {
             OrderProgrammables();
-            class_269.field_2104.method_1356(GetFilePath(), SOLUTION.Encode(JsonCodecMap.Instance, (Solution)(object)this).ToJsonString());
+            PlatformBridge.fileWriter.method_1356(GetFilePath(), SOLUTION.Encode(JsonCodecMap.Instance, (Solution)(object)this).ToJsonString());
         } else if (ExtraFileExtension == ".jsonc") { // Human readable version of json
             OrderProgrammables();
-            class_269.field_2104.method_1356(GetFilePath(), SOLUTION.Encode(JsonCodecMap.Instance, (Solution)(object)this).ToString());
+            PlatformBridge.fileWriter.method_1356(GetFilePath(), SOLUTION.Encode(JsonCodecMap.Instance, (Solution)(object)this).ToString());
         } else
             throw new Exception("Invalid extra file extension '" + ExtraFileExtension + "' for solution from: " + GetFilePath());
     }
@@ -205,7 +205,7 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
 
     [MonoModReplace]
     public string GetFilePath() {
-        return Path.Combine(class_269.field_2102, ((Solution)(object)this).nameOnDisk + Solution.fileExtension + ExtraFileExtension);
+        return Path.Combine(PlatformBridge.savePath, ((Solution)(object)this).nameOnDisk + Solution.fileExtension + ExtraFileExtension);
     }
 
     [MonoModIgnore] public static extern Maybe<Solution> orig_GetSolutionAt(string path);
