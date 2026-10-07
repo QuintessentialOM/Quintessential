@@ -8,6 +8,7 @@ public class patch_SolutionEditorScreen {
         Vector2 screenSize = InputManager.screenSize;
         Index2 index = (InputManager.screenSize * ((SolutionEditorScreen)(object)this).boardScale).FlooredToInt();
         class_193 class_ = class_268.field_2097.Peek();
+        TextureRenderer.CompleteRender();
         // § Added:
         class_268.field_2097.Push(new class_193(class_.field_1787, class_.field_1788, class_.field_1789, class_.field_1790
             * Matrix4.GetScale(new Vector3(1f / ((SolutionEditorScreen)(object)this).boardScale, 1f / ((SolutionEditorScreen)(object)this).boardScale, 1f))));
