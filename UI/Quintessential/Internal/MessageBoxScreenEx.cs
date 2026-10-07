@@ -82,7 +82,7 @@ internal sealed class MessageBoxScreenEx : IScreen{
 			if(buttonDrawingLogic.RenderAndCheckIfPressed(textValid, true) || pressedEnter){
 				onConfirm();
 				UI.CloseScreen();
-				Assets.sounds.click_button.method_28(1f);
+				Assets.sounds.click_button.PlaySound(1f);
 			}
 		}
 
@@ -91,14 +91,14 @@ internal sealed class MessageBoxScreenEx : IScreen{
 		if(buttonDrawingLogic.RenderAndCheckIfPressed(true, true) || InputManager.IsKeyPressed(SDL.SDLKey.SDLK_ESCAPE)){
 			onCancel();
 			UI.CloseScreen();
-			Assets.sounds.click_button.method_28(1f);
+			Assets.sounds.click_button.PlaySound(1f);
 		}
 
 		if(bounds.Contains(InputManager.MousePos()) || !InputManager.IsClickPressed(MouseButtonType.LeftClick))
 			return;
 		onCancel();
 		UI.CloseScreen();
-		Assets.sounds.click_button.method_28(1f);
+		Assets.sounds.click_button.PlaySound(1f);
 	}
 
 	public void OnOpenOrClose(bool isOpening){}

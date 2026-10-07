@@ -62,7 +62,7 @@ public class AtomSelectScreen : IScreen{
 		// are we clicking?
 		if(InputManager.IsClickHeld(MouseButtonType.LeftClick)) {
 			// make a sound
-			Assets.sounds.click_button.method_28(1);
+			Assets.sounds.click_button.PlaySound(1);
 			return true;
 		}
 		return false;

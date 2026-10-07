@@ -175,7 +175,7 @@ class patch_PuzzleEditorScreen {
                                 screenOpened = true;
 
                                 GameLogic.instance.PushScreen(moleculeEditorScreen);
-                                Assets.sounds.click_button.method_28(1f);
+                                Assets.sounds.click_button.PlaySound(1f);
                             }
                         }
                         TextureRenderer.Render(Assets.textures.puzzle_editor.product_close, bounds3.Min);
@@ -194,7 +194,7 @@ class patch_PuzzleEditorScreen {
                                     }
                                     puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
                                 }, () => { }));
-                                Assets.sounds.click_button.method_28(1f);
+                                Assets.sounds.click_button.PlaySound(1f);
                             }
                         }
 
@@ -217,7 +217,7 @@ class patch_PuzzleEditorScreen {
                                     }
                                 )
                             );
-                            Assets.sounds.click_button.method_28(1f);
+                            Assets.sounds.click_button.PlaySound(1f);
                         }
                     }
                     Texture renderedTexture = Editor.RenderMoleculeForDisplay(array[j].molecule, i != 0, flag, new Vector2(156f, 146f), false, MaybeHelper.empty).GetTarget().renderedTexture;
@@ -244,7 +244,7 @@ class patch_PuzzleEditorScreen {
                             ((patch_MoleculeEditorScreen)(object)moleculeEditorScreen).editing = puzzle;
 
 							GameLogic.instance.PushScreen(moleculeEditorScreen);
-                            Assets.sounds.click_button.method_28(1f);
+                            Assets.sounds.click_button.PlaySound(1f);
                         }
                     }
                 }
@@ -285,7 +285,7 @@ class patch_PuzzleEditorScreen {
 			var tex = Assets.textures.molecule_editor.grid_circle_hover;
 			TextureRenderer.Render(tex, Color.White, outlinePos, tex.size.ToVector2() * 0.7f);
 			if(InputManager.IsClickPressed(MouseButtonType.LeftClick)){
-				Assets.sounds.click_button.method_28(1);
+				Assets.sounds.click_button.PlaySound(1);
 				return true;
 			}
 		}
