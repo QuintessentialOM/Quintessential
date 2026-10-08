@@ -2,21 +2,32 @@
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Quintessential.Serialization;
 
+/// <summary>
+/// A class to serialize objects into data files. As of now it<br/>
+/// supports writing and reading <c>json</c>, <c>jsonc</c>, and <c>yaml</c> files.
+/// </summary>
 public static class DataSerializer {
 
     private static bool MultilineFormat;
+    internal static bool WasInit = false;
 
+    private static readonly JsonSerializerOptions initOptions = new() {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        AllowTrailingCommas = true,
+    };
     private static readonly JsonSerializerOptions compactOptions = new() {
-        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         AllowTrailingCommas = true,
         WriteIndented = false,
     };
     private static readonly JsonSerializerOptions multilineOptions = new() {
-        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         AllowTrailingCommas = true,
         WriteIndented = true,
@@ -25,78 +36,99 @@ public static class DataSerializer {
     public static void SetMultilineFormat(bool multilineFormat) {
         MultilineFormat = multilineFormat;
     }
+    public static void AssignConverter(JsonConverter converter) {
+        compactOptions.Converters.Add(converter);
+        multilineOptions.Converters.Add(converter);
+    }
+
     public static object Deserialize(string filePath, Type type) {
-        string filename = Path.GetFileName(filePath);
+        try {
+            string filename = Path.GetFileName(filePath);
 
-        if (filename.EndsWith(".yaml")) {
-            using StreamReader reader = new(filePath);
-            return YamlHelper.Deserializer.Deserialize(reader, type);
+            if (filename.EndsWith(".yaml")) {
+                using StreamReader reader = new(filePath);
+                return YamlHelper.Deserializer.Deserialize(reader, type);
+            }
+
+            if (filename.EndsWith(".json") || filename.EndsWith(".jsonc")) {
+                string data = File.ReadAllText(filePath, Encoding.UTF8);
+                if (filename.EndsWith(".jsonc")) data = JsoncToJson(data);
+
+                return JsonSerializer.Deserialize(data, type, GetCurrentOption());
+            }
+
+        } catch (Exception ex) {
+            throw new SerializationException("Failed to deserialize file: " + filePath, ex);
         }
-
-        if (filename.EndsWith(".json") || filename.EndsWith(".jsonc")) {
-            string data = File.ReadAllText(filePath, Encoding.UTF8);
-            if (filename.EndsWith(".jsonc")) data = PreparseJsonc(data);
-
-            return JsonSerializer.Deserialize(data, type, MultilineFormat ? multilineOptions : compactOptions);
-        }
-
         throw new SerializationException("Invalid file extension at: " + filePath);
     }
     public static T Deserialize<T>(string filePath) {
-        string filename = Path.GetFileName(filePath);
+        try {
+            string filename = Path.GetFileName(filePath);
 
-        if (filename.EndsWith(".yaml")) {
-            using StreamReader reader = new(filePath);
-            return YamlHelper.Deserializer.Deserialize<T>(reader);
+            if (filename.EndsWith(".yaml")) {
+                using StreamReader reader = new(filePath);
+                return YamlHelper.Deserializer.Deserialize<T>(reader);
+            }
+
+            if (filename.EndsWith(".json") || filename.EndsWith(".jsonc")) {
+                string data = File.ReadAllText(filePath, Encoding.UTF8);
+                if (filename.EndsWith(".jsonc")) data = JsoncToJson(data);
+
+                return JsonSerializer.Deserialize<T>(data, GetCurrentOption());
+            }
+
+        } catch (Exception ex) {
+            throw new SerializationException("Failed to deserialize file: " + filePath, ex);
         }
-
-        if (filename.EndsWith(".json") || filename.EndsWith(".jsonc")) {
-            string data = File.ReadAllText(filePath, Encoding.UTF8);
-            if (filename.EndsWith(".jsonc")) data = PreparseJsonc(data);
-
-            return JsonSerializer.Deserialize<T>(data, MultilineFormat ? multilineOptions : compactOptions);
-        }
-
         throw new SerializationException("Invalid file extension at: " + filePath);
     }
     public static T Deserialize<T>(Stream fileDataStream, string filePath) {
-        string filename = Path.GetFileName(filePath);
+        try {
+            string filename = Path.GetFileName(filePath);
 
-        if (filename.EndsWith(".yaml")) {
-            using StreamReader reader = new(fileDataStream);
-            return YamlHelper.Deserializer.Deserialize<T>(reader);
+            if (filename.EndsWith(".yaml")) {
+                using StreamReader reader = new(fileDataStream);
+                return YamlHelper.Deserializer.Deserialize<T>(reader);
+            }
+
+            if (filename.EndsWith(".jsonc") || filename.EndsWith(".jsonc")) {
+                using var reader = new StreamReader(fileDataStream, Encoding.UTF8);
+                string data = reader.ReadToEnd();
+                if (filename.EndsWith(".jsonc")) data = JsoncToJson(data);
+
+                return JsonSerializer.Deserialize<T>(data, GetCurrentOption());
+            }
+
+        } catch (Exception ex) {
+            throw new SerializationException("Failed to deserialize file: " + filePath, ex);
         }
-
-        if (filename.EndsWith(".jsonc") || filename.EndsWith(".jsonc")) {
-            using var reader = new StreamReader(fileDataStream, Encoding.UTF8);
-            string data = reader.ReadToEnd();
-            if (filename.EndsWith(".jsonc")) data = PreparseJsonc(data);
-
-            return JsonSerializer.Deserialize<T>(data, MultilineFormat ? multilineOptions : compactOptions);
-        }
-
         throw new SerializationException("Invalid file extension while reading from stream.");
     }
 
     public static void Serialize<T>(this T data, string filePath) {
-        string filename = Path.GetFileName(filePath);
+        try {
+            string filename = Path.GetFileName(filePath);
 
-        if (filename.EndsWith(".yaml")) {
-            string serializedData = YamlHelper.Serializer.Serialize(data);
-            File.WriteAllText(filePath, serializedData);
-            return;
+            if (filename.EndsWith(".yaml")) {
+                string serializedData = YamlHelper.Serializer.Serialize(data);
+                File.WriteAllText(filePath, serializedData);
+                return;
+            }
+
+            if (filename.EndsWith(".json") || filename.EndsWith(".jsonc")) {
+                using FileStream fileStream = new(filePath, FileMode.OpenOrCreate);
+                JsonSerializer.Serialize(fileStream, data, GetCurrentOption());
+                return;
+            }
+
+        } catch (Exception ex) {
+            throw new SerializationException("Failed to serialize file: " + filePath, ex);
         }
-
-        if (filename.EndsWith(".json") || filename.EndsWith(".jsonc")) {
-            using FileStream fileStream = new(filePath, FileMode.OpenOrCreate);
-            JsonSerializer.Serialize(fileStream, data, MultilineFormat ? multilineOptions : compactOptions);
-            return;
-        }
-
         throw new SerializationException("Invalid file extension while serializing: " + filePath);
     }
 
-    private static string PreparseJsonc(string jsoncData) {
+    public static string JsoncToJson(string jsoncData) {
         StringBuilder jsonData = new();
 
         bool isComment = false;
@@ -141,6 +173,9 @@ public static class DataSerializer {
             }
         }
         return jsonData.ToString();
+    }
+    private static JsonSerializerOptions GetCurrentOption() {
+        return WasInit ? MultilineFormat ? multilineOptions : compactOptions : initOptions;
     }
 
     public class SerializationException : Exception {

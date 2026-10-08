@@ -1,0 +1,28 @@
+Tasks:
+* strings --onlyOnChange
+* intermediary --onlyOnChange
+* newMod -name "QuintessentialCore"
+* copy -toMod "QuintessentialCore" -from "D:\C#_projects\Quintessential\Core\modMeta.jsonc"
+* copy -toMod "QuintessentialCore" -from "D:\C#_projects\Quintessential\Core\bin\Debug\net10.0\QuintessentialCore.dll"
+* copy -toMod "QuintessentialCore" -from "D:\C#_projects\Quintessential\Core\Content"
+* newMod -name "QuintessentialUI"
+* copy -toMod "QuintessentialUI" -from "D:\C#_projects\Quintessential\UI\modMeta.jsonc"
+* copy -toMod "QuintessentialUI" -from "D:\C#_projects\Quintessential\UI\bin\Debug\net10.0\QuintessentialUI.dll"
+* copy -toMod "QuintessentialUI" -from "D:\C#_projects\Quintessential\UI\Content"
+* newMod -name "QuintessentialData"
+* copy -toMod "QuintessentialData" -from "D:\C#_projects\Quintessential\Data\modMeta.jsonc"
+* copy -toMod "QuintessentialData" -from "D:\C#_projects\Quintessential\Data\bin\Debug\net10.0\QuintessentialData.dll"
+* copy -toMod "QuintessentialData" -from "D:\C#_projects\Quintessential\Data\Content"
+* devMerge --onlyOnChange -id "quintessential_core" -nameOverride "DevLightning_Core.dll" --mergeXML
+* devMerge --onlyOnChange -id "quintessential_ui" -nameOverride "DevLightning_UI.dll" --mergeXML
+* merge ---onlyOnChange --asNamed
+* export -name "QuintessentialCore" -outputPath "D:\C#_projects\Quintessential\TestEnvironment\_builds"
+* export -name "QuintessentialData" -outputPath "D:\C#_projects\Quintessential\TestEnvironment\_builds"
+* export -name "QuintessentialUI" -outputPath "D:\C#_projects\Quintessential\TestEnvironment\_builds"
+* run -args "-devEnv -pseudoLang" --attachDebugger --readLogs
+
+AutoExit:
+  false
+
+# CopyTasksPath:
+# D:\C#_projects\Quintessential

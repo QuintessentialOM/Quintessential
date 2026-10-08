@@ -2,13 +2,10 @@
 
 namespace Quintessential;
 
+/// <summary>
+/// Puzzle data stored as a string
+/// </summary>
 public class PuzzleOption{
-
-    // Puzzle options are always saved as LocStrings
-    // booleans -> ID present or not
-    // multi-choice -> {ID}__{choice}
-    // atom -> {ID}__{atom ID}
-    // part -> {ID}__{part ID}
 
     public Identifier ID;
     public LocString Name, SectionName;
@@ -17,7 +14,15 @@ public class PuzzleOption{
 
 	private List<LocString> choices;
 
-	public static PuzzleOption BoolOption(Identifier id, LocString name, LocString sectionName, int length){
+    /// <summary>
+    /// Boolean data, stored as ID present or not 
+    /// </summary>
+    /// <param name="id">The id of the PuzzleOption.</param>
+    /// <param name="name">The localized name of the PuzzleOption.</param>
+    /// <param name="sectionName">The localized name of the section that this PuzzleOption belongs to.</param>
+    /// <param name="length"></param>// TODO what does this parameter do?
+    /// <returns>The created PuzzleOption</returns>
+    public static PuzzleOption BoolOption(Identifier id, LocString name, LocString sectionName, int length){
 		return new PuzzleOption{
 			ID = id,
 			Name = name,
@@ -26,8 +31,17 @@ public class PuzzleOption{
             length = length,
         };
 	}
-	
-	public static PuzzleOption MultiChoiceOption(Identifier id, LocString name, LocString sectionName, params LocString[] choices){
+
+    // TODO fix issues caused by choice being localised
+    /// <summary> 
+    /// Multi choice data, stored as <c>{ID}__{choice}</c>
+    /// </summary>
+    /// <param name="id">The id of the PuzzleOption.</param>
+    /// <param name="name">The localized name of the PuzzleOption.</param>
+    /// <param name="sectionName">The localized name of the section that this PuzzleOption belongs to.</param>
+    /// <param name="choices">The names of the choices</param>
+    /// <returns>The created PuzzleOption</returns>
+    public static PuzzleOption MultiChoiceOption(Identifier id, LocString name, LocString sectionName, params LocString[] choices){
 		return new PuzzleOption{
 			ID = id,
 			Name = name,
@@ -36,8 +50,15 @@ public class PuzzleOption{
 			choices = [.. choices]
         };
 	}
-	
-	public static PuzzleOption PartTypeOption(Identifier id, LocString name, LocString sectionName){
+
+    /// <summary>
+    /// Puzzle option for choosing a specific part, stored as <c>{ID}__{part ID}</c>
+    /// </summary>
+    /// <param name="id">The id of the PuzzleOption.</param>
+    /// <param name="name">The localized name of the PuzzleOption.</param>
+    /// <param name="sectionName">The localized name of the section that this PuzzleOption belongs to.</param>
+    /// <returns>The created PuzzleOption</returns>
+    public static PuzzleOption PartTypeOption(Identifier id, LocString name, LocString sectionName){
 		return new PuzzleOption{
 			ID = id,
 			Name = name,
@@ -45,8 +66,15 @@ public class PuzzleOption{
 			Type = PuzzleOptionType.Part
 		};
 	}
-	
-	public static PuzzleOption AtomTypeOption(Identifier id, LocString name, LocString sectionName){
+
+    /// <summary>
+    /// Puzzle option for choosing a specific part, stored as <c>{ID}__{atom ID}</c>
+    /// </summary>
+    /// <param name="id">The id of the PuzzleOption.</param>
+    /// <param name="name">The localized name of the PuzzleOption.</param>
+    /// <param name="sectionName">The localized name of the section that this PuzzleOption belongs to.</param>
+    /// <returns>The created PuzzleOption</returns>
+    public static PuzzleOption AtomTypeOption(Identifier id, LocString name, LocString sectionName){
 		return new PuzzleOption{
 			ID = id,
 			Name = name,
@@ -55,55 +83,91 @@ public class PuzzleOption{
 		};
 	}
 
-	// Getters that each correspond to a PuzzleOptionType
-	
-	public bool EnabledIn(Puzzle from){
+    // Getters that each correspond to a PuzzleOptionType
+
+    /// <summary>
+    /// Get boolean Option state for the provided puzzle.
+    /// </summary>
+    /// <param name="from">The puzzle to check for.</param>
+    public bool EnabledIn(Puzzle from){
 		return ((patch_Puzzle)(object)from).CustomPermissions?.Contains(ID) ?? false;
 	}
 
-	public string ChoiceIn(Puzzle from){
+    /// <summary>
+    /// Get multi choice Option state for the provided puzzle.
+    /// </summary>
+    /// <param name="from">The puzzle to check for.</param>
+    public string ChoiceIn(Puzzle from){
 		foreach(string permission in ((patch_Puzzle)(object)from).CustomPermissions)
 			if(permission.StartsWith(ID + "__"))
 				return permission[(ID.ToString().Length + 2)..];
 		return null;
 	}
 
-	public PartType PartIn(Puzzle from){
+    /// <summary>
+    /// Get part choice Option state for the provided puzzle.
+    /// </summary>
+    /// <param name="from">The puzzle to check for.</param>
+    public PartType PartIn(Puzzle from){
 		string choice = ChoiceIn(from);
 		foreach(PartType type in PartTypes.partTypes)
-			if(type.id.Equals(choice))
+			if(type.id.Equals(choice)) // TODO use new part id
 				return type;
 
 		return null;
 	}
 
-	public AtomType AtomIn(Puzzle from){
+    /// <summary>
+    /// Get atom choice Option state for the provided puzzle.
+    /// </summary>
+    /// <param name="from">The puzzle to check for.</param>
+    public AtomType AtomIn(Puzzle from){
 		string choice = ChoiceIn(from);
 		foreach(AtomType type in AtomTypes.atoms)
-			if(((patch_AtomType)(object)type).QuintAtomType.Equals(choice))
+			if(((patch_AtomType)(object)type).Id.Equals(choice))
 				return type;
 
 		return null;
 	}
 
-	public void SetEnabledIn(Puzzle from, bool enabled){
+    /// <summary>
+    /// Set multi boolean Option state for the provided puzzle.
+    /// </summary>
+    /// <param name="from">The puzzle to set for.</param>
+    /// <param name="enabled">The new boolean state.</param>
+    public void SetEnabledIn(Puzzle from, bool enabled){
 		if(enabled)
 			((patch_Puzzle)(object)from).CustomPermissions.Add(ID);
 		else
 			((patch_Puzzle)(object)from).CustomPermissions.Remove(ID);
 	}
-	
-	public void SetChoiceIn(Puzzle from, string choice){
+
+    /// <summary>
+    /// Set multi choice Option state for the provided puzzle.
+    /// </summary>
+    /// <param name="from">The puzzle to set for.</param>
+    /// <param name="choice">The new state.</param>
+    public void SetChoiceIn(Puzzle from, string choice){ // TODO localized string fix here too
 		var perms = ((patch_Puzzle)(object)from).CustomPermissions;
 		perms.RemoveWhere(s => s.ToString().StartsWith(ID + "__"));
 		perms.Add(ID + "__" + choice);
 	}
 
-	public void SetAtomIn(Puzzle from, AtomType atom){
-		SetChoiceIn(from, ((patch_AtomType)(object)atom).QuintAtomType);
+    /// <summary>
+    /// Set atom choice Option state for the provided puzzle.
+    /// </summary>
+    /// <param name="from">The puzzle to set for.</param>
+    /// <param name="atom">The new atom.</param>
+    public void SetAtomIn(Puzzle from, AtomType atom){
+		SetChoiceIn(from, ((patch_AtomType)(object)atom).Id);
 	}
 
-	public void SetPartIn(Puzzle from, PartType part){
+    /// <summary>
+    /// Set part choice Option state for the provided puzzle.
+    /// </summary>
+    /// <param name="from">The puzzle to set for.</param>
+    /// <param name="part">The new part.</param>
+    public void SetPartIn(Puzzle from, PartType part){
 		SetChoiceIn(from, part.id);
 	}
 }
@@ -113,4 +177,5 @@ public enum PuzzleOptionType{
 	MultiChoice,
 	Part,
 	Atom,
-}
+} // TODO add Tag based puzzle option
+// TODO actually use this enum for option type validation

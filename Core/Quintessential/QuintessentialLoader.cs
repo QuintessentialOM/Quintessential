@@ -87,7 +87,8 @@ public class QuintessentialLoader
             // Add mod content
             foreach (var mod in CodeMods)
                 mod.Load();
-            Logger.Log($"Finished pre-init loading - {Mods.Count} mods loaded; {ModContentDirectories.Count} content directories, and {ModCampaignModels.Count} custom campaigns found.");
+            Logger.Log($"Finished pre-init loading - {Mods.Count} mods loaded, {CodeMods.Count} of them are code mods; {ModContentDirectories.Count} content directories, and {ModCampaignModels.Count} custom campaigns found.");
+            DataSerializer.WasInit = true;
         }
         catch (Exception e)
         {
@@ -99,11 +100,30 @@ public class QuintessentialLoader
             throw;
         }
     }
+    public static void ModContentInit() {
+        Logger.Log("Starting content loading.");
+        foreach (var mod in CodeMods)
+            mod.LoadContent();
+
+        // This is where DataContentInit ( Recipe & Tag )" gets injected
+        foreach (var mod in CodeMods)
+            mod.LoadCompatContent();
+
+        Logger.Log("Loading campaigns and journals.");
+        LoadCampaigns();
+        LoadJournals();
+
+        Logger.Log("Finalising content.");
+        foreach (var mod in CodeMods)
+            mod.FinaliseContent();
+
+        Logger.Log("Finished content loading.");
+    }
     public static void PostInit()
     {
         Logger.Log("Starting post-init loading.");
         // Read mod save data
-        PathModSaves = Path.Combine(class_161.method_402(), "ModSettings");
+        PathModSaves = Path.Combine(OSInfo.GetSavePath(), "ModSettings");
         Logger.Log($"Mod settings directory: \"{PathModSaves}\"");
         if (!Directory.Exists(PathModSaves))
             Directory.CreateDirectory(PathModSaves);
@@ -229,19 +249,19 @@ public class QuintessentialLoader
                                 }
 
                                 // TODO: optimize
-                                cItem = AddEntryToCampaign(campaign, j, entry.ID, Translations.Translate(entry.TitleKey), CampaignItemType.Puzzle, MaybeHelper.empty, puzzle, Assets.musicTracks.field_972, Assets.sounds.fanfare_solving3, requirement, entry.NoStoryPanel);
+                                cItem = AddEntryToCampaign(campaign, j, entry.ID, Translations.Translate(entry.TitleKey), CampaignItemType.Puzzle, MaybeHelper.empty, puzzle, Assets.musicTracks.solving3, Assets.sounds.fanfare_solving3, requirement, entry.NoStoryPanel);
                                 Array.Resize(ref Puzzles.campaignPuzzles, Puzzles.campaignPuzzles.Length + 1);
                                 Puzzles.campaignPuzzles[^1] = puzzle;
                                 break;
                         case "solitaire":
-                                cItem = new(entry.ID, Translations.Translate("Sigmar's Garden"), CampaignItemType.Solitaire, MaybeHelper.empty, requirement, Assets.musicTracks.field_970, Assets.sounds.fanfare_solving1, campaign);
+                                cItem = new(entry.ID, Translations.Translate("Sigmar's Garden"), CampaignItemType.Solitaire, MaybeHelper.empty, requirement, Assets.musicTracks.solving1, Assets.sounds.fanfare_solving1, campaign);
                                 campaign.chapters[j].campaignItems.Add(cItem);
                                 break;
                         case "cutscene":
-                                cItem = new(entry.ID, Translations.Translate(entry.TitleKey), CampaignItemType.Cutscene, MaybeHelper.empty, requirement, Assets.musicTracks.field_970, Assets.sounds.fanfare_solving1, campaign);
+                                cItem = new(entry.ID, Translations.Translate(entry.TitleKey), CampaignItemType.Cutscene, MaybeHelper.empty, requirement, Assets.musicTracks.solving1, Assets.sounds.fanfare_solving1, campaign);
                                 break;
                         case "document":
-                                cItem = new(entry.ID, Translations.Translate(entry.TitleKey), CampaignItemType.Letter, MaybeHelper.empty, requirement, Assets.musicTracks.field_970, Assets.sounds.fanfare_solving1, campaign);
+                                cItem = new(entry.ID, Translations.Translate(entry.TitleKey), CampaignItemType.Letter, MaybeHelper.empty, requirement, Assets.musicTracks.solving1, Assets.sounds.fanfare_solving1, campaign);
                                 break;
                         default:
                             Logger.Log($"Campaign entry in {c.Name} has unknown type {entry.Type}, skipping");
@@ -351,11 +371,14 @@ public class QuintessentialLoader
         {
             string baseName = Path.Combine(basePath, puzzleFileName);
             if (File.Exists(baseName + ".puzzle")) {
+                //throw new Exception("Attempted to load a vanilla puzzle.");
                 puzzle = Puzzle.LoadFromFile(baseName + ".puzzle");
             } else if (File.Exists(baseName + ".puzzle.jsonc")) {
-                puzzle = PuzzleModel.FromModel(DataSerializer.Deserialize<PuzzleModel>(baseName + ".puzzle.jsonc"));
+                if (!IsModPresent("quintessential_data")) throw new Exception("The mod 'quintessential_data' is requered for loading json based puzzles.");
+                puzzle = Puzzle.LoadFromFile(baseName + ".puzzle.jsonc");
             } else if (File.Exists(baseName + ".puzzle.json")) {
-                puzzle = PuzzleModel.FromModel(DataSerializer.Deserialize<PuzzleModel>(baseName + ".puzzle.json"));
+                if (!IsModPresent("quintessential_data")) throw new Exception("The mod 'quintessential_data' is requered for loading json based puzzles.");
+                puzzle = Puzzle.LoadFromFile(baseName + ".puzzle.json");
             } else if (File.Exists(baseName + ".puzzle.yaml")) {
                 puzzle = PuzzleModel.FromModel(DataSerializer.Deserialize<PuzzleModel>(baseName + ".puzzle.yaml"));
             } else {
@@ -366,7 +389,7 @@ public class QuintessentialLoader
 
             // even if it was loaded from a vanilla format puzzle file, it was included in a mod and may rely on modded behaviour
             // these are never saved over and could have been modified directly by the campaign mod, so this is safe
-            ((patch_Puzzle)(object)puzzle).IsModdedPuzzle = true;
+            //((patch_Puzzle)(object)puzzle).IsModdedPuzzle = true;
 
             return true;
         }

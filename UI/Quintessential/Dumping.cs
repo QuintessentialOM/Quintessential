@@ -31,7 +31,7 @@ public static class Dumping {
         Directory.CreateDirectory(outDir);
         foreach (AtomType atomType in AtomTypes.atoms) {
             RenderTargetHandle v = RenderAtomToTarget(atomType);
-            Renderer.PngFromTexture(v.GetTarget().renderedTexture).Save(Path.Combine(outDir, atomType.QuintAtomType.ToString().Replace(":", "__") + ".png"));
+            Renderer.PngFromTexture(v.GetTarget().renderedTexture).Save(Path.Combine(outDir, atomType.Id.ToString().Replace(":", "__") + ".png"));
         }
         Logger.Log($"Dumped atom sprites to {outDir}");
         UI.OpenScreen(new NoticeScreen(

@@ -1,0 +1,13 @@
+{
+  "mod_id": "quintessential_data",
+  "version": "0.7.0",
+  "mod_page_url": "https://github.com/QuintessentialOM/Quintessential",
+  "dll": "QuintessentialData.dll",
+  "authors": [],
+  "icon": "",
+  "mappings": "",
+  "dependencies": {
+    "quintessential_core": "[0.7.0,0.8)"
+  },
+  "conflicts": []
+}

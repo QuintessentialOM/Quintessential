@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Quintessential;
 
+// TODO rename to LocalizationLayer for consistency
 [JsonConverter(typeof(LocalisationLayerJsonConverter))]
 public class LocalisationLayer {
     public static readonly LocalisationLayer GlobalLayer = new();

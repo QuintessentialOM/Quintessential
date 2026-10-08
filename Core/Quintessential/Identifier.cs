@@ -1,15 +1,24 @@
 ﻿namespace Quintessential;
 
+/// <summary>
+/// A general <b>unique</b>, string convertable identifier.
+/// </summary>
 public readonly struct Identifier {
-    private readonly string namespc, name;
+    /// <summary>
+    /// The <see cref="Identifier"/> is formatted as <c>namespc:name</c>.
+    /// </summary>
+    public readonly string namespc, name;
 
     public Identifier(string namespc, string name) {
+        if (namespc.Contains(':') || name.Contains(':'))
+            throw new OpusMagnumException($"Identifier constructor '{namespc + ":" + name}' contains invalid number of ':'");
         this.namespc = namespc;
         this.name = name;
     }
     public Identifier(string identifier) {
         var sections = identifier.Split(':');
-        if (sections.Length != 2) throw new OpusMagnumException($"Identifier constructor '{identifier}' contains invalid number of ':'");
+        if (sections.Length != 2)
+            throw new OpusMagnumException($"Identifier constructor '{identifier}' contains invalid number of ':'");
 
         namespc = sections[0];
         name = sections[1];

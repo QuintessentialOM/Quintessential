@@ -4,15 +4,15 @@ using MonoMod;
 
 class patch_AppConsts {
 
-    [RemoveReadOnly]
+    [MonoModRemoveReadOnly]
     public static readonly bool isDevEnv; // isDevEnv
 
-    [RemoveReadOnly]
+    [MonoModRemoveReadOnly]
     public static readonly bool showLogWindow; // showLogWindow
 
-    [RemoveReadOnly]
+    [MonoModRemoveReadOnly]
     public static readonly bool allowPseudo; // allowPseudo
 
-    [RemoveReadOnly]
+    [MonoModRemoveReadOnly]
     public static readonly bool logSimulationState; // logSimulationState
 }

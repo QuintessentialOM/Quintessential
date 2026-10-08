@@ -5,6 +5,7 @@
     <RootNamespace />
     <AssemblyName>QuintessentialUI</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
 	<PropertyGroup>

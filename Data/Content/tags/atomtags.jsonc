@@ -1,0 +1,60 @@
+{
+  "om:calcifiable": [
+    "om:air",
+    "om:fire",
+    "om:water",
+    "om:earth"
+  ],
+  "om:duplicatable": [
+    "om:air",
+    "om:fire",
+    "om:water",
+    "om:earth"
+  ],
+  "om:$successor_proj": {
+    "om:lead": "om:tin",
+    "om:tin": "om:iron",
+    "om:iron": "om:copper",
+    "om:copper": "om:silver",
+    "om:silver": "om:gold"
+  },
+  "om:$predecessor": {
+    "om:tin": "om:lead",
+    "om:iron": "om:tin",
+    "om:copper": "om:iron",
+    "om:silver": "om:copper",
+    "om:gold": "om:silver"
+  },
+  "om:$successor_purif": {
+    "om:lead": "om:tin",
+    "om:tin": "om:iron",
+    "om:iron": "om:copper",
+    "om:copper": "om:silver",
+    "om:silver": "om:gold"
+  },
+  "om:$division_upper": {
+    "om:tin": "om:lead",
+    "om:iron": "om:tin",
+    "om:copper": "om:tin",
+    "om:silver": "om:iron",
+    "om:gold": "om:iron"
+  },
+  "om:$division_lower": {
+    "om:tin": "om:lead",
+    "om:iron": "om:lead",
+    "om:copper": "om:tin",
+    "om:silver": "om:tin",
+    "om:gold": "om:iron"
+  },
+  "om:proliferatable": [
+    "om:lead",
+    "om:tin",
+    "om:iron",
+    "om:copper",
+    "om:silver",
+    "om:gold"
+  ],
+  "om:indisposable": [
+
+  ]
+}
