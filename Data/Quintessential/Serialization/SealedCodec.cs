@@ -55,14 +55,13 @@ public class SealedCodec<TReturn, T> {
         DefautValue = MaybeHelper.empty;
         DefautValueSkip = MaybeHelper.empty;
     }
-    internal SealedCodec(Codec<TReturn> codec, string propertyName, Func<T, TReturn> getter, TReturn defautValue) {
+    internal SealedCodec(Codec<TReturn> codec, string propertyName, Func<T, TReturn> getter, TReturn? defautValue) {
         Getter = getter;
         PropertyName = propertyName;
         Codec = codec;
-        DefautValue = defautValue;
-        DefautValueSkip = MaybeHelper.empty;
+        WithDefaut(defautValue);
     }
-    public SealedCodec<TReturn, T> WithDefaut(TReturn defautValue) {
+    public SealedCodec<TReturn, T> WithDefaut(TReturn? defautValue) {
         if (DefautValue.HasValue()) throw new InvalidOperationException("The Codec already has a default value!");
         DefautValue = new Maybe<TReturn>(hasValue: true, defautValue);
         IsDefaultNull = defautValue == null;

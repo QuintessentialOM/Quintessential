@@ -6,6 +6,12 @@ public static class BondTypes {
     private static List<Identifier> bondIds = [];
     private static Dictionary<Identifier, BondType> bondTypes = [];
 
+    /// <summary>
+    /// Adds a bond type to the list of all bond types.
+    /// </summary>
+    /// <param name="bondType">The bond type to be added.</param>
+    /// <param name="isUnbondable">Whether the bond should be able to be unbonded by the vanilla unbonder.</param>
+    /// <exception cref="OpusMagnumException">If the type has an invalid <see cref="BondType.Id"/>.</exception>
     public static void RegisterBondType(BondType bondType, bool isUnbondable = true) {
         if (bondTypes.ContainsKey(bondType.Id)) {
             throw new OpusMagnumException("BondId ( " + bondType.Id + " ) was attempted to be registered multiple times!");
@@ -45,7 +51,7 @@ public static class BondTypes {
     }
 
 
-    public static void InitBonds() {
+    internal static void InitBonds() {
         bondTypes.Add("om:none", null);
         bondTypes.Add("om:standard", new BondType(
             "om:standard",

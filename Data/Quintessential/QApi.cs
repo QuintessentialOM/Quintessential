@@ -47,11 +47,22 @@ public static class QApi {
         patch_Sim.CycleEvents.Add(cycleEvent);
     }
 
+    /// <summary>
+    /// Adds a bond type to the list of all bond types.
+    /// </summary>
+    /// <param name="mod">The mod that adds the bond.</param>
+    /// <param name="type">The bond type to be added.</param>
+    /// <param name="isUnbondable">Whether the bond should be able to be unbonded by the vanilla unbonder.</param>
     public static void AddBondType(this QuintessentialMod mod, BondType type, bool isUnbondable = true) {
         BondTypes.RegisterBondType(type, isUnbondable);
     }
 
 
+    /// <summary>
+    /// Adds a component to every new <see cref="Atom"/> instance of the give <see cref="AtomType"/>.
+    /// </summary>
+    /// <param name="atomTypeID">The identifier of the <see cref="AtomType"/> to create the new component on.</param>
+    /// <param name="componentCtor">A function returning a new component.</param>
     public static void AddComponentToAtom(Identifier atomTypeID, Func<patch_Atom, IAtomComponent> componentCtor) {
         if(!patch_Atom.CtorsByID.TryGetValue(atomTypeID, out var ctors)) {
             ctors = [];
@@ -59,6 +70,14 @@ public static class QApi {
         }
         ctors.Add(componentCtor);
     }
+    /// <summary>
+    /// Adds a component to an <see cref="Atom"/> when the <see cref="AtomType"/> gets replaced by the provided one.
+    /// </summary>
+    /// <param name="atomTypeID">The identifier of the <see cref="AtomType"/> to create the new component on.</param>
+    /// <param name="componentCtor">
+    /// A function returning a new component.<br/>
+    /// The arguments are the <see cref="Atom"/> and the old <see cref="AtomType"/>.
+    /// </param>
     public static void AddComponentToAtomOnReplace(Identifier atomTypeID, Func<patch_Atom, AtomType, IAtomComponent> componentCtor) {
         if (!patch_Atom.CtorsByIDAfterReplace.TryGetValue(atomTypeID, out var ctors)) {
             ctors = [];
@@ -66,9 +85,19 @@ public static class QApi {
         }
         ctors.Add(componentCtor);
     }
+    /// <summary>
+    /// Adds a component to a <see cref="Bond"/> when the given <see cref="BondType"/> gets added.
+    /// </summary>
+    /// <param name="bondTypeIDs">The identifiers of the <see cref="BondType"/>s to create the new component on.</param>
+    /// <param name="componentCtor">A function returning a new component.</param>
     public static void AddComponentToBond(Identifier[] bondTypeIDs, Func<patch_Bond, IBondComponent> componentCtor) {
         patch_Bond.CtorsByID.Add(new(bondTypeIDs, componentCtor));
     }
+    /// <summary>
+    /// Adds a component to every new <see cref="Part"/> instance of the give <see cref="PartType"/>.
+    /// </summary>
+    /// <param name="partTypeID">The identifier of the <see cref="PartType"/> to create the new component on.</param>
+    /// <param name="componentCtor">A function returning a new component.</param>
     public static void AddComponentToPart(Identifier partTypeID, Func<patch_Part, IPartComponent> componentCtor) {
         if (!patch_Part.CtorsByID.TryGetValue(partTypeID, out var ctors)) {
             ctors = [];
@@ -76,6 +105,14 @@ public static class QApi {
         }
         ctors.Add(componentCtor);
     }
+    /// <summary>
+    /// Adds a component to every new <see cref="PartSimState"/> that gets created for the provided <see cref="PartType"/>.
+    /// </summary>
+    /// <param name="partTypeID">The identifier of the <see cref="PartType"/> to create the new component on.</param>
+    /// <param name="componentCtor">
+    /// A function returning a new component.<br/>
+    /// The arguments are the <see cref="PartSimState"/>, the <see cref="Part"/>, and the <see cref="Sim"/>, if present.
+    /// </param>
     public static void AddComponentToSimState(Identifier partTypeID, Func<patch_PartSimState, Part, Sim?, ISimStateComponent> componentCtor) {
         if (!patch_PartSimState.CtorsByID.TryGetValue(partTypeID, out var ctors)) {
             ctors = [];
