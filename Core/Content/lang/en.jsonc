@@ -18,6 +18,12 @@
         "left": "Switch Campaign Left",
         "right": "Switch Campaign Right"
       }
+    },
+    "naming": {
+      "elemental": "Elemental {0}",
+      "stabilized": "Stabilized {0}",
+      "reactive": "Reactive {0}",
+      "cinnabar": "Cinnabar Fragment"
     }
   },
   "om": {

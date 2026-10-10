@@ -200,8 +200,8 @@ class patch_PuzzleEditorScreen {
 
                         Vector2 namePos = bounds2.BottomLeft + new Vector2(bounds2.Width / 2f - 7, -17);
                         var isElement = array[j].molecule.GetAtoms().Count == 1;
-                        var fallbackPvw = isElement ? ("_(" + array[j].molecule.GetAtoms().Values.First().atomType.elementalName + ")_") : QuintessentialUI.Instance.ModId + ".editor.unnamed_molecule";
-                        Bounds2 textArea = TextureRenderer.RenderText(array[j].molecule.displayName.GetOrDefault(Translations.Translate(fallbackPvw)), namePos, Assets.fonts.crimson_13, UI.TextColor, TextAlignment.Center, 1f, 0.6f, 236, 206, 0, new Color(), null, int.MaxValue, true, true);
+                        LocString fallback = LocString.Format(Translations.WithAllLanguages("_({0})_"), array[j].molecule.GetDisplayName().GetOrDefault(QuintessentialUI.Instance.Translate("editor.unnamed_molecule")));
+                        Bounds2 textArea = TextureRenderer.RenderText(array[j].molecule.displayName.GetOrDefault(fallback), namePos, Assets.fonts.crimson_13, UI.TextColor, TextAlignment.Center, 1f, 0.6f, 236, 206, 0, new Color(), null, int.MaxValue, true, true);
                         if (textArea.Contains(InputManager.MousePos()) && InputManager.IsClickPressed(MouseButtonType.LeftClick) && !screenOpened) {
                             screenOpened = true;
                             int J = j;
@@ -209,10 +209,10 @@ class patch_PuzzleEditorScreen {
                                 MessageBoxScreenEx.Textbox(
                                     bounds,
                                     QuintessentialUI.Instance.Translate("editor.renaming." + (i == 0 ? "product" : "reagent")),
-                                    array[j].molecule.displayName.HasValue() ? array[j].molecule.displayName.GetValue() : (isElement ? array[j].molecule.GetAtoms().Values.First().atomType.elementalName : ""),
+                                    array[j].molecule.GetDisplayName().GetOrDefault(LocString.emptyString),
                                     QuintessentialUI.Instance.Translate("editor.renaming.confirm_" + (i == 0 ? "product" : "reagent")),
                                     s => {
-                                        array[J].molecule.displayName = Translations.Translate(s);
+                                        array[J].molecule.displayName = Translations.WithAllLanguages(s);
                                         puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
                                     }
                                 )

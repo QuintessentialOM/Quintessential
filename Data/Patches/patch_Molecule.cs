@@ -19,7 +19,7 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
 
     public void AddComponent(IMoleculeComponent toAdd) {
         if (!RegisteredComponents.ContainsKey(toAdd.Id))
-            throw new Exception("Attempted to add a component that wasn't Registered.\nTry to register the component type with RegisterComponent() first.");
+            RegisterComponent(toAdd.Id, null);
         if (Components.ContainsKey(toAdd.Id))
             throw new Exception("A component with the same " + toAdd.Id + " was already added to this Molecule.");
         toAdd.OnBind(this);
@@ -27,7 +27,7 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
     }
     public void AddComponentSafe(Identifier id, Func<IMoleculeComponent> ctor) {
         if (!RegisteredComponents.ContainsKey(id))
-            throw new Exception("Attempted to add a component that wasn't Registered.\nTry to register the component type with RegisterComponent() first.");
+            RegisterComponent(id, null);
         if (Components.ContainsKey(id)) return;
         var component = ctor();
         if (id != component.Id) throw new Exception($"Id of created component '{component.Id}' not matching provided '{id}'.");
@@ -514,24 +514,26 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
     public Maybe<Bond> GetBondAt(HexIndex pos1, HexIndex pos2) =>
         bonds.Where(bond => (bond.hexPos1 == pos1 && bond.hexPos2 == pos2) || (bond.hexPos1 == pos2 && bond.hexPos2 == pos1)).FirstOrNone();
 
-    public void SetBond(Bond bond, HexIndex pos1, HexIndex pos2) {
-        if (HexIndex.Distance(pos1, pos2) != 1) {
-            throw new OpusMagnumException("Invalid distance between ends of bond");
+    public void SetBond(patch_Bond bond, HexIndex pos1, HexIndex pos2) {
+        foreach (var type in bond.GetBondTypes()) {
+            if (!type.validDistances.Contains(pos2 - pos1)) {
+                throw new OpusMagnumException($"Invalid distance between ends of BondType, '{type.Id}' can't connect to from {new HexIndex(0, 0)} to {pos2 - pos1}.");
+            }
         }
         RemoveBond(pos1, pos2);
         var created = bond.Clone();
         created.hexPos1 = pos1;
         created.hexPos2 = pos2;
-        bonds.Add(created);
-        OnAddSingleBond((patch_Bond)(object)created);
+        bonds.Add((Bond)(object)created);
+        OnAddSingleBond(created);
         return;
     }
     public bool AddBond(BondType type, HexIndex pos1, HexIndex pos2) {
         return AddBond(type, pos1, pos2, MaybeHelper.empty);
     }
     public bool AddBond(BondType type, HexIndex pos1, HexIndex pos2, Maybe<BondEffect> effects) {
-        if (HexIndex.Distance(pos1, pos2) != 1) {
-            throw new OpusMagnumException("Invalid distance between ends of bond");
+        if (!type.validDistances.Contains(pos2 - pos1)) {
+            throw new OpusMagnumException($"Invalid distance between ends of BondType, '{type.Id}' can't connect to from {new HexIndex(0, 0)} to {pos2 - pos1}.");
         }
         Maybe<Bond> thisBond = GetBondAt(pos1, pos2);
 

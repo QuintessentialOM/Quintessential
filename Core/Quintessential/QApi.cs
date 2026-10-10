@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Quintessential.Internal;
+using System;
 using System.Collections.Generic;
 
 namespace Quintessential;
@@ -88,7 +89,7 @@ public static class QApi {
 		type.byteId = 255; // doesn't really matter - should not overlap vanilla atom ids
 		((patch_AtomType)(object)type).Id = mod.GetIdentifier(id);
 		type.name = mod.Translate("atoms." + id);
-		type.elementalName = mod.Translate("atoms." + id + ".elemental");
+		type.elementalName = patch_LocString.Format(QuintessentialCore.Instance.Translate("naming.elemental"), type.name);
 		type.defaultName = mod.Translate("atoms." + id).locDictionary[Language.English];
 
 		ModAtomTypes.Add(type);

@@ -1,4 +1,6 @@
-﻿using Quintessential.Serialization;
+﻿using Quintessential.Components;
+using Quintessential.Serialization;
+using System.IO;
 //using Quintessential.Settings;
 //using System;
 //using System.IO;
@@ -38,6 +40,26 @@ internal class QuintessentialData : QuintessentialMod, IDataMod {
 
         this.AddRecipe(new GlyphRecipe(VanillaRecipes.BasicUnification), "om:unification", "om:unification");
         this.AddRecipe(new GlyphRecipe(VanillaRecipes.BasicDispersion), "om:dispersion", "om:dispersion");
+
+        /*
+        var EtherealTextures = new BondTexture {
+            texture = AssetLoaderHelper.LoadTexture(Path.Combine("textures", ModId, "bonds", "golden")),
+            normalMap = Assets.textures.black,
+            bondAnim = BondTextures.standard.bondAnim,
+            glyphAnim = BondTextures.standard.glyphAnim,
+            bondSound = BondTextures.standard.bondSound,
+            textureOffset = new Vector2(1, 0),
+        };
+        BondTypes.RegisterBondType(new BondType(
+          GetIdentifier("golden"),
+          EtherealTextures,
+          BondTypes.GetBondType("om:standard").unbondAnim,
+          [],
+          0,
+          BondOverlapMode.OnlyListed,
+          [new HexIndex(-1, 2)]
+        ), false);
+        */
 
         //this.AddRecipe(new GlyphRecipe() {
         //    RecipeGlyphId = "om:animismus",

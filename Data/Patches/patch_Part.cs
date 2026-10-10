@@ -17,7 +17,7 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
 
     public void AddComponent(IPartComponent toAdd) {
         if (!RegisteredComponents.ContainsKey(toAdd.Id))
-            throw new Exception("Attempted to add a component that wasn't Registered.\nTry to register the component type with RegisterComponent() first.");
+            RegisterComponent(toAdd.Id, null);
         if (Components.ContainsKey(toAdd.Id))
             throw new Exception("A component with the same " + toAdd.Id + " was already added to this Part.");
         toAdd.OnBind(this);
@@ -25,7 +25,7 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
     }
     public void AddComponentSafe(Identifier id, Func<IPartComponent> ctor) {
         if (!RegisteredComponents.ContainsKey(id))
-            throw new Exception("Attempted to add a component that wasn't Registered.\nTry to register the component type with RegisterComponent() first.");
+            RegisterComponent(id, null);
         if (Components.ContainsKey(id)) return;
         var component = ctor();
         if (id != component.Id) throw new Exception($"Id of created component '{component.Id}' not matching provided '{id}'.");
