@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Quintessential.Internal;
 internal class CampaignSerializer {
-    internal static string CurrentCampaignPath = "";
+    internal static string CurrentPuzzleFolder = "";
     internal static readonly Codec<UnlockRequirement> UNLOCK_REQ = Codec<UnlockRequirement>.Create(
         Codecs.STRING.Seal("Type", (UnlockRequirement req) => {
             if (req is UnlockReqCompleteCampaignItem) return "Single";
@@ -61,7 +61,7 @@ internal class CampaignSerializer {
         (id, name, type, puzzleId, unlockReq, vignette, music, fanfare, iconSmall, icon) => {
             Maybe<Puzzle> p = MaybeHelper.empty;
             if (puzzleId != "") {
-                if (!QuintessentialLoader.TryLoadPuzzle(CurrentCampaignPath, puzzleId, name, out Puzzle pz))
+                if (!QuintessentialLoader.TryLoadPuzzle(CurrentPuzzleFolder, puzzleId, name, out Puzzle pz))
                     if (!Puzzles.campaignPuzzles.Any(puzz => puzz.puzzleId == puzzleId))
                         throw new Exception("Failed to find puzzle: " + puzzleId);
                     else p = Puzzles.campaignPuzzles.First(puzz => puzz.puzzleId == puzzleId);
@@ -157,5 +157,39 @@ internal class CampaignSerializer {
         }
     );
 
-
+    internal static Codec<JournalVolume> VOLUME = Codec<JournalVolume>.Create(
+        Codecs.LOCSTRING.Seal("IssueName", (JournalVolume volume) => volume.issueName),
+        Codecs.LOCSTRING.Seal("FlavorText", (JournalVolume volume) => volume.flavorText).WithDefault(LocString.emptyString),
+        Codecs.LIST_STRING.Seal("Puzzles", (JournalVolume volume) => [.. volume.puzzles.Select(p => p.puzzleId)]),
+        (issueName, flavorText, puzzleIds) => {
+            List<Puzzle> puzzles = [];
+            foreach (var id in puzzleIds) {
+                if (!QuintessentialLoader.TryLoadPuzzle(CurrentPuzzleFolder, id, issueName, out Puzzle pz))
+                    if (!Puzzles.campaignPuzzles.Any(puzz => puzz.puzzleId == id))
+                        throw new Exception("Failed to find puzzle: " + id);
+                    else puzzles.Add(Puzzles.campaignPuzzles.First(puzz => puzz.puzzleId == id));
+                else puzzles.Add(pz);
+            }
+            return new JournalVolume() {
+                issueName = issueName,
+                flavorText = flavorText,
+                puzzles = [.. puzzles]
+            };
+        }
+    );
+    private static readonly Codec<List<JournalVolume>> LIST_VOLUME = ListCodec<JournalVolume>.Create(VOLUME);
+    internal static Codec<Journal> JOURNAL = Codec<Journal>.Create(
+        Codecs.LOCSTRING.Seal("Title", (Journal journal) => journal.title),
+        Codecs.STRING.Seal("Background", (Journal journal) => patch_DataLoader.GetTexturePath(journal.puzzleBackgroundLarge, "")).WithDefault(""),
+        Codecs.STRING.Seal("BackgroundSmall", (Journal journal) => patch_DataLoader.GetTexturePath(journal.puzzleBackgroundSmall, "")).WithDefault(""),
+        LIST_VOLUME.Seal("Volumes", (Journal journal) => journal.volumes),
+        (title, background, backgroundSmall, volumes) => {
+            return new Journal() {
+                title = title,
+                volumes = volumes,
+                puzzleBackgroundSmall = backgroundSmall == "" ? null : patch_DataLoader.GetOther(backgroundSmall),
+                puzzleBackgroundLarge = background == "" ? null : patch_DataLoader.GetOther(background)
+            };
+        }
+    );
 }

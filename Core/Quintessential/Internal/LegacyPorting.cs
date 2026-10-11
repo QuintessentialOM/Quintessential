@@ -123,23 +123,23 @@ internal static class LegacyPorting {
         }
         return campaigns;
     }
-    private static Dictionary<string, List<JournalVolume>> CreateLegacyJournals() {
-        Dictionary<string, List<JournalVolume>> journals = [];
+    private static Dictionary<string, Journal> CreateLegacyJournals() {
+        Dictionary<string, Journal> journals = [];
 
         foreach (var journal in LegacyJournalModels) {
 
-            List<JournalVolume> volumes = [.. journal.Value.Chapters.Select(chapter =>
+            List<JournalVolume> Volumes = [.. journal.Value.Chapters.Select(chapter =>
                 new JournalVolume {
                     issueName = Translations.WithAllLanguages(chapter.Title),
                     flavorText = Translations.WithAllLanguages(chapter.Description),
                     puzzles = GetJournalPuzzles(chapter, journal.Value)
             })];
-
-            // log journals
-            foreach (JournalVolume jv in volumes) {
-                Logger.Log($"Journal {jv.issueName} has {jv.puzzles.Length} puzzles");
-            }
-            journals.Add(journal.Key, volumes);
+            journals.Add(journal.Key, new Journal() {
+                volumes = Volumes,
+                title = Translations.WithAllLanguages(journal.Value.Title),
+                puzzleBackgroundLarge = AssetLoaderHelper.LoadTexture(journal.Value.PuzzleBackgroundLarge),
+                puzzleBackgroundSmall = AssetLoaderHelper.LoadTexture(journal.Value.PuzzleBackgroundSmall),
+            });
         }
         return journals;
     }
@@ -156,14 +156,14 @@ internal static class LegacyPorting {
         foreach (var campaign in CreateLegacyCampaigns()) {
             ExportCampaingNewFormat(campaign.Key, ExportFolder, campaign.Value);
         }
-        foreach (var campaign in CreateLegacyJournals()) {
-            ExportJournalNewFormat(campaign.Key, ExportFolder, campaign.Value);
+        foreach (var journal in CreateLegacyJournals()) {
+            ExportJournalNewFormat(journal.Key, ExportFolder, journal.Value);
         }
     }
     private static void ExportCampaingNewFormat(string origPath, string exportFolder, Campaign campaign) {
         throw new NotImplementedException("Exporting a campaign to the new format requeres Quintessential Data!");
     }
-    private static void ExportJournalNewFormat(string origPath, string exportFolder, List<JournalVolume> journal) {
+    private static void ExportJournalNewFormat(string origPath, string exportFolder, Journal journal) {
         throw new NotImplementedException("Exporting a journal to the new format requeres Quintessential Data!");
     }
 

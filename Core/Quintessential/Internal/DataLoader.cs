@@ -75,7 +75,7 @@ internal static class DataLoader {
         throw new NotImplementedException("Exporting a campaign to the new format requeres Quintessential Data!");
     }
 
-    public static List<JournalVolume> LoadJournal(string path) {
+    public static Journal LoadJournal(string path) {
         throw new NotImplementedException("Exporting a journal to the new format requeres Quintessential Data!");
     }
 }

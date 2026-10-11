@@ -26,8 +26,8 @@ public class QuintessentialLoader
 
     public static List<Campaign> AllCampaigns = [];
     public static Campaign VanillaCampaign;
-    public static List<List<JournalVolume>> AllJournals = [];
-    public static List<JournalVolume> VanillaJournal;
+    public static List<Journal> AllJournals = [];
+    public static Journal VanillaJournal;
 
     private static readonly List<string> ModCampaignPaths = [];
     private static readonly List<string> ModJournalPaths = [];
@@ -163,7 +163,6 @@ public class QuintessentialLoader
                 if (filename.EndsWith(".journal.yaml")) {
                     LegacyPorting.ImportLegacyJournal(item);
                 }
-                // TODO legacy puzzles
                 
                 if (filename.EndsWith(".campaign.jsonc")) {
                     ModCampaignPaths.Add(item);
@@ -171,8 +170,6 @@ public class QuintessentialLoader
                 if (filename.EndsWith(".journal.jsonc")) {
                     ModJournalPaths.Add(item);
                 }
-
-                // TODO non legacy Jsonc version!
             }
         }
     }
@@ -198,31 +195,30 @@ public class QuintessentialLoader
             AllCampaigns.Add(campaign);
         }
     }
-    public static void LoadJournals()
-    {
+    public static void LoadJournals() {
         AllJournals.Clear();
 
-        VanillaJournal = JournalVolumes.volumes.ToList();
+        VanillaJournal = new Journal() {
+            volumes = [..JournalVolumes.volumes],
+            title = Translations.Translate("The Journal of Alchemical Engineering")
+        };
         AllJournals.Add(VanillaJournal);
 
         foreach (string path in ModJournalPaths) {
             var journal = DataLoader.LoadJournal(path);
 
             // add journal puzzles to list of puzzles
-            foreach (JournalVolume volume in journal)
-            {
+            foreach (JournalVolume volume in journal.volumes) {
                 int l = Puzzles.campaignPuzzles.Length;
                 Array.Resize(ref Puzzles.campaignPuzzles, l + volume.puzzles.Length);
                 int i = 0;
-                foreach (var puzzle in volume.puzzles)
-                {
+                foreach (var puzzle in volume.puzzles) {
                     Puzzles.campaignPuzzles[l + i] = puzzle;
                     i++;
-                } // this is a little bit of a patchy method of doing it, i'm not sure the exact form the journal puzzle array takes and i'm a little bit tired from testing it, also taken from icwass RMC journal code
+                }
             }
             // log journals
-            foreach (JournalVolume jv in journal)
-            {
+            foreach (JournalVolume jv in journal.volumes) {
                 Logger.Log($"Journal {jv.issueName} has {jv.puzzles.Length} puzzles");
             }
             AllJournals.Add(journal);
@@ -270,9 +266,9 @@ public class QuintessentialLoader
 
             Campaigns.opusMagnum = VanillaCampaign;
             Campaigns.campaigns[0] = VanillaCampaign;
-            JournalVolumes.volumes = [.. VanillaJournal];
+            JournalVolumes.volumes = [.. VanillaJournal.volumes];
             patch_PuzzleSelectScreen.SetCampaign(0);
-            patch_JournalScreen.ResetPosition();
+            patch_JournalScreen.SetJournal(0);
 
             foreach (ModMeta mod in Mods)
                 LoadModCampaigns(mod);

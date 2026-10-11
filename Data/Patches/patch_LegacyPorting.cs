@@ -32,7 +32,27 @@ internal static class patch_LegacyPorting {
             }
         }
     }
-    //private static void ExportJournalNewFormat(string origPath, string exportFolder, List<JournalVolume> journal) {
-    //    throw new NotImplementedException("Exporting a journal to the new format requeres Quintessential Data!");
-    //}
+
+    [MonoModReplace]
+    private static void ExportJournalNewFormat(string origPath, string exportFolder, Journal journal) {
+        string relative = Path.GetRelativePath(Path.Combine(QuintessentialLoader.PathLightning, "Mods"), origPath);
+        if (Path.IsPathRooted(relative)) relative = Path.GetFileName(relative);
+        string newPath = Path.Combine(exportFolder, Path.ChangeExtension(relative, ".jsonc"));
+
+        var json = CampaignSerializer.JOURNAL.Encode(JsonCodecMap.Instance, journal);
+        if (!Directory.Exists(Path.GetDirectoryName(newPath))) Directory.CreateDirectory(Path.GetDirectoryName(newPath));
+        if (File.Exists(newPath)) {
+            File.Delete(newPath);
+        }
+        File.WriteAllText(newPath, json.ToString());
+
+        foreach (var volume in journal.volumes) {
+            foreach (var puzzle in volume.puzzles) {
+                string path = Path.Combine(Path.GetDirectoryName(newPath), puzzle.puzzleId + ".puzzle.jsonc");
+
+                var jsonPuzzle = Codecs.PUZZLE.Encode(JsonCodecMap.Instance, puzzle);
+                File.WriteAllText(path, jsonPuzzle.ToString());
+            }
+        }
+    }
 }

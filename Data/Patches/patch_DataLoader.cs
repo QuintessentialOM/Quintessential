@@ -24,15 +24,25 @@ internal static class patch_DataLoader {
             string file = File.ReadAllText(path);
             if (Path.GetExtension(path) == ".jsonc") file = DataSerializer.JsoncToJson(file);
 
-            CampaignSerializer.CurrentCampaignPath = Path.GetDirectoryName(path);
+            CampaignSerializer.CurrentPuzzleFolder = Path.GetDirectoryName(path);
             Campaign c = CampaignSerializer.CAMPAIGN.Decode(JsonCodecMap.Instance, JsonNode.Parse(file));
-            CampaignSerializer.CurrentCampaignPath = "";
+            CampaignSerializer.CurrentPuzzleFolder = "";
             return c;
         }
-        throw new Exception("Invalid puzzle format: " + path);
+        throw new Exception("Invalid Campaign format: " + path);
     }
 
-    //public static List<JournalVolume> LoadJournal(string path) {
-    //    throw new NotImplementedException("Exporting a journal to the new format requeres Quintessential Data!");
-    //}
+    [MonoModReplace]
+    public static Journal LoadJournal(string path) {
+        if (Path.GetExtension(path) == ".json" || Path.GetExtension(path) == ".jsonc") {
+            string file = File.ReadAllText(path);
+            if (Path.GetExtension(path) == ".jsonc") file = DataSerializer.JsoncToJson(file);
+
+            CampaignSerializer.CurrentPuzzleFolder = Path.GetDirectoryName(path);
+            Journal j = CampaignSerializer.JOURNAL.Decode(JsonCodecMap.Instance, JsonNode.Parse(file));
+            CampaignSerializer.CurrentPuzzleFolder = "";
+            return j;
+        }
+        throw new Exception("Invalid Journal format: " + path);
+    }
 }
