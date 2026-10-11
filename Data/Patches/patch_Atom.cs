@@ -124,7 +124,7 @@ public class patch_Atom : ISerializableComponentHolder<patch_Atom, IAtomComponen
     );
     internal static readonly Codec<Atom> ATOM = Codec<Atom>.Create(
         Codecs.ATOMTYPE.Seal("Type", (Atom atom) => atom.atomType),
-        componentsCodec.Seal("Components", (Atom atom) => ((patch_Atom)(object)atom).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
+        componentsCodec.Seal("Components", (Atom atom) => ((patch_Atom)(object)atom).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefault([]),
         (type, components) => {
             Atom atom = new(type);
             foreach (var component in components) {

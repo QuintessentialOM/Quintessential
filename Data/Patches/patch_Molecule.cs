@@ -646,10 +646,10 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
     );
     private static readonly Codec<List<Bond>> bondsCodec = ListCodec<Bond>.Create(Codecs.BOND);
     internal static readonly Codec<patch_Molecule> MOLECULE = Codec<patch_Molecule>.Create(
-        Codecs.M_LOCSTRING.Seal("Name", (patch_Molecule molec) => ((Molecule)(object)molec).GetMonomer().displayName.GetOrDefault(LocString.emptyString)).WithDefaut(LocString.emptyString),
-        atomsCodec.Seal("Atoms", (patch_Molecule molec) => molec.GetMonomer().atoms).WithDefaut([]),
-        bondsCodec.Seal("Bonds", (patch_Molecule molec) => molec.GetMonomer().bonds).WithDefaut([]),
-        componentsCodec.Seal("Components", (patch_Molecule molec) => molec.GetMonomer().Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
+        Codecs.M_LOCSTRING.Seal("Name", (patch_Molecule molec) => ((Molecule)(object)molec).GetMonomer().displayName.GetOrDefault(LocString.emptyString)).WithDefault(LocString.emptyString),
+        atomsCodec.Seal("Atoms", (patch_Molecule molec) => molec.GetMonomer().atoms).WithDefault([]),
+        bondsCodec.Seal("Bonds", (patch_Molecule molec) => molec.GetMonomer().bonds).WithDefault([]),
+        componentsCodec.Seal("Components", (patch_Molecule molec) => molec.GetMonomer().Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefault([]),
         (name, atoms, bonds, components) => {
             patch_Molecule molec = (patch_Molecule)(object)new Molecule();
             if (name != LocString.emptyString)

@@ -176,10 +176,10 @@ public class patch_Bond : ISerializableComponentHolder<patch_Bond, IBondComponen
         RegisteredComponents, id => id.ToString(), str => new Identifier(str)
     );
     internal static readonly Codec<Bond> BOND = Codec<Bond>.Create(
-        Codecs.LIST_ID.Seal("Types", (Bond bond) => [.. ((patch_Bond)(object)bond).bondTypes.Select(bondType => bondType.Id)]).WithDefaut([]),
+        Codecs.LIST_ID.Seal("Types", (Bond bond) => [.. ((patch_Bond)(object)bond).bondTypes.Select(bondType => bondType.Id)]).WithDefault([]),
         Codecs.HEXINDEX.Seal("Pos1", (Bond bond) => bond.hexPos1),
         Codecs.HEXINDEX.Seal("Pos2", (Bond bond) => bond.hexPos2),
-        componentsCodec.Seal("Components", (Bond bond) => ((patch_Bond)(object)bond).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
+        componentsCodec.Seal("Components", (Bond bond) => ((patch_Bond)(object)bond).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefault([]),
         (types, pos1, pos2, components) => {
             patch_Bond bond;
             bond = new([.. types.Select(id => BondTypes.GetBondType(id))], pos1, pos2);

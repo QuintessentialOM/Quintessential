@@ -35,6 +35,7 @@ class patch_GameLogic {
 
 	public void ContentInit(){
         orig_ContentInit();
+        patch_Portraits.CreateRescaledVersions();
         QuintessentialLoader.ModContentInit();
     }
 

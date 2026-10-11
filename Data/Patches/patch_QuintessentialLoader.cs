@@ -10,10 +10,12 @@ using System.Linq;
 public class patch_QuintessentialLoader {
 
     static void DataContentInit() {
-        foreach (var mod in QuintessentialLoader.CodeMods) {
-            if (mod is IDataMod dataMod) {
+        foreach (var mod in QuintessentialLoader.Mods) {
+            var codeMod = QuintessentialLoader.CodeModById(mod.ModId);
+            if (codeMod is IDataMod dataMod) {
                 dataMod.LoadTags();
-            }
+            } else
+                IDataMod.LoadTagsFromFiles(mod);
         }
     }
 

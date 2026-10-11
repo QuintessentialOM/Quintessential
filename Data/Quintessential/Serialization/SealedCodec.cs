@@ -9,9 +9,9 @@ public class SealedCodec<TReturn, T> {
     readonly Func<T, TReturn> Getter;
     readonly Codec<TReturn> Codec;
     Maybe<TReturn> DefautValue;
-    public bool IsDefaultNull = false;
+    bool IsDefaultNull = false;
     Maybe<Func<T, bool>> DefautValueSkip;
-    public bool IsReadOnly = false;
+    bool IsReadOnly = false;
 
     public virtual KeyValuePair<string, TData> EncodeAsProperty<TData>(CodecMap<TData> map, T item) {
         var ret = Getter(item);
@@ -59,9 +59,9 @@ public class SealedCodec<TReturn, T> {
         Getter = getter;
         PropertyName = propertyName;
         Codec = codec;
-        WithDefaut(defautValue);
+        WithDefault(defautValue);
     }
-    public SealedCodec<TReturn, T> WithDefaut(TReturn? defautValue) {
+    public SealedCodec<TReturn, T> WithDefault(TReturn? defautValue) {
         if (DefautValue.HasValue()) throw new InvalidOperationException("The Codec already has a default value!");
         DefautValue = new Maybe<TReturn>(hasValue: true, defautValue);
         IsDefaultNull = defautValue == null;

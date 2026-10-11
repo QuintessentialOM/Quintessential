@@ -151,7 +151,7 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
         Codecs.STRING.Seal("Name", (Solution solution) => solution.name),
         scoreCodec.Seal("Scores", (Solution solution) => solution.scores),
         partsCodec.Seal("Parts", (Solution solution) => [.. solution.CollectPartsAndSubparts().Where(part => !part.GetIsFixed() && !part.GetType().isSubpart)]),
-        componentsCodec.Seal("Components", (Solution solution) => ((patch_Solution)(object)solution).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
+        componentsCodec.Seal("Components", (Solution solution) => ((patch_Solution)(object)solution).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefault([]),
         (id, nameOnDisc, creationTime, name, scores, parts, components) => {
             if (!Puzzles.GetById(id).GetOrDefault(out Puzzle puzzle))
                 throw new Exception($"Failed loading puzzle '{name}' puzzle with id '{id}' not found.");

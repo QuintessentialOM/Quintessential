@@ -197,6 +197,7 @@ public class QuintessentialLoader
 
         VanillaCampaign = Campaigns.opusMagnum;
         ((patch_Campaign)(object)VanillaCampaign).QuintTitle = Translations.Translate("om");
+        ((patch_Campaign)(object)Campaigns.deReMetallica).QuintTitle = Translations.Translate("De Re Metallica");
         AllCampaigns.Add(VanillaCampaign);
 
         Dictionary<string, Texture> iconCache = [];

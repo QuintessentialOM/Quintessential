@@ -245,17 +245,17 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
     );
     internal static readonly Codec<Part> PART = Codec<Part>.Create(
         Codecs.ID.Seal("Id", (Part part) => part.GetType().Id),
-        Codecs.BOOL.Seal("IsFixed", (Part part) => part.GetIsFixed()).WithDefaut(false),
+        Codecs.BOOL.Seal("IsFixed", (Part part) => part.GetIsFixed()).WithDefault(false),
         Codecs.HEXINDEX.Seal("Pos", (Part part) => part.GetHexPos()),
-        Codecs.INT.Seal("Length", (Part part) => part.GetArmLength()).WithDefaut(1).WriteDefautIf(part => PartTag.PartTags["om:arm"].HasPart(part)),
-        Codecs.INT.Seal("Rotation", (Part part) => part.GetRotation().GetNumberOfTurns()).WithDefaut(0).WriteDefautIf(part => part.GetType().canRotateInEditor),
-        Codecs.INT.Seal("IOIndex", (Part part) => part.GetInputOutputIndex()).WithDefaut(0).WriteDefautIf(part => PartTag.PartTags["om:inputoutput"].HasPart(part)),
-        Codecs.INT.Seal("ProgramIndex", (Part part) => part.programIndex).WithDefaut(0).WriteDefautIf(part => PartTag.PartTags["om:programmable"].HasPart(part)),
-        programCodec.Seal("Program", (Part part) => new Dictionary<int, InstructionType>(part.program.method_902().ToList().Select(indexed => KeyValuePair.Create(indexed.index, indexed.instruction)))).WithDefaut([]).WriteDefautIf(part => PartTag.PartTags["om:programmable"].HasPart(part)),
-        Codecs.LIST_HEXINDEX.Seal("Track", (Part part) => part.GetTrack()?.ToList() ?? []).WithDefaut([]),
-        Codecs.INT.Seal("ConduitId", (Part part) => part.conduitId).WithDefaut(0).WriteDefautIf(part => part.GetType().Id == "om:conduit"),
-        Codecs.LIST_HEXINDEX.Seal("Conduit", (Part part) => part?.GetConduitHexes() ?? []).WithDefaut([]),
-        componentsCodec.Seal("Components", (Part part) => ((patch_Part)(object)part).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
+        Codecs.INT.Seal("Length", (Part part) => part.GetArmLength()).WithDefault(1).WriteDefautIf(part => PartTag.PartTags["om:arm"].HasPart(part)),
+        Codecs.INT.Seal("Rotation", (Part part) => part.GetRotation().GetNumberOfTurns()).WithDefault(0).WriteDefautIf(part => part.GetType().canRotateInEditor),
+        Codecs.INT.Seal("IOIndex", (Part part) => part.GetInputOutputIndex()).WithDefault(0).WriteDefautIf(part => PartTag.PartTags["om:inputoutput"].HasPart(part)),
+        Codecs.INT.Seal("ProgramIndex", (Part part) => part.programIndex).WithDefault(0).WriteDefautIf(part => PartTag.PartTags["om:programmable"].HasPart(part)),
+        programCodec.Seal("Program", (Part part) => new Dictionary<int, InstructionType>(part.program.method_902().ToList().Select(indexed => KeyValuePair.Create(indexed.index, indexed.instruction)))).WithDefault([]).WriteDefautIf(part => PartTag.PartTags["om:programmable"].HasPart(part)),
+        Codecs.LIST_HEXINDEX.Seal("Track", (Part part) => part.GetTrack()?.ToList() ?? []).WithDefault([]),
+        Codecs.INT.Seal("ConduitId", (Part part) => part.conduitId).WithDefault(0).WriteDefautIf(part => part.GetType().Id == "om:conduit"),
+        Codecs.LIST_HEXINDEX.Seal("Conduit", (Part part) => part?.GetConduitHexes() ?? []).WithDefault([]),
+        componentsCodec.Seal("Components", (Part part) => ((patch_Part)(object)part).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefault([]),
         (id, isFixed, pos, lenght, rotation, ioIndex, programIndex, program, track, conduitId, conduit, components) => {
             Part part = new(PartTypes.GetById(id).GetValue(), isFixed);
             part.SetHexPosAndUpdate(pos);

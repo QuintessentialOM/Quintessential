@@ -92,12 +92,12 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
     );
     private static readonly Codec<List<PlacedVial>> vialsCodec = ListCodec<PlacedVial>.Create(vialCodec);
     private static readonly Codec<ProductionInfo> productionInfoCodec = Codec<ProductionInfo>.Create(
-        Codecs.BOOL.Seal("TightLeft", (ProductionInfo prodInfo) => prodInfo.tightLeftBound).WithDefaut(false),
-        Codecs.BOOL.Seal("TightRight", (ProductionInfo prodInfo) => prodInfo.tightRightBound).WithDefaut(false),
-        Codecs.BOOL.Seal("Isolation", (ProductionInfo prodInfo) => prodInfo.requireIsolation).WithDefaut(false),
-        chambersCodec.Seal("Chambers", (ProductionInfo prodInfo) => [.. prodInfo.chambers]).WithDefaut([]),
-        conduitsCodec.Seal("Conduits", (ProductionInfo prodInfo) => [.. prodInfo.conduits]).WithDefaut([]),
-        vialsCodec.Seal("Vial", (ProductionInfo prodInfo) => [.. prodInfo.vials]).WithDefaut([]),
+        Codecs.BOOL.Seal("TightLeft", (ProductionInfo prodInfo) => prodInfo.tightLeftBound).WithDefault(false),
+        Codecs.BOOL.Seal("TightRight", (ProductionInfo prodInfo) => prodInfo.tightRightBound).WithDefault(false),
+        Codecs.BOOL.Seal("Isolation", (ProductionInfo prodInfo) => prodInfo.requireIsolation).WithDefault(false),
+        chambersCodec.Seal("Chambers", (ProductionInfo prodInfo) => [.. prodInfo.chambers]).WithDefault([]),
+        conduitsCodec.Seal("Conduits", (ProductionInfo prodInfo) => [.. prodInfo.conduits]).WithDefault([]),
+        vialsCodec.Seal("Vial", (ProductionInfo prodInfo) => [.. prodInfo.vials]).WithDefault([]),
         (tightLeft, tightRight, isolation, chambers, conduits, vials) => {
             return new() {
                 tightLeftBound = tightLeft,
@@ -112,14 +112,14 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
     internal static readonly Codec<Puzzle> PUZZLE = Codec<Puzzle>.Create(
         Codecs.STRING.Seal("Id", (Puzzle puzzle) => puzzle.puzzleId),
         Codecs.LOCSTRING.Seal("Name", (Puzzle puzzle) => puzzle.puzzleName),
-        Codecs.STRING.Seal("Author", (Puzzle puzzle) => puzzle.journalAuthor.HasValue() ? puzzle.journalAuthor.GetValue() : "").WithDefaut(""),
+        Codecs.STRING.Seal("Author", (Puzzle puzzle) => puzzle.journalAuthor.HasValue() ? puzzle.journalAuthor.GetValue() : "").WithDefault(""),
         Codecs.PERMISSIONS.Seal("Permissions", (Puzzle puzzle) => puzzle.permissionFlags),
-        Codecs.LIST_ID.Seal("CustomPermissions", (Puzzle puzzle) => puzzle.CustomPermissions != null ? [.. puzzle.CustomPermissions] : []).WithDefaut([]),
+        Codecs.LIST_ID.Seal("CustomPermissions", (Puzzle puzzle) => puzzle.CustomPermissions != null ? [.. puzzle.CustomPermissions] : []).WithDefault([]),
         moleculesCodec.Seal("Inputs", (Puzzle puzzle) => [.. puzzle.inputs.Select(io => (patch_Molecule)(object)io.molecule)]),
         moleculesCodec.Seal("Outputs", (Puzzle puzzle) => [.. puzzle.outputs.Select(io => (patch_Molecule)(object)io.molecule)]),
-        Codecs.INT.Seal("OutputMultiplier", (Puzzle puzzle) => puzzle.outputMultiplier).WithDefaut(1),
-        productionInfoCodec.Seal("ProductionInfo", (Puzzle puzzle) => puzzle.productionInfo.HasValue() ? puzzle.productionInfo.GetValue() : null).WithDefaut(null),
-        componentsCodec.Seal("Components", (Puzzle puzzle) => ((patch_Puzzle)(object)puzzle).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
+        Codecs.INT.Seal("OutputMultiplier", (Puzzle puzzle) => puzzle.outputMultiplier).WithDefault(1),
+        productionInfoCodec.Seal("ProductionInfo", (Puzzle puzzle) => puzzle.productionInfo.HasValue() ? puzzle.productionInfo.GetValue() : null).WithDefault(null),
+        componentsCodec.Seal("Components", (Puzzle puzzle) => ((patch_Puzzle)(object)puzzle).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefault([]),
         (id, name, author, permissions, customPermissions, inputs, outputs, multiplier, prodInfo, components) => {
             Puzzle puzzle = new() {
                 puzzleId = id,
