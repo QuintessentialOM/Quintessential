@@ -9,9 +9,7 @@ using System.Linq;
 
 #pragma warning disable CS0626 // Method, operator, or accessor is marked external and has no attributes on it
 
-
-
-public class patch_JournalScreen{
+public class patch_JournalScreen {
 
 	public static int currentJournal;
 	
@@ -72,22 +70,24 @@ public class patch_JournalScreen{
 	}
 
 	// found by name in MonoModRules
-	public static string CurrentJournalNameKey(){
-		return currentJournal == 0 ? "The Journal of Alchemical Engineering" : QuintessentialLoader.ModJournalModels[currentJournal - 1].TitleKey;
+	public static string CurrentJournalNameKey() {
+        return "The Journal of Alchemical Engineering";
+        //return currentJournal == 0 ? "The Journal of Alchemical Engineering" : QuintessentialLoader.LegacyJournalModels[currentJournal - 1].TitleKey;
 	}
 
 	public static Texture CurrentJournalBg(Texture before, bool large){
-		if(currentJournal == 0)
-			return before;
-		var journal = QuintessentialLoader.ModJournalModels[currentJournal - 1];
-		return large switch{
-			true when !string.IsNullOrWhiteSpace(journal.PuzzleBackgroundLarge) => (journal.PuzzleBackgroundLargeTex ??= AssetLoaderHelper.LoadTexture(journal.PuzzleBackgroundLarge)),
-			false when !string.IsNullOrWhiteSpace(journal.PuzzleBackgroundSmall) => (journal.PuzzleBackgroundSmallTex ??= AssetLoaderHelper.LoadTexture(journal.PuzzleBackgroundSmall)),
-			_ => before
-		};
-	}
+        return before;
+        //if (currentJournal == 0)
+        //	return before;
+        //var journal = QuintessentialLoader.LegacyJournalModels[currentJournal - 1];
+        //return large switch{
+        //	true when !string.IsNullOrWhiteSpace(journal.PuzzleBackgroundLarge) => (journal.PuzzleBackgroundLargeTex ??= AssetLoaderHelper.LoadTexture(journal.PuzzleBackgroundLarge)),
+        //	false when !string.IsNullOrWhiteSpace(journal.PuzzleBackgroundSmall) => (journal.PuzzleBackgroundSmallTex ??= AssetLoaderHelper.LoadTexture(journal.PuzzleBackgroundSmall)),
+        //	_ => before
+        //};
+    }
 
-	[MonoModILInject("RenderFrame")]
+    [MonoModILInject("RenderFrame")]
     static void PatchJournalScreen(MethodDefinition method, CustomAttribute attrib) {
         MonoModRule.Modder.Log("Patching journal screen");
         if (method.HasBody) {

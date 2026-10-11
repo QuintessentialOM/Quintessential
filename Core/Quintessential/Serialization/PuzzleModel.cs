@@ -8,7 +8,7 @@ namespace Quintessential.Serialization;
 [DataContract]
 public class PuzzleModel {
 
-    [DataMember] public string NameKey { get; set; }
+    [DataMember] public string Name { get; set; }
     [DataMember] public string ID { get; set; }
     [DataMember] public string Author { get; set; }
     [DataMember] public List<PuzzleIoM> Inputs { get; set; } = [];
@@ -25,7 +25,7 @@ public class PuzzleModel {
 		PuzzleModel model = new(){
 			ID = puzzle.puzzleId,
 			PermissionFlags = puzzle.permissionFlags,
-			NameKey = puzzle.puzzleName != null ? ((patch_LocString)(object)puzzle.puzzleName).Key : "",
+			Name = puzzle.puzzleName != null ? ((patch_LocString)(object)puzzle.puzzleName).Key : "",
 			Author = puzzle.journalAuthor.HasValue() ? puzzle.journalAuthor.GetValue() : "",
 			CustomPermissions = [..((patch_Puzzle)(object)puzzle).CustomPermissions ?? []],
 			OutputMultiplier = puzzle.outputMultiplier
@@ -51,7 +51,7 @@ public class PuzzleModel {
 	public static Puzzle FromModel(PuzzleModel model) {
 		Puzzle ret = new(){
             puzzleId = model.ID,
-            puzzleName = patch_Translations.TranslateByType(model.NameKey),
+            puzzleName = Translations.WithAllLanguages(model.Name),
             inputs = [.. model.Inputs],
             outputs = [.. model.Outputs],
             permissionFlags = model.PermissionFlags,
@@ -122,12 +122,12 @@ public class PuzzleModel {
     public class MoleculeM {
         [DataMember] public List<AtomM> Atoms { get; set; } = [];
         [DataMember] public List<BondM> Bonds { get; set; } = [];
-        [DataMember] public string NameKey { get; set; } = "";
+        [DataMember] public string Name { get; set; } = "";
 
         public MoleculeM() { }
         public static implicit operator MoleculeM (Molecule mol) {
             MoleculeM toReturn = new() {
-				NameKey = mol.displayName.HasValue() ? ((patch_LocString)(object)mol.displayName.GetValue()).Key : "",
+				Name = mol.displayName.HasValue() ? ((patch_LocString)(object)mol.displayName.GetValue()).Key : "",
 			};
 			foreach (var atom in mol.GetMonomer().GetAtoms())
                 toReturn.Atoms.Add(new AtomM(atom.Value, atom.Key));
@@ -142,8 +142,8 @@ public class PuzzleModel {
 			foreach(var item in mol.Bonds)
                 monomer.AddBond((BondTypeEnum)item.BondBits(), item.A, item.B);
 			Molecule toReturn = Molecule.RepeatMonomer(monomer);
-			if (!string.IsNullOrEmpty(mol.NameKey))
-				toReturn.displayName = patch_Translations.TranslateByType(mol.NameKey);
+			if (!string.IsNullOrEmpty(mol.Name))
+				toReturn.displayName = Translations.WithAllLanguages(mol.Name);
 			else toReturn.displayName = new(false, null);
             return toReturn;
         }
@@ -164,10 +164,30 @@ public class PuzzleModel {
 				throw new NullReferenceException("Missing atom type!");
 
 			return new Atom(
-				AtomTypes.atoms.FirstOrDefault(k => model.AtomType.Equals(((patch_AtomType)(object)k).Id))
-				?? throw new Exception($"Atom type \"{model.AtomType}\" does not exist!")
+				AtomTypes.atoms.FirstOrDefault(k => AtomMap(model.AtomType).Equals(((patch_AtomType)(object)k).Id))
+				?? throw new Exception($"Atom type \"{AtomMap(model.AtomType)}\" does not exist!")
 			);
 		}
+
+		public static string AtomMap(string s) => s switch {
+            "salt" => "om:salt",
+            "air" => "om:air",
+            "earth" => "om:earth",
+            "fire" => "om:fire",
+            "water" => "om:water",
+            "quicksilver" => "om:quicksilver",
+            "lead" => "om:lead",
+            "copper" => "om:copper",
+            "tin" => "om:tin",
+            "iron" => "om:iron",
+            "silver" => "om:silver",
+            "gold" => "om:gold",
+            "vitae" => "om:vitae",
+            "mors" => "om:mors",
+            "repeat" => "om:repeat",
+            "quintessence" => "om:quintessence",
+            _ => s
+        };
 	}
 
     [DataContract]

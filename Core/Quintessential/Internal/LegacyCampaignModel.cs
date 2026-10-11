@@ -2,36 +2,36 @@
 using System.Text.Json.Serialization;
 using YamlDotNet.Serialization;
 
-namespace Quintessential.Serialization;
+namespace Quintessential.Internal;
 
-public class CampaignModel {
+internal class LegacyCampaignModel {
 
 	public string Name { get; set; }
-	public string TitleKey { get; set; }
+	public string Title { get; set; }
 	public IList<ChapterModel> Chapters { get; set; }
 
 	[YamlIgnore] [JsonIgnore]
 	public string Path = "";
 }
 
-public class ChapterModel {
+internal class ChapterModel {
 
-	public string TitleKey { get; set; }
-    public string SubtitleKey { get; set; }
-	public string PlaceKey { get; set; }
+	public string Title { get; set; }
+    public string Subtitle { get; set; }
+	public string Place { get; set; }
 	public string Background { get; set; }
 	public IList<EntryModel> Entries { get; set; }
 
     // TODO: wheel icons
 }
 
-public class EntryModel {
+internal class EntryModel {
 
 	// TODO: multiple requirements, documents, tutorials
 
 	public string Type { get; set; } = "puzzle";
 	public string ID { get; set; }
-	public string TitleKey { get; set; }
+	public string Title { get; set; }
     public string Puzzle { get; set; }
 	public string Requires { get; set; }
 	public string Icon { get; set; }
