@@ -7,6 +7,7 @@ using System.Linq;
 namespace Quintessential.Internal;
 
 internal static class LegacyPorting {
+    internal static bool UnsafeLegacyExport = false;
     public static Dictionary<string, LegacyCampaignModel> LegacyCampaignModels = [];
     public static Dictionary<string, LegacyJournalModel> LegacyJournalModels = [];
     public static string ExportFolder = Path.Combine("modded", "Export");
@@ -137,8 +138,8 @@ internal static class LegacyPorting {
             journals.Add(journal.Key, new Journal() {
                 volumes = Volumes,
                 title = Translations.WithAllLanguages(journal.Value.Title),
-                puzzleBackgroundLarge = AssetLoaderHelper.LoadTexture(journal.Value.PuzzleBackgroundLarge),
-                puzzleBackgroundSmall = AssetLoaderHelper.LoadTexture(journal.Value.PuzzleBackgroundSmall),
+                puzzleBackgroundLarge = string.IsNullOrEmpty(journal.Value.PuzzleBackgroundLarge) ? null : AssetLoaderHelper.LoadTexture(journal.Value.PuzzleBackgroundLarge),
+                puzzleBackgroundSmall = string.IsNullOrEmpty(journal.Value.PuzzleBackgroundSmall) ? null : AssetLoaderHelper.LoadTexture(journal.Value.PuzzleBackgroundSmall),
             });
         }
         return journals;

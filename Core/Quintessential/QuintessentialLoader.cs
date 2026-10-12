@@ -238,7 +238,7 @@ public class QuintessentialLoader
                 if (!IsModPresent("quintessential_data")) throw new Exception("The mod 'quintessential_data' is requered for loading json based puzzles.");
                 puzzle = Puzzle.LoadFromFile(baseName + ".puzzle.json");
             } else if (File.Exists(baseName + ".puzzle.yaml")) {
-                puzzle = PuzzleModel.FromModel(DataSerializer.Deserialize<PuzzleModel>(baseName + ".puzzle.yaml"));
+                puzzle = LegacyPuzzleModel.FromModel(DataSerializer.Deserialize<LegacyPuzzleModel>(baseName + ".puzzle.yaml"));
             } else {
                 Logger.Log($"Puzzle \"{puzzleFileName}\" from \"{campaignTitle}\" doesn't exist, ignoring");
                 puzzle = null;

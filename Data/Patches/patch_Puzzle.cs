@@ -79,16 +79,18 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
         (pos1, pos2, hexes) =>  new PlacedConduit(pos1.Q, pos1.R, pos2.Q, pos2.R, [.. hexes])
     );
     private static readonly Codec<List<PlacedConduit>> conduitsCodec = ListCodec<PlacedConduit>.Create(conduitCodec);
+
+    private static readonly Codec<Tuple<Texture, Texture>> vialTexture = Codec<Tuple<Texture, Texture>>.Create(
+        Codecs.STRING.Seal("Primary", (Tuple<Texture, Texture> textures) => patch_DataLoader.GetTexturePath(textures.Item1, "")).WithDefault(""),
+        Codecs.STRING.Seal("Secondary", (Tuple<Texture, Texture> textures) => patch_DataLoader.GetTexturePath(textures.Item2, "")).WithDefault(""),
+        (primary, secondary) => new Tuple<Texture, Texture>(patch_DataLoader.GetVial(primary), patch_DataLoader.GetVial(secondary))
+    );
+    private static readonly Codec<List<Tuple<Texture, Texture>>> vialTextures = ListCodec<Tuple<Texture, Texture>>.Create(vialTexture);
     private static readonly Codec<PlacedVial> vialCodec = Codec<PlacedVial>.Create(
         Codecs.HEXINDEX.Seal("Pos", (PlacedVial vial) => vial.hexPos),
         Codecs.BOOL.Seal("TopConnected", (PlacedVial vial) => vial.isTopConnected),
-        Codecs.INT.Seal("TextureCount", (PlacedVial vial) => vial.textures.Length),
-        (pos, topConnected, textureCount) => {
-            Tuple<Texture, Texture>[] textures = new Tuple<Texture, Texture>[textureCount];
-            for (int i = 0; i < textureCount; i++)
-                textures[i] = Tuple.Create(Assets.textures.pipelines.vials.generic.empty, Assets.textures.pipelines.vials.generic.empty);
-            return new PlacedVial(pos.Q, pos.R, topConnected, textures);
-        }
+        vialTextures.Seal("Textures", (PlacedVial vial) => [..vial.textures]),
+        (pos, topConnected, textures) => new PlacedVial(pos.Q, pos.R, topConnected, [..textures])
     );
     private static readonly Codec<List<PlacedVial>> vialsCodec = ListCodec<PlacedVial>.Create(vialCodec);
     private static readonly Codec<ProductionInfo> productionInfoCodec = Codec<ProductionInfo>.Create(

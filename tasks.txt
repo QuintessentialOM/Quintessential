@@ -19,7 +19,7 @@ Tasks:
 * export -name "QuintessentialCore" -outputPath "D:\C#_projects\Quintessential\TestEnvironment\_builds"
 * export -name "QuintessentialData" -outputPath "D:\C#_projects\Quintessential\TestEnvironment\_builds"
 * export -name "QuintessentialUI" -outputPath "D:\C#_projects\Quintessential\TestEnvironment\_builds"
-* run -args "-devEnv -pseudoLang" --attachDebugger --readLogs
+* run -args "-devEnv -pseudoLang -unsafeExport" --attachDebugger --readLogs
 
 AutoExit:
   false

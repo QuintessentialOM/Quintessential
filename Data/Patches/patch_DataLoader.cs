@@ -11,6 +11,8 @@ internal static class patch_DataLoader {
     [MonoModIgnore]
     public static extern Texture GetIcon(string path);
     [MonoModIgnore]
+    public static extern Texture GetVial(string path);
+    [MonoModIgnore]
     public static extern Texture GetOther(string path);
 
     public static string GetTexturePath(Texture texture, string @default) {

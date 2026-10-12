@@ -5,18 +5,19 @@ using System.IO;
 namespace Quintessential;
 public static class Dumping {
 
+    // FIXME
     internal static void DumpVanillaPuzzles() {
         string outDir = Path.Combine(QuintessentialLoader.PathModSaves, "Quintessential", "DumpedPuzzles");
         Directory.CreateDirectory(outDir);
         DataSerializer.SetMultilineFormat(true);
         foreach (var p in Puzzles.campaignPuzzles) {
-            PuzzleModel m = PuzzleModel.FromPuzzle(p);
-            DataSerializer.Serialize(m, Path.Combine(outDir, m.ID + ".puzzle.jsonc"));
+            //PuzzleModel m = PuzzleModel.FromPuzzle(p);
+            //DataSerializer.Serialize(m, Path.Combine(outDir, m.ID + ".puzzle.jsonc"));
         }
         foreach (var volume in JournalVolumes.volumes) {
             foreach (var p in volume.puzzles) {
-                PuzzleModel m = PuzzleModel.FromPuzzle(p);
-                DataSerializer.Serialize(m, Path.Combine(outDir, "X" + m.ID + ".puzzle.jsonc"));
+                //PuzzleModel m = PuzzleModel.FromPuzzle(p);
+                //DataSerializer.Serialize(m, Path.Combine(outDir, "X" + m.ID + ".puzzle.jsonc"));
             }
         }
         Logger.Log($"Dumped puzzles to {outDir}");

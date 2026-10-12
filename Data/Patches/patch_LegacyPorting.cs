@@ -6,6 +6,8 @@ using System.IO;
 
 [MonoModPatch("Quintessential.Internal.LegacyPorting")]
 internal static class patch_LegacyPorting {
+    [MonoModIgnore]
+    public static string ExportFolder;
 
     [MonoModReplace]
     private static void ExportCampaingNewFormat(string origPath, string exportFolder, Campaign campaign) {
@@ -19,16 +21,20 @@ internal static class patch_LegacyPorting {
             File.Delete(newPath);
         }
         File.WriteAllText(newPath, json.ToString());
+        Logger.LogNoTime("----Exported: " + newPath);
 
         foreach (var chapter in campaign.chapters) {
             foreach (var item in chapter.campaignItems) {
-                if (item.puzzle.HasValue()) {
-                    Puzzle puzzle = item.puzzle.GetValue();
-                    string path = Path.Combine(Path.GetDirectoryName(newPath), puzzle.puzzleId + ".puzzle.jsonc");
+                try {
+                    if (item.puzzle.HasValue() && !string.IsNullOrEmpty(item.puzzle.GetValue().puzzleId)) {
+                        Puzzle puzzle = item.puzzle.GetValue();
+                        string path = Path.Combine(Path.GetDirectoryName(newPath), puzzle.puzzleId + ".puzzle.jsonc");
 
-                    var jsonPuzzle = Codecs.PUZZLE.Encode(JsonCodecMap.Instance, puzzle);
-                    File.WriteAllText(path, jsonPuzzle.ToString());
-                }
+                        var jsonPuzzle = Codecs.PUZZLE.Encode(JsonCodecMap.Instance, puzzle);
+                        File.WriteAllText(path, jsonPuzzle.ToString());
+                        Logger.LogNoTime("----Exported: " + path);
+                    }
+                } catch {}
             }
         }
     }
@@ -45,14 +51,33 @@ internal static class patch_LegacyPorting {
             File.Delete(newPath);
         }
         File.WriteAllText(newPath, json.ToString());
+        Logger.LogNoTime("----Exported: " + newPath);
 
         foreach (var volume in journal.volumes) {
             foreach (var puzzle in volume.puzzles) {
-                string path = Path.Combine(Path.GetDirectoryName(newPath), puzzle.puzzleId + ".puzzle.jsonc");
+                try {
+                    string path = Path.Combine(Path.GetDirectoryName(newPath), puzzle.puzzleId + ".puzzle.jsonc");
 
-                var jsonPuzzle = Codecs.PUZZLE.Encode(JsonCodecMap.Instance, puzzle);
-                File.WriteAllText(path, jsonPuzzle.ToString());
+                    var jsonPuzzle = Codecs.PUZZLE.Encode(JsonCodecMap.Instance, puzzle);
+                    File.WriteAllText(path, jsonPuzzle.ToString());
+                    Logger.LogNoTime("----Exported: " + path);
+                } catch { }
             }
         }
     }
+
+    internal static void ExportPuzzleNewFormat(string origPath, string exportFolder, Puzzle puzzle) {
+        string relative = Path.GetRelativePath(OSInfo.GetSavePath(), origPath);
+        if (Path.IsPathRooted(relative)) relative = Path.GetFileName(relative);
+        string newPath = Path.Combine(exportFolder, Path.ChangeExtension(relative, ".jsonc"));
+
+        var json = Codecs.PUZZLE.Encode(JsonCodecMap.Instance, puzzle);
+        if (!Directory.Exists(Path.GetDirectoryName(newPath))) Directory.CreateDirectory(Path.GetDirectoryName(newPath));
+        if (File.Exists(newPath)) {
+            File.Delete(newPath);
+        }
+        File.WriteAllText(newPath, json.ToString());
+        Logger.LogNoTime("----Exported: " + newPath);
+    }
+
 }

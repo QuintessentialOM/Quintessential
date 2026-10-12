@@ -20,16 +20,24 @@ internal class patch_WorkshopManager{
 
         string path = Path.Combine(PlatformBridge.savePath, folder);
         var computeFilehash = typeof(WorkshopManager).GetMethod("ComputeFileHash", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-        foreach (var puzzleFilePath in Directory.EnumerateFiles(path, "*.puzzle.json")) {
-            try {
-                Puzzle puzzle = Codecs.PUZZLE.Decode(JsonCodecMap.Instance, JsonNode.Parse(File.ReadAllText(puzzleFilePath)));
-                puzzle.fileHash = (uint)computeFilehash.Invoke(GameLogic.instance.workshopManager, [puzzleFilePath]);
 
-                orig.Add(puzzle);
-            } catch (Exception e) {
-                Logger.Log($"Exception loading custom puzzle from path \"{ Path.GetRelativePath(PlatformBridge.savePath, puzzleFilePath) }\":");
-                Logger.Log(e.Message);
-                continue;
+        string[] ExtraFileExtensions = {
+            ".json",
+            ".jsonc"
+        };
+        foreach (var extension in ExtraFileExtensions) {
+            foreach (var puzzleFilePath in Directory.EnumerateFiles(path, "*.puzzle" + extension)) {
+                try {
+                    string text = extension == ".jsonc" ? DataSerializer.JsoncToJson(File.ReadAllText(puzzleFilePath)) : File.ReadAllText(puzzleFilePath);
+                    Puzzle puzzle = Codecs.PUZZLE.Decode(JsonCodecMap.Instance, JsonNode.Parse(text));
+                    puzzle.fileHash = (uint)computeFilehash.Invoke(GameLogic.instance.workshopManager, [puzzleFilePath]);
+
+                    orig.Add(puzzle);
+                } catch (Exception e) {
+                    Logger.Log($"Exception loading custom puzzle from path \"{Path.GetRelativePath(PlatformBridge.savePath, puzzleFilePath)}\":");
+                    Logger.Log(e.Message);
+                    continue;
+                }
             }
         }
 
@@ -38,6 +46,19 @@ internal class patch_WorkshopManager{
             File.Delete(Path.Combine(PlatformBridge.savePath, folder, orig[i].puzzleId + ".puzzle"));
             orig[i].SaveToFile(((patch_WorkshopManager)(object)GameLogic.instance.workshopManager).CustomPuzzlePath(orig[i], folder));
         }
+
+        // PortLegacy
+        foreach (var puzzleFilePath in Directory.EnumerateFiles(path, "*.puzzle.yaml")) {
+            try {
+                if(!QuintessentialLoader.TryLoadPuzzle(Path.GetDirectoryName(puzzleFilePath),Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(puzzleFilePath)), "", out Puzzle puzzle)) continue;
+                patch_LegacyPorting.ExportPuzzleNewFormat(puzzleFilePath, patch_LegacyPorting.ExportFolder, puzzle);
+            } catch (Exception e) {
+                Logger.Log($"Exception loading legacy puzzle from path \"{Path.GetRelativePath(PlatformBridge.savePath, puzzleFilePath)}\":");
+                Logger.Log(e);
+                continue;
+            }
+        }
+
         return orig;
 	}
 
@@ -45,9 +66,6 @@ internal class patch_WorkshopManager{
     [MonoModPublic] [MonoModReplace]
     public string CustomPuzzlePath(Puzzle puzzle){
         return Path.Combine(PlatformBridge.savePath, "custom", puzzle.puzzleId + ".puzzle.json");
-        //return puzzle.IsModdedPuzzle
-        //    ? Path.Combine(PlatformBridge.field_2102, "custom", puzzle.puzzleId + ".puzzle.json")
-        //    : orig_CustomPuzzlePath(puzzle);
     }
     public string CustomPuzzlePath(Puzzle puzzle, string folder) {
         return Path.Combine(PlatformBridge.savePath, folder, puzzle.puzzleId + ".puzzle.json");
