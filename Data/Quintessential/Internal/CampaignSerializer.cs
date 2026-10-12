@@ -53,7 +53,7 @@ internal class CampaignSerializer {
         ITEM_TYPE.Seal("Type", (CampaignItem item) => item.itemType),
         Codecs.STRING.Seal("Puzzle", (CampaignItem item) => item.puzzle.HasValue() ? item.puzzle.GetValue().puzzleId : "").WithDefault(""),
         UNLOCK_REQ.Seal("UnlockRequirement", (CampaignItem item) => item.requirement is UnlockReqNothing ? null : item.requirement).WithDefault(null),
-        Codecs.BOOL.Seal("Vignette", (CampaignItem item) => item.vignette.HasValue()).WithDefault(false),
+        Codecs.BOOL.Seal("Vignette", (CampaignItem item) => item.vignette.HasValue()).WithDefault(true),
         Codecs.STRING.Seal("Music", (CampaignItem item) => item.musicTrack.field_1739.sourceFileName).WithDefault(""),
         Codecs.STRING.Seal("Fanfare", (CampaignItem item) => item.fanfare.field_4061.sourceFileName).WithDefault(""),
         Codecs.STRING.Seal("IconSmall", (CampaignItem item) => patch_DataLoader.GetTexturePath(item.IconSmall, "")).WithDefault(""),
@@ -67,7 +67,6 @@ internal class CampaignSerializer {
                     else p = Puzzles.campaignPuzzles.First(puzz => puzz.puzzleId == puzzleId);
                 else p = pz;
             }
-            // TODO handle Music, & Fanfare!
             var item = new CampaignItem(id, name, type, p, unlockReq ?? new UnlockReqNothing(),
                 music == "" ? Assets.musicTracks.solving3 : AssetLoaderHelper.LoadMusic(music),
                 fanfare == "" ? Assets.sounds.fanfare_solving3 : AssetLoaderHelper.LoadSound(fanfare),
