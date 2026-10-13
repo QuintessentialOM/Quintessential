@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Quintessential.Internal;
 
@@ -33,6 +34,7 @@ internal static class DataLoader {
         }
         return icon;
     }
+
     static Dictionary<string, Texture> VialCache = [];
     public static Texture GetVial(string path) {
         if (VialCache.Count == 0) {
@@ -166,6 +168,28 @@ internal static class DataLoader {
             AddTexture(Assets.textures.cinematic.backgrounds.dlc_workshop_a);
             AddTexture(Assets.textures.cinematic.backgrounds.dlc_workshop_b);
             AddTexture(Assets.textures.cinematic.backgrounds.workshop);
+            AddTexture(Assets.textures.documents.book_divider);
+            AddTexture(Assets.textures.documents.letter_0);
+            AddTexture(Assets.textures.documents.letter_0_bar);
+            AddTexture(Assets.textures.documents.letter_1);
+            AddTexture(Assets.textures.documents.letter_2);
+            AddTexture(Assets.textures.documents.letter_3);
+            AddTexture(Assets.textures.documents.letter_4);
+            AddTexture(Assets.textures.documents.letter_4_overlay);
+            AddTexture(Assets.textures.documents.letter_5);
+            AddTexture(Assets.textures.documents.letter_6);
+            AddTexture(Assets.textures.documents.letter_6_overlay);
+            AddTexture(Assets.textures.documents.letter_7);
+            AddTexture(Assets.textures.documents.letter_9);
+            AddTexture(Assets.textures.documents.letter_drm_1);
+            AddTexture(Assets.textures.documents.letter_drm_2);
+            AddTexture(Assets.textures.documents.letter_drm_3);
+            AddTexture(Assets.textures.documents.letter_drm_4);
+            AddTexture(Assets.textures.documents.letter_response);
+            AddTexture(Assets.textures.documents.line);
+            AddTexture(Assets.textures.documents.lines);
+            AddTexture(Assets.textures.documents.pip);
+            AddTexture(Assets.textures.documents.pip_large);
         }
         if (!TextureCache.TryGetValue(path, out var texture)) {
             texture = AssetLoaderHelper.LoadTexture(path);
@@ -174,10 +198,53 @@ internal static class DataLoader {
         return texture;
     }
 
+    static Dictionary<string, LocalizedFont> FontsByKey = [];
+    static readonly Dictionary<LocalizedFont, string> KeysByFont = [];
+    public static LocalizedFont GetFont(string key) {
+        if (FontsByKey.Count == 0) InitFonts();
+        if (!FontsByKey.TryGetValue(key, out var font)) {
+            throw new Exception($"Failed to find font by key: {key} Valid keys are:\n{ string.Join(", ", FontsByKey.Keys)}");
+        }
+        return font;
+    }
+    public static string GetFontKey(LocalizedFont font) {
+        if (KeysByFont.Count == 0) InitFonts();
+        if (!KeysByFont.TryGetValue(font, out var key)) {
+            throw new Exception("Failed to key for font!");
+        }
+        return key;
+    }
+    static void AddFont(LocalizedFont font, string key) {
+        if (!WasInit) InitFonts();
+        FontsByKey.Add(key, font);
+        KeysByFont.Add(font, key);
+    }
+    static bool WasInit = false;
+    static void InitFonts() {
+        if (WasInit) return;
+        WasInit = true;
+        AddFont(Assets.fonts.cinzel_21, "Cinzel 21");
+        AddFont(Assets.fonts.cormorant_11, "Cormorant 11");
+        AddFont(Assets.fonts.cormorant_12_75, "Cormorant 12.75");
+        AddFont(Assets.fonts.cormorant_15, "Cormorant 15");
+        AddFont(Assets.fonts.cormorant_18, "Cormorant 18");
+        AddFont(Assets.fonts.cormorant_22_5, "Cormorant 22.5");
+        AddFont(Assets.fonts.crimson_9_75, "Crimson 9.75");
+        AddFont(Assets.fonts.crimson_10_5, "Crimson 10.5");
+        AddFont(Assets.fonts.crimson_12, "Crimson 12");
+        AddFont(Assets.fonts.crimson_13, "Crimson 13");
+        AddFont(Assets.fonts.crimson_15, "Crimson 15");
+        AddFont(Assets.fonts.crimson_16_5, "Crimson 16.5");
+        AddFont(Assets.fonts.crimson_21, "Crimson 21");
+        AddFont(Assets.fonts.reenie_17_25, "Reenie 17.25");
+    }
+
+
     public static void ClearCaches() {
         IconCache = null;
         VialCache = null;
         TextureCache = null;
+        FontsByKey = null;
     }
 
     public static Campaign LoadCampaign(string path) {

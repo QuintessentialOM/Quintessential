@@ -52,4 +52,6 @@ class patch_LocalizedVignette {
             }
         }
     }
+
+    public Document Document;
 }

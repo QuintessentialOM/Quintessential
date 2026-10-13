@@ -1,32 +1,36 @@
 ﻿using Mono.Cecil;
+using Mono.Cecil.Cil;
 using MonoMod;
 using MonoMod.Cil;
 using System.Linq;
 
 internal class patch_DocumentScreen {
     // TODO
-    //[MonoModIgnore]
-    //private readonly LocalizedVignette vignette;
+    [MonoModIgnore]
+    private readonly LocalizedVignette vignette;
+    [MonoModIgnore]
+    private readonly string[] sections;
 
-    //[MonoModILInject("RenderFrame")]
-    //static void PatchBackground(MethodDefinition method, CustomAttribute attribute) {
-    //    ILCursor cursor = new(new ILContext(method));
-    //    MethodDefinition getDocument = method.DeclaringType.Methods.First(m => m.Name.Equals("GetDocument"));
-    //}
+    [MonoModILInject("RenderFrame")]
+    static void PatchBackground(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodDefinition tryRender = method.DeclaringType.Methods.First(m => m.Name.Equals("TryRenderDocument"));
 
-    //Texture cachedTexture;
-    //Texture GetDocument() {
-    //    if (cachedTexture != null) return cachedTexture;
+        Instruction start = cursor.Next;
+        cursor.Index = cursor.Instrs.Count - 1;
+        cursor.TryGotoPrev(MoveType.Before, instr => instr.MatchCall("InputManager", "IsClickPressed"));
+        Instruction after = cursor.Prev;
+        cursor.Goto(start);
 
-    //    cachedTexture = AssetLoaderHelper.LoadTexture(path);
-    //    return cachedTexture;
-    //}
+        cursor.EmitLdarg0();
+        cursor.EmitCall(tryRender);
+        cursor.Emit(OpCodes.Brtrue, after);
+    }
 
-    //[MonoModIgnore]
-    //public extern void orig_OnOpenOrClose(bool isOpening);
-    //public void OnOpenOrClose(bool isOpening) {
-    //    orig_OnOpenOrClose(isOpening);
-    //    if (cachedTexture != null) Renderer.DestroyTexture(cachedTexture);
-    //    cachedTexture = null;
-    //}
+    public bool TryRenderDocument() {
+        if (((patch_LocalizedVignette)(object)vignette).Document == null) 
+            return false;
+        ((patch_LocalizedVignette)(object)vignette).Document.Render(InputManager.screenSize / 2f, sections);
+        return true;
+    }
 }

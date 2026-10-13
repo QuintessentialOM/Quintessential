@@ -47,6 +47,35 @@ internal class CampaignSerializer {
         }
     );
     private static readonly Codec<CampaignItemType> ITEM_TYPE = EnumCodec<CampaignItemType>.Create(true, true);
+    public static readonly Codec<BoundsPosition> DOCUMENTPOSITION = EnumCodec<BoundsPosition>.Create(true, true);
+    internal static readonly Codec<DocumentItem> DOCUMENT_ITEM = Codec<DocumentItem>.Create(
+        Codecs.STRING.Seal("Texture", (DocumentItem item) => patch_DataLoader.GetTexturePath(item.texture, "")).WithDefault(""),
+        Codecs.INT.Seal("Section", (DocumentItem item) => item.sectionIndex).WithDefault(0).WriteDefautIf(item => patch_DataLoader.GetTexturePath(item.texture, "") == ""),
+        Codecs.VECTOR2.Seal("Offset", (DocumentItem item) => item.offset).WithDefault(Vector2.Zero),
+        Codecs.COLOR.Seal("Color", (DocumentItem item) => patch_DataLoader.GetTexturePath(item.texture, "") == "" ? (item.color.Equals(DocumentScreen.textBlack) ? Color.White : item.color) : item.color).WithDefault(Color.White),
+        Codecs.STRING.Seal("Font", (DocumentItem item) => patch_DataLoader.GetFontKey(item.font ?? Assets.fonts.cormorant_15)).WithDefault("Cormorant 15"),
+        DOCUMENTPOSITION.Seal("Alignment", (DocumentItem item) => item.alignment).WithDefault(BoundsPosition.TopLeft),
+        Codecs.FLOAT.Seal("Spacing", (DocumentItem item) => item.spacing).WithDefault(1),
+        Codecs.FLOAT.Seal("LineWidth", (DocumentItem item) => item.lineWidth).WithDefault(float.MaxValue),
+        (texture, section, offset, color, font, alignment, spacing, lineWidth) => {
+            return new DocumentItem() {
+                texture = string.IsNullOrWhiteSpace(texture) ? null : patch_DataLoader.GetOther(texture),
+                sectionIndex = section,
+                offset = offset,
+                color = string.IsNullOrWhiteSpace(texture) ? (color.Equals(Color.White) ? DocumentScreen.textBlack  : color) : color,
+                font = patch_DataLoader.GetFont(font),
+                alignment = alignment,
+                spacing = spacing,
+                lineWidth = lineWidth
+            };
+        }
+
+    );
+    internal static readonly Codec<List<DocumentItem>> LIST_DOCUMENT_ITEM = ListCodec<DocumentItem>.Create(DOCUMENT_ITEM);
+    internal static readonly Codec<Document> DOCUMENT = Codec<Document>.Create(
+        LIST_DOCUMENT_ITEM.Seal("Items", (Document document) => (document.items.Equals(null) || document.items.Count == 0) ? null : document.items).WithDefault(null),
+        (documentItems) => new Document() { items = documentItems }
+    );
     internal static readonly Codec<CampaignItem> CAMPAIGN_ITEM = Codec<CampaignItem>.Create(
         Codecs.STRING.Seal("Id", (CampaignItem item) => item.itemId),
         Codecs.LOCSTRING.Seal("Name", (CampaignItem item) => item.itemName),
@@ -58,7 +87,8 @@ internal class CampaignSerializer {
         Codecs.STRING.Seal("Fanfare", (CampaignItem item) => item.fanfare.field_4061.sourceFileName).WithDefault(""),
         Codecs.STRING.Seal("IconSmall", (CampaignItem item) => patch_DataLoader.GetTexturePath(item.IconSmall, "")).WithDefault(""),
         Codecs.STRING.Seal("Icon", (CampaignItem item) => patch_DataLoader.GetTexturePath(item.Icon, "")).WithDefault(""),
-        (id, name, type, puzzleId, unlockReq, vignette, music, fanfare, iconSmall, icon) => {
+        DOCUMENT.Seal("Document", (CampaignItem item) => item.vignette.HasValue() ? item.vignette.GetValue().Document : null).WithDefault(null),
+        (id, name, type, puzzleId, unlockReq, vignette, music, fanfare, iconSmall, icon, document) => {
             Maybe<Puzzle> p = MaybeHelper.empty;
             if (puzzleId != "") {
                 if (!QuintessentialLoader.TryLoadPuzzle(CurrentPuzzleFolder, puzzleId, name, out Puzzle pz))
@@ -78,6 +108,10 @@ internal class CampaignSerializer {
                 item.IconSmall = iconSmall == "" ? null : patch_DataLoader.GetIcon(iconSmall);
             if (!vignette)
                 item.vignette = MaybeHelper.empty;
+            else {
+                item.vignette.GetValue().Document = document;
+                document?.campaignItem = item;
+            }
             return item;
         }
     );

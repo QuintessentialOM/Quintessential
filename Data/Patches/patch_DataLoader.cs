@@ -14,6 +14,10 @@ internal static class patch_DataLoader {
     public static extern Texture GetVial(string path);
     [MonoModIgnore]
     public static extern Texture GetOther(string path);
+    [MonoModIgnore]
+    public static extern LocalizedFont GetFont(string key);
+    [MonoModIgnore]
+    public static extern string GetFontKey(LocalizedFont font);
 
     public static string GetTexturePath(Texture texture, string @default) {
         string path = texture?.sourceFile.GetOrDefault(@default) ?? @default;
@@ -29,6 +33,7 @@ internal static class patch_DataLoader {
             CampaignSerializer.CurrentPuzzleFolder = Path.GetDirectoryName(path);
             Campaign c = CampaignSerializer.CAMPAIGN.Decode(JsonCodecMap.Instance, JsonNode.Parse(file));
             CampaignSerializer.CurrentPuzzleFolder = "";
+            c.reloadPath = path;
             return c;
         }
         throw new Exception("Invalid Campaign format: " + path);
