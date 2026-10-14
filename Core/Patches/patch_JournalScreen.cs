@@ -9,16 +9,11 @@ using System.Linq;
 
 #pragma warning disable CS0626 // Method, operator, or accessor is marked external and has no attributes on it
 
-
-
-public class patch_JournalScreen{
+public class patch_JournalScreen {
 
 	public static int currentJournal;
 	
 	private static Texture JournalGoLeft, JournalGoLeftHover, JournalGoRight, JournalGoRightHover;
-	
-	// mirror real version
-	private static int volumeCount;
 	
 	public extern void orig_RenderFrame(float deltaTime);
 	public void RenderFrame(float deltaTime){
@@ -43,59 +38,46 @@ public class patch_JournalScreen{
         UI.DrawText($"{currentJournal + 1}/{QuintessentialLoader.AllJournals.Count}", corner + new Vector2(157, 824f), UI.Text, UI.TextColor, TextAlignment.Center);
         
 		if(InputManager.IsClickPressed(MouseButtonType.LeftClick) && (inLeftBound || inRightBound)){
-            Assets.sounds.click_button.method_28(1f);
-			
-			if(inLeftBound){
-				var next = currentJournal - 1;
-				if(next < 0)
-					next += QuintessentialLoader.AllJournals.Count;
-				currentJournal = next;
-			}
-
-			if(inRightBound){
-				var next = currentJournal + 1;
-				if(next >= QuintessentialLoader.AllJournals.Count)
-					next = 0;
-				currentJournal = next;
-			}
-
-			JournalVolumes.volumes = [.. QuintessentialLoader.AllJournals[currentJournal]];
-            volumeCount = JournalVolumes.volumes.Length - 1;
-			UI.InstantCloseScreen();
-			UI.OpenScreen(new JournalScreen(false));
-		}
+            Assets.sounds.click_button.PlaySound(1f);
+			if (inLeftBound) {
+                SetJournal(currentJournal - 1);
+            } else
+                SetJournal(currentJournal + 1);
+        }
 	}
 
-	public static void ResetPosition(){
-		currentJournal = 0;
-        volumeCount = JournalVolumes.volumes.Length - 1;
-	}
+    public static void SetJournal(int newJournalIndex) {
+        currentJournal = Utils.Modulo(newJournalIndex, QuintessentialLoader.AllJournals.Count);
+        JournalVolumes.volumes = [.. QuintessentialLoader.AllJournals[currentJournal].volumes];
+        GameLogic.instance.saveData.SetJournalVolume(int.Clamp(GameLogic.instance.saveData.GetJournalVolume(), 0, JournalVolumes.volumes.Length - 1));
+        UI.InstantCloseScreen();
+        UI.OpenScreen(new JournalScreen(false));
+    }
 
-	// found by name in MonoModRules
-	public static string CurrentJournalNameKey(){
-		return currentJournal == 0 ? "The Journal of Alchemical Engineering" : QuintessentialLoader.ModJournalModels[currentJournal - 1].TitleKey;
+    public static LocString CurrentJournalTitle() {
+        return QuintessentialLoader.AllJournals[currentJournal].title;
 	}
 
 	public static Texture CurrentJournalBg(Texture before, bool large){
-		if(currentJournal == 0)
-			return before;
-		var journal = QuintessentialLoader.ModJournalModels[currentJournal - 1];
-		return large switch{
-			true when !string.IsNullOrWhiteSpace(journal.PuzzleBackgroundLarge) => (journal.PuzzleBackgroundLargeTex ??= AssetLoaderHelper.LoadTexture(journal.PuzzleBackgroundLarge)),
-			false when !string.IsNullOrWhiteSpace(journal.PuzzleBackgroundSmall) => (journal.PuzzleBackgroundSmallTex ??= AssetLoaderHelper.LoadTexture(journal.PuzzleBackgroundSmall)),
-			_ => before
-		};
-	}
+        if (currentJournal == 0)
+        	return before;
+        var journal = QuintessentialLoader.AllJournals[currentJournal];
+        return large switch{
+        	true => journal.puzzleBackgroundLarge ?? before,
+        	false => journal.puzzleBackgroundSmall ?? before
+        };
+    }
 
-	[MonoModILInject("RenderFrame")]
+    [MonoModILInject("RenderFrame")]
     static void PatchJournalScreen(MethodDefinition method, CustomAttribute attrib) {
         MonoModRule.Modder.Log("Patching journal screen");
         if (method.HasBody) {
             ILCursor cursor = new(new ILContext(method));
             if (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchLdstr("The Journal of Alchemical Engineering"))) {
                 cursor.Remove();
+                cursor.Remove();
                 TypeDefinition holder = MonoModRule.Modder.FindType("JournalScreen").Resolve();
-                MethodDefinition to = holder.Methods.First(m => m.Name.Equals("CurrentJournalNameKey"));
+                MethodDefinition to = holder.Methods.First(m => m.Name.Equals("CurrentJournalTitle"));
                 cursor.Emit(OpCodes.Call, to);
             } else {
                 Console.WriteLine("Failed to modify journal screen (no match)!");

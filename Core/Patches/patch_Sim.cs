@@ -24,9 +24,13 @@ class patch_Sim{
 	public List<Molecule> molecules;
 	[MonoModPublic]
 	public List<Sim.Collider> additionalCollisions;
-	
-	// Hold onto held grippers
-	public List<Part> HeldGrippers;
+
+    [MonoModPublic]
+    [MonoModIgnore]
+    private extern Maybe<AtomReference> GetAtomReference(Part part, HexIndex offset, List<Part> holdingParts, bool allowPartAttachedAtoms);
+
+    // Hold onto held grippers
+    public List<Part> HeldGrippers;
 
 	// Helper methods to find held or unheld atoms
 	public Maybe<AtomReference> FindAtomRelative(Part part, HexIndex offset){
@@ -64,45 +68,43 @@ class patch_Sim{
 			action((Sim)(object)this, isCycleStart);
 	}
 
-    public void RunMidcycleDelegates(Sim.ReferredPart partWrapper, PartSimState pss, bool first) {
-        Part part = partWrapper.part;
-        foreach (var action in QApi.ToRunDuringCycle) {
-            action((Sim)(object)this, part, pss, first);
-        }
-    }
-
     [MonoModILInject("RunCycleGlyphs")]
-    public static void PatchGlyphBehaviour(MethodDefinition method, CustomAttribute attrib) {
-        MonoModRule.Modder.Log("Patching glyph Behaviour");
+    static void PatchWasActivated(MethodDefinition method, CustomAttribute attribute) {
+
         if (!method.HasBody) {
-            Console.WriteLine("Unable to patch glyph behaviour (no body)");
-            throw new Exception();
+            throw new Exception("Unable to patch wasActivated reset. (no body)");
         }
-        ILCursor gremlin = new(new ILContext(method));
+        ILCursor cursor = new(new ILContext(method));
+        TypeDefinition recipeType = MonoModRule.Modder.FindType("PartSimState").Resolve();
+        FieldDefinition recipesField = recipeType.Fields.First(f => f.Name.Equals("wasActivated"));
 
-        if (!gremlin.TryGotoNext(MoveType.Before,
-            instr => instr.MatchLdloc(6),
-            instr => instr.MatchLdfld(out FieldReference f) && f.Name == "part",
-            instr => instr.MatchCallvirt(out MethodReference m) && m.Name == "GetType",
-            instr => instr.MatchLdfld(out FieldReference f) && f.Name == "bonders",
-            instr => instr.MatchLdlen()
-        )) {
-            Console.WriteLine("Unable to patch glyph behaviour (no bonder check)");
-            throw new Exception();
+        cursor.GotoNext(MoveType.After, instr => instr.MatchStloc(7));
+        cursor.EmitLdloc(7);
+        cursor.EmitLdcI4(0);
+        cursor.EmitStfld(recipesField);
+
+        while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdfld("PartSimState", "isProcessing"), instr => instr.OpCode == OpCodes.Brtrue)) {
+            var toEdit = cursor.Prev;
+            cursor.Goto((Instruction)cursor.Prev.Operand, MoveType.Before);
+            if (cursor.Previous.OpCode != OpCodes.Br) continue;
+            var exitTarget = (Instruction)cursor.Prev.Operand;
+            cursor.EmitLdloc(7);
+            var newTarget = cursor.Prev;
+            cursor.EmitLdfld(recipesField);
+            cursor.Emit(OpCodes.Brtrue, exitTarget);
+            cursor.EmitLdloc(7);
+            cursor.EmitLdcI4(1);
+            cursor.EmitStfld(recipesField);
+            cursor.Goto(toEdit, MoveType.Before);
+            cursor.Next.Operand = newTarget;
         }
 
-        TypeDefinition holder = MonoModRule.Modder.FindType("Sim").Resolve();
-        MethodDefinition to = holder.Methods.First(m => m.Name.Equals("RunMidcycleDelegates"));
-        Instruction oldTarget = gremlin.Next;
-        gremlin.Emit(OpCodes.Ldarg_0);
-        Instruction newTarget = gremlin.Previous;
-        gremlin.Emit(OpCodes.Ldloc, 6);
-        gremlin.Emit(OpCodes.Ldloc, 7);
-        gremlin.Emit(OpCodes.Ldarg_1);
-        gremlin.Emit(OpCodes.Call, to);
-        // I don't know why it never works, but MonoMod's goto and branch handling is not functional, or I don't know how it works.
-        foreach (var v in gremlin.Instrs.Where(v => v.Operand is Instruction t && t == oldTarget)) {
-            v.Operand = newTarget;
+        cursor.Index = 0;
+        while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt("Sim", "PlaySound"))) {
+            if (cursor.Previous.Previous.MatchLdfld("SoundAssets", "solution")) continue;
+            cursor.EmitLdloc(7);
+            cursor.EmitLdcI4(1);
+            cursor.EmitStfld(recipesField);
         }
     }
 }

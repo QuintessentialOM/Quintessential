@@ -17,7 +17,7 @@
       "dump_atom_sprites": "Dump Atom Sprites"
     },
     "editor": {
-      "unnamed_molecule": "_(Unnamed)_",
+      "unnamed_molecule": "Unnamed",
       "select_option": "Select:",
       "renaming": {
         "product": "Please enter a new name for this product:",

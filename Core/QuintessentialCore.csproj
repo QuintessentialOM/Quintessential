@@ -5,6 +5,8 @@
     <RootNamespace />
     <AssemblyName>QuintessentialCore</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	  <!-- TODO: Add documentation -->
   </PropertyGroup>
 
 	<PropertyGroup>

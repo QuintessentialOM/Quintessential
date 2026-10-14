@@ -9,20 +9,16 @@ internal class QuintessentialCore : QuintessentialMod {
 
     public override void Load() {}
 
-    public override void LoadContent()
-    {
-        QApi.AddSolutionPayloadHandler("Quintessential:place", (solution, data) =>
-        {
-            String[] parameters = data.Split(',');
-            if (parameters.Length != 4)
-            {
+    public override void LoadContent() {
+        QApi.AddSolutionPayloadHandler("Quintessential:place", (solution, data) => {
+            string[] parameters = data.Split(',');
+            if (parameters.Length != 4) {
                 return;
             }
             HexIndex position = new(int.Parse(parameters[0]), int.Parse(parameters[1]));
             HexRotation rotation = new(int.Parse(parameters[2]));
 
-            if (!PartTypes.GetById(parameters[3]).GetOrDefault(out PartType partType))
-            {
+            if (!patch_PartTypes.GetById((Identifier)parameters[3]).GetOrDefault(out PartType partType)) {
                 partType = PartTypes.equilibriumGlyph;
             }
 

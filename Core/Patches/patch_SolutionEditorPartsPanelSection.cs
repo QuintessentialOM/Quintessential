@@ -18,7 +18,7 @@ class patch_SolutionEditorPartsPanelSection {
 	public void AddTypeToToolbar(List<PartTypeForToolbar> partToolbar, PartType partType) {
 		// find the puzzle we're in
 		DynamicData selfData = new(partsPanel);
-		var sol = selfData.Get<SolutionEditorScreen>("solEditScr");
+		var sol = selfData.Get<SolutionEditorScreen>("solEditScrn");
 		Puzzle puzzle = sol.GetSolution().GetPuzzle();
 		// check if we have the appropriate custom permissions
 		var perms = ((patch_Puzzle)(object)puzzle).CustomPermissions ??= [];
@@ -27,8 +27,7 @@ class patch_SolutionEditorPartsPanelSection {
 		if(checker == null || checker(perms))
             orig_AddTypeToToolbar(partToolbar, partType);
 
-		if(((patch_Puzzle)(object)puzzle).IsModdedPuzzle)
-			foreach(var pair in QApi.PanelParts.Where(pair => partType.Equals(pair.Item2)))
-                AddTypeToToolbar(partToolbar, pair.Item1);
-	}
+        foreach (var pair in QApi.PanelParts.Where(pair => partType.Equals(pair.Item2)))
+            AddTypeToToolbar(partToolbar, pair.Item1);
+    }
 }

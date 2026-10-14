@@ -9,7 +9,7 @@ class patch_LocalizedVignette {
 	public void ctor(string vignettePath) {
         LocalizedVignette self = (LocalizedVignette)(object)this;
 
-		self.vignetteDict = new Dictionary<Language, Vignette>();
+		self.vignetteDict = [];
 		self.vignettePath = vignettePath;
         Language[] languages = {
             Language.English,
@@ -23,7 +23,8 @@ class patch_LocalizedVignette {
             Language.Turkish,
             Language.Ukrainian,
             Language.Portuguese,
-            Language.Czech
+            Language.Czech,
+            Language.Polish
         };
         foreach(Language lang in languages) {
             string path1 = Path.Combine("Content", "vignettes", $"{vignettePath}.{Translations.countryCodes[lang]}.txt");
@@ -51,4 +52,6 @@ class patch_LocalizedVignette {
             }
         }
     }
+
+    public Document Document;
 }

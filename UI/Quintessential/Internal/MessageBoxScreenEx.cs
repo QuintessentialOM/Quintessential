@@ -47,12 +47,12 @@ internal sealed class MessageBoxScreenEx : IScreen{
 		if(isTextbox)
 			centre.Y -= 34f;
 		if(isTextbox){
-			TextureRenderer.RenderText(title, centre + new Vector2(4f, 100f), Assets.fonts.crimson_16_5, class_181.field_1718, TextAlignment.Center, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), null, int.MaxValue, false, true);
+			TextureRenderer.RenderText(title, centre + new Vector2(4f, 100f), Assets.fonts.crimson_16_5, UIConsts.lightTextColor, TextAlignment.Center, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), null, int.MaxValue, false, true);
 			TextureRenderer.Render9Slice(Assets.textures.UI.dropdown_list, Color.White, Bounds2.WithSize(centre + new Vector2(-265f, 24f), new Vector2(532f, 48f)));
-			Bounds2 bounds2 = TextureRenderer.RenderText(text.Length == 0 ? " " : text, centre + new Vector2(0.0f, 43f), Assets.fonts.crimson_15, class_181.field_1718, TextAlignment.Center, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), null, int.MaxValue, true, true);
+			Bounds2 bounds2 = TextureRenderer.RenderText(text.Length == 0 ? " " : text, centre + new Vector2(0.0f, 43f), Assets.fonts.crimson_15, UIConsts.lightTextColor, TextAlignment.Center, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), null, int.MaxValue, true, true);
 			cursorBlink = (cursorBlink + deltaTime) % cursorBlinkSpeed;
 			if(cursorBlink < cursorBlinkSpeed / 2.0)
-				TextureRenderer.RenderColor(class_181.field_1718, Bounds2.WithSize(bounds2.BottomRight + new Vector2(2f, 1f), new Vector2(2f, 22f)));
+				TextureRenderer.RenderColor(UIConsts.lightTextColor, Bounds2.WithSize(bounds2.BottomRight + new Vector2(2f, 1f), new Vector2(2f, 22f)));
 			char upper = /*char.ToUpper(*/InputManager.GetCharByInput()/*)*/;
 			if(upper != char.MinValue){
 				text = (text + upper).RemoveStyleFormat();
@@ -69,10 +69,10 @@ internal sealed class MessageBoxScreenEx : IScreen{
 				cursorBlink = 0.0f;
 			}
 		}else if(field_2626.HasValue()){
-			TextureRenderer.RenderText(title, centre + new Vector2(0.0f, 70f), Assets.fonts.crimson_16_5, class_181.field_1718, TextAlignment.Center, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), null, int.MaxValue, false, true);
-			TextureRenderer.RenderText(field_2626.GetValue(), centre + new Vector2(0.0f, 30f), Assets.fonts.crimson_16_5, class_181.field_1718, TextAlignment.Center, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), null, int.MaxValue, false, true);
+			TextureRenderer.RenderText(title, centre + new Vector2(0.0f, 70f), Assets.fonts.crimson_16_5, UIConsts.lightTextColor, TextAlignment.Center, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), null, int.MaxValue, false, true);
+			TextureRenderer.RenderText(field_2626.GetValue(), centre + new Vector2(0.0f, 30f), Assets.fonts.crimson_16_5, UIConsts.lightTextColor, TextAlignment.Center, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), null, int.MaxValue, false, true);
 		}else
-			TextureRenderer.RenderText(title, centre + new Vector2(0.0f, 30f), Assets.fonts.crimson_16_5, class_181.field_1718, TextAlignment.Center, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), null, int.MaxValue, false, true);
+			TextureRenderer.RenderText(title, centre + new Vector2(0.0f, 30f), Assets.fonts.crimson_16_5, UIConsts.lightTextColor, TextAlignment.Center, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), null, int.MaxValue, false, true);
 
 		ButtonDrawingLogic buttonDrawingLogic;
 		if(confirmable){
@@ -82,7 +82,7 @@ internal sealed class MessageBoxScreenEx : IScreen{
 			if(buttonDrawingLogic.RenderAndCheckIfPressed(textValid, true) || pressedEnter){
 				onConfirm();
 				UI.CloseScreen();
-				Assets.sounds.click_button.method_28(1f);
+				Assets.sounds.click_button.PlaySound(1f);
 			}
 		}
 
@@ -91,14 +91,14 @@ internal sealed class MessageBoxScreenEx : IScreen{
 		if(buttonDrawingLogic.RenderAndCheckIfPressed(true, true) || InputManager.IsKeyPressed(SDL.SDLKey.SDLK_ESCAPE)){
 			onCancel();
 			UI.CloseScreen();
-			Assets.sounds.click_button.method_28(1f);
+			Assets.sounds.click_button.PlaySound(1f);
 		}
 
 		if(bounds.Contains(InputManager.MousePos()) || !InputManager.IsClickPressed(MouseButtonType.LeftClick))
 			return;
 		onCancel();
 		UI.CloseScreen();
-		Assets.sounds.click_button.method_28(1f);
+		Assets.sounds.click_button.PlaySound(1f);
 	}
 
 	public void OnOpenOrClose(bool isOpening){}

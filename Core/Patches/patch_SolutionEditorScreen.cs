@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 class patch_SolutionEditorScreen
 {
-    [MonoModReplace]
+    /*[MonoModReplace]
     public static HexIndex method_2130(Solution solution, Part part)
     {
         // not the prettiest, but now it won't crash!
@@ -51,7 +51,7 @@ class patch_SolutionEditorScreen
             return secondaryResult;
         }
         return primaryResut;
-    }
+    }*/
 
     [MonoModIgnore]
     public static extern HashSet<HexIndex> GetInputOutputConduitHexes(Solution solution, Part part);

@@ -1,0 +1,50 @@
+{
+  "om:inputoutput": [
+    "om:input",
+    "om:out_std",
+    "om:out_rep"
+  ],
+  "om:arm": [
+    "om:arm",
+    "om:bi_arm",
+    "om:tri_arm",
+    "om:hex_arm",
+    "om:piston"
+  ],
+  "om:wheel": [
+    "om:berlos_wheel",
+    "om:ravaris_wheel"
+  ],
+  "om:programmable": [
+    "om:arm",
+    "om:bi_arm",
+    "om:tri_arm",
+    "om:hex_arm",
+    "om:piston",
+    "om:berlos_wheel",
+    "om:ravaris_wheel"
+  ],
+  "om:bonder": [
+    "om:bonder",
+    "om:unbonder",
+    "om:multi_bonder",
+    "om:triplex_bonder"
+  ],
+  "om:glyph": [
+    "om:calcification",
+    "om:duplication",
+    "om:projection",
+    "om:rejection",
+    "om:purification",
+    "om:division",
+    "om:proliferation",
+    "om:animismus",
+    "om:disposal",
+    "om:equilibrium",
+    "om:unification",
+    "om:dispersion"
+  ]
+  //"om:conduit",
+  //"om:claw_pivot",
+  //"om:track",
+}

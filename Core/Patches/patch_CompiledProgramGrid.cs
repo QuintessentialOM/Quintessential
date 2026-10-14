@@ -9,7 +9,7 @@ using System.Linq;
 
 public class patch_CompiledProgramGrid
 {
-    [MonoModIgnore]
+    /*[MonoModIgnore]
     Dictionary<Part, CompiledProgram> programDict;
 
     public extern int orig_GetLoopedCycle(int instructionIndex);
@@ -22,5 +22,5 @@ public class patch_CompiledProgramGrid
 		if (num == 0) return 0;
 		
 		return instructionIndex % num;
-	}
+	}*/
 }
