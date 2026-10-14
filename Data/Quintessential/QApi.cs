@@ -1,8 +1,10 @@
 ﻿using Quintessential.Components;
 using System;
+using System.Collections.Generic;
 
 namespace Quintessential;
 public static class QApi {
+    public static readonly List<BondType> ModBondTypes = [];
 
     // TODO link to online documentation
     /// <summary>
@@ -55,6 +57,7 @@ public static class QApi {
     /// <param name="isUnbondable">Whether the bond should be able to be unbonded by the vanilla unbonder.</param>
     public static void AddBondType(this QuintessentialMod mod, BondType type, bool isUnbondable = true) {
         BondTypes.RegisterBondType(type, isUnbondable);
+        ModBondTypes.Add(type);
     }
 
 

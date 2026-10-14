@@ -50,7 +50,7 @@ internal class QuintessentialData : QuintessentialMod, IDataMod {
             bondSound = BondTextures.standard.bondSound,
             textureOffset = new Vector2(1, 0),
         };
-        BondTypes.RegisterBondType(new BondType(
+        this.AddBondType(new BondType(
           GetIdentifier("golden"),
           EtherealTextures,
           BondTypes.GetBondType("om:standard").unbondAnim,

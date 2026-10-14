@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <Reference Include="DevLightning">
-      <HintPath>$(OpusDir)\DevLightning_UI.dll</HintPath>
+      <HintPath>$(OpusDir)\DevLightning_Data.dll</HintPath>
       <Private>false</Private>
       <CopyLocal>False</CopyLocal>
     </Reference>
