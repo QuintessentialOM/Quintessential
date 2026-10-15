@@ -13,7 +13,6 @@ public static class QApi {
 	public static readonly List<Tuple<PartType, PartType>> PanelParts = [];
 	public static readonly List<AtomType> ModAtomTypes = [];
 	public static readonly List<Action<Sim, bool>> ToRunAfterCycle = [];
-	public static readonly List<Tuple<string, SolutionPayloadHandler>> SolutionPayloadHandler = [];
 	public static readonly List<PuzzleOption> PuzzleOptions = [];
 
 	/// <summary>
@@ -146,18 +145,6 @@ public static class QApi {
 		PuzzleOptions.Add(option);
 	}
 
-	// TODO improve on this...
-	/// <summary>
-	/// 
-	/// </summary>
-	/// <param name="address"></param>
-	/// <param name="handler"></param>
-	public static void AddSolutionPayloadHandler(string address, SolutionPayloadHandler handler)
-	{
-		SolutionPayloadHandler.Add(new(address, handler));
-	}
-
-
 
 	/// <summary>
 	/// Adds a chamber type, used by name in production puzzle files.
@@ -205,7 +192,6 @@ public static class QApi {
 /// <param name="helper">An object containing functions for rendering images, at different positions/rotations and lightmaps.</param>
 public delegate void PartRendererDelegate(Part part, Vector2 position, SolutionEditorBase editor, PartRenderer helper);
 
-public delegate void SolutionPayloadHandler(Solution solution, string data);
 
 /// <summary>
 /// A static class containing extensions that make PartRenderers easier to use.
@@ -237,11 +223,6 @@ public static class PartRendererExtensions {
 				renderer(part, pos + offset, editor, helper);
 		};
 	}
-
-	/*public static PartRenderer WithOffsets(this PartRenderer renderer, params HexIndex[] offsets) {
-		const double angle = (1/3) * Math.PI;
-		return renderer.WithOffsets(offsets.Select(off => new Vector2((float)(off.Q + Math.Cos(angle) * off.R), -(float)(Math.Sin(angle) * off.R))).ToArray());
-	}*/
 
 	/// <summary>
 	/// Render the <see cref="Texture"/> at each <see cref="HexIndex"/>.

@@ -253,7 +253,7 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
             part.SetHexPosAndUpdate(pos);
             part.SetAllowedLength(lenght);
             ((patch_Part)(object)part).SetRotation(new HexRotation(rotation));
-            ((patch_Part)(object)part).SetInputOutputIndex(ioIndex); // TODO setup from solution
+            ((patch_Part)(object)part).SetInputOutputIndex(ioIndex);
             part.programIndex = programIndex;
             foreach (var instruction in program)
                 part.program.SetInstruction(instruction.Key, instruction.Value);

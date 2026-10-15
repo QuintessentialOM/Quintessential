@@ -7,12 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json.Nodes;
 internal class patch_WorkshopManager{
-	//public void method_2230(){
-	//	((WorkshopManager)(object)this).ReloadWorkshopPuzzles();
-	//	((WorkshopManager)(object)this).ReloadCustomPuzzles();
-	//}
-
-    // load YAML-based puzzles alongside binary ones
     [MonoModIgnore] private extern IEnumerable<Puzzle> orig_LoadPuzzlesOfFolder(string folder);
 	private IEnumerable<Puzzle> LoadPuzzlesOfFolder(string folder){
         var orig = orig_LoadPuzzlesOfFolder(folder).ToList();
@@ -62,7 +56,6 @@ internal class patch_WorkshopManager{
         return orig;
 	}
 
-    // give JSON-based puzzles the right file location
     [MonoModPublic] [MonoModReplace]
     public string CustomPuzzlePath(Puzzle puzzle){
         return Path.Combine(PlatformBridge.savePath, "custom", puzzle.puzzleId + ".puzzle.json");

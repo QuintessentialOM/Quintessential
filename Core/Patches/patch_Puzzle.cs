@@ -15,43 +15,8 @@ class patch_Puzzle : Puzzle {
 	
 	// Custom puzzle data
 	public HashSet<Identifier> CustomPermissions = [];
-	
-	// Is modded content allowed in this puzzle?
-	// Controls whether this is saved to/from a vanilla `.puzzle` file, or a Quintessential `.puzzle.yaml` file
-	// Don't set this if you don't know what you're doing!
-	//public bool IsModdedPuzzle = false;
 
 	public Maybe<PlacedConduit[]> EngineConduits = MaybeHelper.empty;
-
-	//public extern void orig_SaveToFile(string path);
-	//public void SaveToFile(string path) {
-	//	if (IsModdedPuzzle)
-	//		File.WriteAllText(path, YamlHelper.Serializer.Serialize(PuzzleModel.FromPuzzle((Puzzle)(object)this)));
-	//	else
-	//		orig_SaveToFile(path);
-	//}
-
-	//public static extern Puzzle orig_LoadFromFile(string path);
-	//public static Puzzle LoadFromFile(string path) {
-	//	if (Path.GetExtension(path) == ".yaml") {
-	//		Puzzle p = PuzzleModel.FromModel(YamlHelper.Deserializer.Deserialize<PuzzleModel>(File.ReadAllText(path)));
-	//		((patch_Puzzle)(object)p).IsModdedPuzzle = true;
-	//		return p;
-	//	}
-	//	return orig_LoadFromFile(path);
-	//}
-
-	//public void ConvertFormat(bool modded) {
-	//	Puzzle self = (Puzzle)(object)this;
-	//	WorkshopManager wm = GameLogic.instance.workshopManager;
-	//	// delete
-	//	File.Delete(((patch_WorkshopManager)(object)wm).CustomPuzzlePath(self));
-	//	// update
-	//	IsModdedPuzzle = modded;
-	//	// save
-	//	self.SaveToFile(((patch_WorkshopManager)(object)wm).CustomPuzzlePath(self));
-	//	//wm.RegenPuzzleId(self);
-	//}
 
 	[MonoModILInject("SaveToFile")]
     public static void PatchPuzzleIdWrite(MethodDefinition method, CustomAttribute attrib) {

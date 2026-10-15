@@ -28,16 +28,16 @@ public class VersionRangeJsonConverter : JsonConverter<VersionRange> {
         return;
     }
 }
-public class LocalisationLayerJsonConverter : JsonConverter<LocalisationLayer> {
-    private System.Collections.Generic.Stack<LocalisationLayer> layerStack = [];
+public class LocalizationLayerJsonConverter : JsonConverter<LocalizationLayer> {
+    private System.Collections.Generic.Stack<LocalizationLayer> layerStack = [];
 
-    public override LocalisationLayer Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
+    public override LocalizationLayer Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
         
-        if (layerStack.Count == 0) layerStack.Push( LocalisationLayer.GlobalLayer );
+        if (layerStack.Count == 0) layerStack.Push( LocalizationLayer.GlobalLayer );
 
         if (reader.TokenType != JsonTokenType.StartObject) {
             if (reader.TokenType == JsonTokenType.String) {
-                layerStack.Peek().locDictionary[LocalisationLayer.CurrentFileLanguage] = reader.GetString();
+                layerStack.Peek().locDictionary[LocalizationLayer.CurrentFileLanguage] = reader.GetString();
                 reader.Read();
                 return layerStack.Pop();
             }
@@ -51,11 +51,11 @@ public class LocalisationLayerJsonConverter : JsonConverter<LocalisationLayer> {
             reader.Read();
 
             if (key == "") {
-                current.locDictionary[LocalisationLayer.CurrentFileLanguage] = reader.GetString();
+                current.locDictionary[LocalizationLayer.CurrentFileLanguage] = reader.GetString();
                 reader.Read();
 
             } else {
-                if (current.subLayers.TryGetValue(key, out LocalisationLayer value)) layerStack.Push(value);
+                if (current.subLayers.TryGetValue(key, out LocalizationLayer value)) layerStack.Push(value);
                 else layerStack.Push(new());
 
                 current.subLayers[key] = Read(ref reader, typeToConvert, options);
@@ -65,7 +65,7 @@ public class LocalisationLayerJsonConverter : JsonConverter<LocalisationLayer> {
         return layerStack.Pop();
     }
 
-    public override void Write(Utf8JsonWriter writer, LocalisationLayer value, JsonSerializerOptions options) {
+    public override void Write(Utf8JsonWriter writer, LocalizationLayer value, JsonSerializerOptions options) {
         throw new NotImplementedException();
     }
 }

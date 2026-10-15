@@ -15,20 +15,14 @@ internal class LegacyCampaignModel {
 }
 
 internal class ChapterModel {
-
 	public string Title { get; set; }
     public string Subtitle { get; set; }
 	public string Place { get; set; }
 	public string Background { get; set; }
 	public IList<EntryModel> Entries { get; set; }
-
-    // TODO: wheel icons
 }
 
 internal class EntryModel {
-
-	// TODO: multiple requirements, documents, tutorials
-
 	public string Type { get; set; } = "puzzle";
 	public string ID { get; set; }
 	public string Title { get; set; }

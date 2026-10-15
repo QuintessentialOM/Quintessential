@@ -5,7 +5,6 @@ using MonoMod.Cil;
 using System.Linq;
 
 internal class patch_DocumentScreen {
-    // TODO
     [MonoModIgnore]
     private readonly LocalizedVignette vignette;
     [MonoModIgnore]

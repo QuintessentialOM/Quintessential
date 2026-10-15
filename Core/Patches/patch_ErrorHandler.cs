@@ -13,9 +13,6 @@ using System.Threading;
 
 [MonoModPatch("ErrorHandler")]
 class patch_ErrorHandler {
-
-	// error logging
-	// replaces the regular method (opening a (broken by string parsing?) website) with logging
 	
 	[MonoModReplace]
 	public static void BindHandler() {
@@ -64,7 +61,8 @@ class patch_ErrorHandler {
                     var method = stackFrame.GetMethod();
                     var parameters = GetMethodParameters(method);
                     var ilOffset = GetILOffset(stackFrame.GetILOffset());
-                    sb.Append($"  {method.ReflectedType.FullName}.{method.Name}({parameters}) at {ilOffset} \r\n");
+                    var lineInSource = stackFrame.HasSource() ? ((stackFrame.GetFileName() ?? "") + " line " + stackFrame.GetFileLineNumber()) : "";
+                    sb.Append($"  at {method.ReflectedType.FullName}.{method.Name}({parameters}) {(string.IsNullOrWhiteSpace(lineInSource) ? ilOffset : lineInSource)} \r\n");
                 }
                 return sb.ToString();
             } catch (Exception) {
