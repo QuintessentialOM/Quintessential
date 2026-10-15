@@ -1,0 +1,32 @@
+{
+  "quintessential_core": {
+    "": "Quintessential Core",
+    "simple": "Quintessential",
+    "description": "The _beating heart_ of the *Quintessential* mod loader!",
+    "display_text": {
+      "mods_loaded": "mods loaded.",
+      "empty_keybind": "None",
+      "key_prompt": "Please enter a new key for:",
+      "escape_prompt": "Press ESC to",
+      "cancel_keybind": "CANCEL"
+    },
+    "settings": {
+      "hot_reload": "Hot Reload Campaigns",
+      "custom_campaigns": "Enable Campaign Switcher",
+      "switcher": {
+        "": "Campaign Switcher Options:",
+        "left": "Switch Campaign Left",
+        "right": "Switch Campaign Right"
+      }
+    },
+    "naming": {
+      "elemental": "Elemental {0}",
+      "stabilized": "Stabilized {0}",
+      "reactive": "Reactive {0}",
+      "cinnabar": "Cinnabar Fragment"
+    }
+  },
+  "om": {
+    "": "Opus Magnum"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "quintessential_ui": {
+    "": "Quintessential UI",
+    "description": "The _User Interface_ module of the *Quintessential* mod loader.",
+    "dumping": {
+      "puzzle": {
+        "": "Puzzle Dumping",
+        "tooltip": "Saved puzzles to"
+      },
+      "atom_sprite": {
+        "": "Sprite Dumping",
+        "tooltip": "Saved atom sprites to"
+      }
+    },
+    "settings": {
+      "dump_puzzles": "Dump Puzzles",
+      "dump_atom_sprites": "Dump Atom Sprites"
+    },
+    "editor": {
+      "unnamed_molecule": "Unnamed",
+      "select_option": "Select:",
+      "renaming": {
+        "product": "Please enter a new name for this product:",
+        "reagent": "Please enter a new name for this reagent:",
+        "confirm_product": "Rename Product",
+        "confirm_reagent": "Rename Reagent"
+      },
+      "sections": {
+        "instructions": "Instructions",
+        "quint": {
+          "": "Quintessential Rules",
+          "toggle": "Enable Modded Content",
+          "warning": "If you uncheck this box, modded atoms and glyphs will not load properly after restarting"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "profiles": {
+    "Quintessential": {
+      "commandName": "Project"
+    },
+    "Run With Opus Mutatum": {
+      "commandName": "Executable",
+      "executablePath": "D:\\C#_projects\\Quintessential\\TestEnvironment\\OpusMutatum.exe",
+      "workingDirectory": "D:\\C#_projects\\Quintessential\\TestEnvironment"
+    },
+    "Run At Opus Mutatum": {
+      "commandName": "Executable",
+      "executablePath": "D:\\C#_projects\\OpusMutatum\\bin\\Debug\\net10.0\\TestEnvironment\\OpusMutatum.exe",
+      "workingDirectory": "D:\\C#_projects\\OpusMutatum\\bin\\Debug\\net10.0"
+    }
+  }
+}
