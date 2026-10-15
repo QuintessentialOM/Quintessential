@@ -273,7 +273,6 @@ class patch_PuzzleEditorScreen {
         return new Vector2((float)(236 * x), (float)(-37 * y));
     }
 
-    // TODO: generalize?
     private static bool DrawAtomSelector(Vector2 pos, string label, AtomType atom){
         Bounds2 labelBounds = TextureRenderer.RenderText(label, pos + new Vector2(45f, 13f), Assets.fonts.crimson_13, UI.TextColor, TextAlignment.Left, 1, 0.6f,float.MaxValue, float.MaxValue,0,new Color(),null,int.MaxValue,true, true);
         Vector2 atomPos = pos + new Vector2(17, 16);
@@ -346,7 +345,7 @@ class patch_PuzzleEditorScreen {
         }
 
         TypeDefinition holder = MonoModRule.Modder.FindType("PuzzleEditorScreen").Resolve();
-        MethodDefinition getName = holder.Methods.First(m => m.Name.Equals("DrawPuzzleButton")); // TODO fix this line
+        MethodDefinition getName = holder.Methods.First(m => m.Name.Equals("DrawPuzzleButton"));
         cursor.Remove();
         cursor.Emit(OpCodes.Call, getName);
     }

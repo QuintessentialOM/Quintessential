@@ -4,14 +4,13 @@ using System.Text.Json.Serialization;
 
 namespace Quintessential;
 
-// TODO rename to LocalizationLayer for consistency
-[JsonConverter(typeof(LocalisationLayerJsonConverter))]
-public class LocalisationLayer {
-    public static readonly LocalisationLayer GlobalLayer = new();
+[JsonConverter(typeof(LocalizationLayerJsonConverter))]
+public class LocalizationLayer {
+    public static readonly LocalizationLayer GlobalLayer = new();
     public static Language CurrentFileLanguage;
 
     public Dictionary<Language, string> locDictionary = [];
-    public Dictionary<string, LocalisationLayer> subLayers = [];
+    public Dictionary<string, LocalizationLayer> subLayers = [];
 
     public void AddSelfAndSubToDictionary(Dictionary<string, LocString> translationDict, string key = "") {
         bool useEnglishAsReplacement = !AppConsts.isDevEnv;

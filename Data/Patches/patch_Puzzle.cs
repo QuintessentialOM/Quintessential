@@ -55,9 +55,6 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
 
     #endregion
 
-    #region ComponentCalls
-    #endregion
-
     #region Serialization
     private static readonly Codec<Dictionary<Identifier, IPuzzleComponent>> componentsCodec = CatalogueCodec<Identifier, IPuzzleComponent>.Create(
         RegisteredComponents, id => id.ToString(), str => new Identifier(str)

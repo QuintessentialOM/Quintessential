@@ -16,21 +16,21 @@ public interface ISolutionComponent : IComponent<patch_Solution> {
     /// </summary>
     /// <param name="orig">The original return value. You can set this.</param>
     /// <param name="part">The checked Part.</param>
-    /// <param name="otherInputOutputIndex">A position inside the source chamber for the part.</param>
+    /// <param name="alternativeChamberPos">A position inside the source chamber for the part.</param>
     /// <param name="offset">The position the part was attempted to be placed down.</param>
     /// <param name="rotationOffset">The new rotation the part was attempted to be placed with.</param>
     /// <param name="errorMessage">The original error message returned. You can set this.</param>
-    public virtual void OnPlacementCheck(ref bool orig, Part part, HexIndex otherInputOutputIndex, HexIndex offset, HexRotation rotationOffset, ref string? errorMessage) { }
+    public virtual void OnPlacementCheck(ref bool orig, Part part, HexIndex alternativeChamberPos, HexIndex offset, HexRotation rotationOffset, ref string? errorMessage) { }
     /// <summary>
-    /// Called after a <see cref="Snapshot"/> is created.
+    /// Called after a <see cref="UndoSnapshot"/> is created.
     /// </summary>
     /// <param name="created">The original return value. You can edit this.</param>
-    public virtual void OnCreateSnapshot(ref Snapshot created) { }
+    public virtual void OnCreateSnapshot(ref UndoSnapshot created) { }
     /// <summary>
-    /// Called before a <see cref="Snapshot"/> is restored.
+    /// Called before a <see cref="UndoSnapshot"/> is restored.
     /// </summary>
-    /// <param name="restored">The <see cref="Snapshot"/> to be restored.</param>
-    public virtual void OnRestoreSnapshot(Snapshot restored) { }
+    /// <param name="restored">The <see cref="UndoSnapshot"/> to be restored.</param>
+    public virtual void OnRestoreSnapshot(UndoSnapshot restored) { }
     /// <summary>
     /// Called after a copy of the current <see cref="Solution"/> is created.
     /// </summary>
@@ -56,7 +56,7 @@ public interface IPartComponent : IComponent<patch_Part> {
     /// </summary>
     /// <param name="resoult">The original return value. You can edit this.</param>
     /// <param name="solution">The <see cref="Solution"/> this molecule is from.</param>
-    public virtual void OnGetMoleculeForInputOutput(ref Molecule resoult, Solution solution) { }
+    public virtual void OnGetMoleculeForInputOutput(ref PuzzleInputOutput resoult, Solution solution) { }
     /// <summary>
     /// Called after a new <see cref="HexIndex"/> is added to the end of the track.
     /// </summary>

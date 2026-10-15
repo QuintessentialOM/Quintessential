@@ -64,7 +64,7 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
         foreach (var component in Components)
             component.Value.OnReset();
     }
-    internal void OnGetMoleculeForInputOutput(ref Molecule resoult, Solution solution) {
+    internal void OnGetMoleculeForInputOutput(ref PuzzleInputOutput resoult, Solution solution) {
         foreach (var component in Components)
             component.Value.OnGetMoleculeForInputOutput(ref resoult, solution);
     }
@@ -128,14 +128,6 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
         MethodReference onCall = method.DeclaringType.Methods.First(f => f.Name.Equals("OnGetMoleculeForInputOutput"));
         method.Body.Variables.Add(new VariableDefinition(method.ReturnType));
         VariableDefinition cloned = method.Body.Variables[^1];
-        cursor.GotoNext(instr => instr.MatchRet());
-        cursor.EmitStloc(cloned);
-        cursor.EmitLdarg0();
-        cursor.EmitLdloca(cloned);
-        cursor.EmitLdarg1();
-        cursor.EmitCall(onCall);
-        cursor.EmitLdloc(cloned);
-        cursor.Index++;
         cursor.GotoNext(instr => instr.MatchRet());
         cursor.EmitStloc(cloned);
         cursor.EmitLdarg0();
@@ -261,7 +253,7 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
             part.SetHexPosAndUpdate(pos);
             part.SetAllowedLength(lenght);
             ((patch_Part)(object)part).SetRotation(new HexRotation(rotation));
-            ((patch_Part)(object)part).SetInputOutputIndex(ioIndex); // TODO setup from solution
+            ((patch_Part)(object)part).SetInputOutputIndex(ioIndex);
             part.programIndex = programIndex;
             foreach (var instruction in program)
                 part.program.SetInstruction(instruction.Key, instruction.Value);

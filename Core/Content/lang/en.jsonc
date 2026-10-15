@@ -2,7 +2,7 @@
   "quintessential_core": {
     "": "Quintessential Core",
     "simple": "Quintessential",
-    "description": "Example description...",
+    "description": "The _beating heart_ of the *Quintessential* mod loader!",
     "display_text": {
       "mods_loaded": "mods loaded.",
       "empty_keybind": "None",

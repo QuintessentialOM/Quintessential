@@ -156,22 +156,7 @@ internal class QuintessentialData : QuintessentialMod, IDataMod {
         //    })
         //}, GetIdentifier("quix_duplication"));
     }
-    public override void LoadCompatContent() {
-        //var bm = new CodecsBenchmark();
-        //bm.TestCompareDynamic(1, false);
-        //bm.TestCompareDynamic(1, false);
-        //bm.TestCompareDynamic(1, false);
-        //bm.TestCompareDynamic(1, false);
-        //bm.TestCompareDynamic(1, false);
-        //bm.TestCompareDynamic(1, false);
-        //bm.TestCompareDynamic(1, false);
-        //bm.TestCompareDynamic(1, false);
-        //bm.TestCompareDynamic(2, false);
-        //bm.TestCompareDynamic(2, false);
-        //new CodecsBenchmark().Test(1000, false);
-        //new CodecsBenchmark().Test(10000, false);
-        //new CodecsBenchmark().Test(100000, false);
-    }
+    public override void LoadCompatContent() { }
     public override void FinaliseContent() { }
 
     public override void PostLoad() { }

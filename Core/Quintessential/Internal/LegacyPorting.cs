@@ -82,7 +82,6 @@ internal static class LegacyPorting {
                                 }
                             }
 
-                            // TODO: optimize
                             cItem = AddEntryToCampaign(campaign, j, entry.ID, Translations.WithAllLanguages(entry.Title), CampaignItemType.Puzzle, MaybeHelper.empty, puzzle, Assets.musicTracks.solving3, Assets.sounds.fanfare_solving3, requirement, entry.NoStoryPanel);
                             break;
                         case "solitaire":
@@ -182,7 +181,6 @@ internal static class LegacyPorting {
             bool noStoryPanel
     ) {
         if (puzzle.HasValue()) {
-            //puzzle.method_1087().field_2767 = entryTitle;
             puzzle.GetValue().puzzleTip = puzzleTip;
         }
         CampaignItem campaignItem = new(itemId, itemName, itemType, puzzle, requirement, musicTrack, fanfare, campaign);
