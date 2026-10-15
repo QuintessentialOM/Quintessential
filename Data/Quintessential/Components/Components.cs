@@ -16,11 +16,11 @@ public interface ISolutionComponent : IComponent<patch_Solution> {
     /// </summary>
     /// <param name="orig">The original return value. You can set this.</param>
     /// <param name="part">The checked Part.</param>
-    /// <param name="otherInputOutputIndex">A position inside the source chamber for the part.</param>
+    /// <param name="alternativeChamberPos">A position inside the source chamber for the part.</param>
     /// <param name="offset">The position the part was attempted to be placed down.</param>
     /// <param name="rotationOffset">The new rotation the part was attempted to be placed with.</param>
     /// <param name="errorMessage">The original error message returned. You can set this.</param>
-    public virtual void OnPlacementCheck(ref bool orig, Part part, HexIndex otherInputOutputIndex, HexIndex offset, HexRotation rotationOffset, ref string? errorMessage) { }
+    public virtual void OnPlacementCheck(ref bool orig, Part part, HexIndex alternativeChamberPos, HexIndex offset, HexRotation rotationOffset, ref string? errorMessage) { }
     /// <summary>
     /// Called after a <see cref="UndoSnapshot"/> is created.
     /// </summary>

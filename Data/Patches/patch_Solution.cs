@@ -60,9 +60,9 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
 
     #region ComponentCalls
 
-    internal void OnPlacementCheck(ref bool origReturnVal, Part part, HexIndex otherInputOutputIndex, HexIndex offset, HexRotation rotationOffset, ref string? errorMessage) {
+    internal void OnPlacementCheck(ref bool origReturnVal, Part part, HexIndex alternativeChamberPos, HexIndex offset, HexRotation rotationOffset, ref string? errorMessage) {
         foreach (var component in Components)
-            component.Value.OnPlacementCheck(ref origReturnVal, part, otherInputOutputIndex, offset, rotationOffset, ref errorMessage);
+            component.Value.OnPlacementCheck(ref origReturnVal, part, alternativeChamberPos, offset, rotationOffset, ref errorMessage);
     }
     internal void OnCreateSnapshot(ref UndoSnapshot created) {
         foreach (var component in Components)
