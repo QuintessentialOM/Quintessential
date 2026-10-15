@@ -1,7 +1,7 @@
 {
   "quintessential_ui": {
     "": "Quintessential UI",
-    "description": "Example description...",
+    "description": "The _User Interface_ module of the *Quintessential* mod loader.",
     "dumping": {
       "puzzle": {
         "": "Puzzle Dumping",
