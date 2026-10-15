@@ -64,11 +64,11 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
         foreach (var component in Components)
             component.Value.OnPlacementCheck(ref origReturnVal, part, otherInputOutputIndex, offset, rotationOffset, ref errorMessage);
     }
-    internal void OnCreateSnapshot(ref Snapshot created) {
+    internal void OnCreateSnapshot(ref UndoSnapshot created) {
         foreach (var component in Components)
             component.Value.OnCreateSnapshot(ref created);
     }
-    internal void OnRestoreSnapshot(Snapshot restored) {
+    internal void OnRestoreSnapshot(UndoSnapshot restored) {
         foreach (var component in Components)
             component.Value.OnRestoreSnapshot(restored);
     }
@@ -134,7 +134,7 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
     #region Serialization
 
     [MonoModIgnore]
-    private extern Snapshot CreateSnapshot();
+    private extern UndoSnapshot CreateSnapshot();
     [MonoModIgnore]
     private extern void OrderProgrammables();
     private static readonly Codec<Dictionary<Identifier, ISolutionComponent>> componentsCodec = CatalogueCodec<Identifier, ISolutionComponent>.Create(
