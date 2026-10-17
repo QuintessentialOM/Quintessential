@@ -139,10 +139,67 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
             return puzzle;
         }
     );
-
-    [MonoModReplace]
+    [MonoModIgnore] // # unsafe assuming first patch
+    public extern void layer_0_SaveToFile(string path);
     public void SaveToFile(string path) {
-        File.WriteAllText(path, PUZZLE.Encode(JsonCodecMap.Instance,(Puzzle)(object)this).ToJsonString());
+        bool enabledVanillaFormat = true;
+
+        var encoded = PUZZLE.Encode(JsonCodecMap.Instance, (Puzzle)(object)this);
+        bool isVanillaSafe = false;
+
+        if (enabledVanillaFormat && path == GetFilePath()) {
+            try {
+                Puzzle s = (Puzzle)(object)this;
+                if (s.inputs.All(i => i.molecule.GetAtoms().Any(atom => atom.Value.atomType.Id.namespc.Equals("om"))) &&
+                    s.outputs.All(i => i.molecule.GetAtoms().Any(atom => atom.Value.atomType.Id.namespc.Equals("om"))))
+                {
+                    if (!Directory.Exists("modded/temp")) {
+                        Directory.CreateDirectory("modded/temp");
+                    }
+                    string tempPath = Path.Combine("modded/temp", s.puzzleId + ".puzzle");
+                    layer_0_SaveToFile(tempPath);
+                    var transformed = Puzzle.LoadFromFile(tempPath);
+                    if (File.Exists(tempPath)) File.Delete(tempPath);
+                    if (transformed.puzzleId == s.puzzleId)
+                        isVanillaSafe = encoded.ToJsonString() == PUZZLE.Encode(JsonCodecMap.Instance, transformed).ToJsonString();
+                    //Logger.LogNoTime("#------");
+                    //Logger.LogNoTime(encoded.ToJsonString());
+                    //Logger.LogNoTime(PUZZLE.Encode(JsonCodecMap.Instance, transformed).ToJsonString());
+                }
+            } catch { }
+        }
+
+        if (isVanillaSafe) {
+            ChangeFileExtension("", ref path, () => layer_0_SaveToFile(path));
+        } else if (ExtraFileExtension == "") {
+            ChangeFileExtension(".json", ref path, () => File.WriteAllText(path, encoded.ToJsonString()));
+        } else if (ExtraFileExtension == ".json") {
+            File.WriteAllText(path, encoded.ToJsonString());
+        } else if (ExtraFileExtension == ".jsonc") { // Human readable version of
+            File.WriteAllText(path, encoded.ToString());
+        } else
+            throw new Exception("Invalid extra file extension '" + ExtraFileExtension + "' for puzzle.");
+    }
+    private void ChangeFileExtension(string newExtension, ref string path, Action save) {
+        if (newExtension != ExtraFileExtension) {
+
+            bool wasVanillaFormat = Path.GetExtension(path) == ".puzzle";
+            string origPathStripped = Path.Combine(Path.GetDirectoryName(path), wasVanillaFormat ? Path.GetFileName(path) : Path.GetFileNameWithoutExtension(path));
+            newExtension ??= "";
+            string orig = path;
+            path = origPathStripped + newExtension;
+            ExtraFileExtension = newExtension;
+            if (save != null) {
+                save();
+                if (File.Exists(orig) && orig != path) {
+                    File.Delete(orig);
+                }
+            }
+        } else
+            save?.Invoke();
+    }
+    private string GetFilePath() {
+        return GameLogic.instance.workshopManager.CustomPuzzlePath((Puzzle)(object)this);
     }
 
     [MonoModIgnore] public static extern Puzzle orig_LoadFromFile(string path);
@@ -152,9 +209,24 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
             if (Path.GetExtension(path) == ".jsonc") file = DataSerializer.JsoncToJson(file);
 
             Puzzle p = PUZZLE.Decode(JsonCodecMap.Instance,JsonNode.Parse(file));
+            ((patch_Puzzle)(object)p).ExtraFileExtension = Path.GetExtension(path);
             return p;
         }
-        return orig_LoadFromFile(path);
+        
+        var pOrig = orig_LoadFromFile(path);
+        ((patch_Puzzle)(object)pOrig).ExtraFileExtension = "";
+        return pOrig; ;
+    }
+    public string ExtraFileExtension;
+
+    [MonoModILInject("WriteMoleculeToFile")]
+    static void WriteBondToFile(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodReference getBytes = MonoModRule.Modder.FindType("Bond").Resolve().Methods.First(f => f.Name.Equals("GetVanillaTypeData"));
+
+        cursor.GotoNext(MoveType.Before, instr => instr.MatchLdfld("Bond", "type"));
+        cursor.Remove();
+        cursor.EmitCallvirt(getBytes);
     }
 
     #endregion

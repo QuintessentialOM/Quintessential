@@ -104,11 +104,12 @@ public static class QApi {
 	[Obsolete("Use BindGlyphCycle instead from the Data Module of Quintessential.")]
 	public static void RunDuringCycle(Action<Sim, Part, PartSimState, bool> runnable) { }
 
-	/// <summary>
-	/// Runs the given action at the end of every half-cycle.
-	/// </summary>
-	/// <param name="runnable">An action to be run every half-cycle, given the sim and whether it is the start or end.</param>
-	public static void RunAfterCycle(Action<Sim, bool> runnable) {
+    /// <summary>
+    /// Runs the given action at the end of every half-cycle.
+    /// </summary>
+    /// <param name="runnable">An action to be run every half-cycle, given the sim and whether it is the start or end.</param>
+    [Obsolete("Use AddCycleEvent instead from the Data Module of Quintessential with the AfterCycle Enum values.")]
+    public static void RunAfterCycle(Action<Sim, bool> runnable) {
 		ToRunAfterCycle.Add(runnable);
 	}
 
