@@ -168,6 +168,27 @@ public class patch_Bond : ISerializableComponentHolder<patch_Bond, IBondComponen
     }
     public IReadOnlyList<BondType> GetBondTypes() => bondTypes;
 
+    internal byte GetVanillaTypeData() {
+        byte toReturn = 0;
+        foreach (var type in bondTypes) {
+            switch (type.Id) {
+                case "om:standard":
+                    toReturn += 1;
+                    break;
+                case "om:prisma0":
+                    toReturn += 2;
+                    break;
+                case "om:prisma1":
+                    toReturn += 4;
+                    break;
+                case "om:prisma2":
+                    toReturn += 8;
+                    break;
+            }
+        }
+        return toReturn;
+    }
+
     #endregion
 
     #region Serialization
