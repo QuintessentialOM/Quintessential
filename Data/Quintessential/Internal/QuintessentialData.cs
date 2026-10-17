@@ -20,7 +20,7 @@ internal class QuintessentialData : QuintessentialMod, IDataMod {
     }
 
     public override void LoadContent() {
-        this.AddRecipe(new GlyphRecipe(),"om:bonder", "om:bonder");
+        this.AddRecipe(new GlyphRecipe(), "om:bonder", "om:bonder");
         this.AddRecipe(new GlyphRecipe(), "om:unbonder", "om:unbonder");
         this.AddRecipe(new GlyphRecipe(), "om:multi_bonder", "om:multi_bonder");
         this.AddRecipe(new GlyphRecipe(), "om:triplex_bonder", "om:triplex_bonder");
