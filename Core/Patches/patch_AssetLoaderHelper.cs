@@ -17,4 +17,11 @@ internal class patch_AssetLoaderHelper {
         cursor.RemoveRange(2);
         cursor.EmitLdloc(origParam);
     }
+    [MonoModIgnore]
+    public extern static Sound orig_LoadSound(string path);
+    public static Sound LoadSound(string path) {
+        var sound = orig_LoadSound(path);
+        patch_SoundAssets.Sounds.Add(sound);
+        return sound;
+    }
 }
