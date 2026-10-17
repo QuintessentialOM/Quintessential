@@ -35,7 +35,7 @@ public static class QApi {
     /// <param name="partType">The part to bind the delegate to.</param>
     /// <param name="cycleDelegate">A delegate containing the code to run each half cycle.</param>
     /// <exception cref="Exception">If part already has delegate, or is a vanilla part.</exception>
-    public static void BindGlyphCylce(PartType partType, PartCycleDelegate cycleDelegate) {
+    public static void BindGlyphCycle(PartType partType, PartCycleDelegate cycleDelegate) {
         if (partType.Id.namespc == "om") throw new Exception("Cannot bind cycle code to part type from the base game: '" + partType.Id + "'");
         if (((patch_PartType)(object)partType).CycleDelegate != null) throw new Exception("A delegate was already bound to PartType: '" + partType.Id + "'");
         ((patch_PartType)(object)partType).CycleDelegate = cycleDelegate;

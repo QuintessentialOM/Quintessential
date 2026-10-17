@@ -57,48 +57,81 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
     #region ComponentCalls
 
     internal void OnClone(ref patch_Part cloned, Solution solution) {
-        foreach (var component in Components)
-            component.Value.OnClone(ref cloned, solution);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnClone(ref cloned, solution);
+        }
     }
     internal void OnReset() {
-        foreach (var component in Components)
-            component.Value.OnReset();
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnReset();
+        }
     }
     internal void OnGetMoleculeForInputOutput(ref PuzzleInputOutput resoult, Solution solution) {
-        foreach (var component in Components)
-            component.Value.OnGetMoleculeForInputOutput(ref resoult, solution);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnGetMoleculeForInputOutput(ref resoult, solution);
+        }
     }
     internal void OnAddTrackFront() {
-        foreach (var component in Components)
-            component.Value.OnAddTrackFront();
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnAddTrackFront();
+        }
     }
     internal void OnAddTrackBack() {
-        foreach (var component in Components)
-            component.Value.OnAddTrackBack();
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnAddTrackBack();
+        }
     }
     internal void OnRemoveTrackFront() {
-        foreach (var component in Components)
-            component.Value.OnRemoveTrackFront();
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnRemoveTrackFront();
+        }
     }
     internal void OnRemoveTrackBack() {
-        foreach (var component in Components)
-            component.Value.OnRemoveTrackBack();
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnRemoveTrackBack();
+        }
     }
     internal void OnSetHexPos(HexIndex newPos) {
-        foreach (var component in Components)
-            component.Value.OnSetHexPos(newPos);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnSetHexPos(newPos);
+        }
     }
     internal void OnRotateBy(Solution solution, HexRotation rotation) {
-        foreach (var component in Components)
-            component.Value.OnRotateBy(solution, rotation);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnRotateBy(solution, rotation);
+        }
     }
     internal void OnSetRotation(Solution solution, HexRotation rotation) {
-        foreach (var component in Components)
-            component.Value.OnSetRotation(solution, rotation);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnSetRotation(solution, rotation);
+        }
     }
     internal void OnSetLength(int newLenght) {
-        foreach (var component in Components)
-            component.Value.OnSetLength(newLenght);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnSetLength(newLenght);
+        }
     }
 
     [MonoModILInject("Clone")]

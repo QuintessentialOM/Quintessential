@@ -61,20 +61,32 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
     #region ComponentCalls
 
     internal void OnPlacementCheck(ref bool origReturnVal, Part part, HexIndex alternativeChamberPos, HexIndex offset, HexRotation rotationOffset, ref string? errorMessage) {
-        foreach (var component in Components)
-            component.Value.OnPlacementCheck(ref origReturnVal, part, alternativeChamberPos, offset, rotationOffset, ref errorMessage);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                    component.OnPlacementCheck(ref origReturnVal, part, alternativeChamberPos, offset, rotationOffset, ref errorMessage);
+        }
     }
     internal void OnCreateSnapshot(ref UndoSnapshot created) {
-        foreach (var component in Components)
-            component.Value.OnCreateSnapshot(ref created);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                    component.OnCreateSnapshot(ref created);
+        }
     }
     internal void OnRestoreSnapshot(UndoSnapshot restored) {
-        foreach (var component in Components)
-            component.Value.OnRestoreSnapshot(restored);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                    component.OnRestoreSnapshot(restored);
+        }
     }
     internal void OnMakeCopyOfSolution(ref Solution copy) {
-        foreach (var component in Components)
-            component.Value.OnMakeCopyOfSolution(ref copy);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                    component.OnMakeCopyOfSolution(ref copy);
+        }
     }
 
     [MonoModILInject("IsAllowedPlacement")]
@@ -178,29 +190,50 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
 
     [MonoModReplace]
     public void Save() {
-        if (ExtraFileExtension == "") {
-            ChangeFileExtension(".json");
+        bool enabledVanillaFormat = true;
+
+        var encoded = SOLUTION.Encode(JsonCodecMap.Instance, (Solution)(object)this);
+        bool isVanillaSafe = false;
+        if (enabledVanillaFormat) {
+            try {
+                Solution s = (Solution)(object)this;
+                var transformed = Solution.FromData(s.ToData(), s.nameOnDisk, s.creationTime);
+                if (transformed.HasValue())
+                    isVanillaSafe = encoded.ToJsonString() == SOLUTION.Encode(JsonCodecMap.Instance, transformed.GetValue()).ToJsonString();
+            } catch { }
+        }
+
+        if (isVanillaSafe) {
+            OrderProgrammables();
+            ChangeFileExtension("", () => PlatformBridge.fileWriter.method_1355(GetFilePath(), ((Solution)(object)this).ToData()));
+        } else if (string.IsNullOrWhiteSpace(ExtraFileExtension)) {
+            OrderProgrammables();
+            ChangeFileExtension(".json", () => PlatformBridge.fileWriter.method_1356(GetFilePath(), encoded.ToJsonString()));
         } else if (ExtraFileExtension == ".json") {
             OrderProgrammables();
-            PlatformBridge.fileWriter.method_1356(GetFilePath(), SOLUTION.Encode(JsonCodecMap.Instance, (Solution)(object)this).ToJsonString());
+            PlatformBridge.fileWriter.method_1356(GetFilePath(), encoded.ToJsonString());
         } else if (ExtraFileExtension == ".jsonc") { // Human readable version of json
             OrderProgrammables();
-            PlatformBridge.fileWriter.method_1356(GetFilePath(), SOLUTION.Encode(JsonCodecMap.Instance, (Solution)(object)this).ToString());
+            PlatformBridge.fileWriter.method_1356(GetFilePath(), encoded.ToString());
         } else
             throw new Exception("Invalid extra file extension '" + ExtraFileExtension + "' for solution from: " + GetFilePath());
     }
 
-    private void ChangeFileExtension(string newExtension) {
-        if (newExtension == ExtraFileExtension) return;
-        string toDelete = File.Exists(GetFilePath()) ? GetFilePath() : "";
-        ExtraFileExtension = newExtension;
-        Save();
-        if (toDelete != "") {
-             // Can't do this because Save is async.
-            //var creationTime = File.GetCreationTime(toDelete);
-            File.Delete(toDelete);
-            //if (creationTime != default) File.SetCreationTime(GetFilePath(), creationTime);
-        }
+    private void ChangeFileExtension(string newExtension, Action save) {
+        if (newExtension != ExtraFileExtension) {
+            string toDelete = File.Exists(GetFilePath()) ? GetFilePath() : "";
+            ExtraFileExtension = newExtension;
+            if (save != null) {
+                save();
+                if (toDelete != "") {
+                    // Can't do this because Save is async.
+                    //var creationTime = File.GetCreationTime(toDelete);
+                    File.Delete(toDelete);
+                    //if (creationTime != default) File.SetCreationTime(GetFilePath(), creationTime);
+                }
+            }
+        } else
+            save?.Invoke();
     }
 
     [MonoModReplace]

@@ -6,7 +6,7 @@ namespace Quintessential;
 /// <summary>
 /// A delegate corresponding to part's cycle specific transmutation code.<br/>
 /// This delegate should handle all non-visual elements.<br/>
-/// Bind to a glyph with <see cref="QApi.BindGlyphCylce"/>.
+/// Bind to a glyph with <see cref="QApi.BindGlyphCycle"/>.
 /// </summary>
 /// <param name="executionType">
 /// The specific timing this delegate is meant to be invoked with in the list of all part cycles.<br/>
