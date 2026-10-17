@@ -61,20 +61,32 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
     #region ComponentCalls
 
     internal void OnPlacementCheck(ref bool origReturnVal, Part part, HexIndex alternativeChamberPos, HexIndex offset, HexRotation rotationOffset, ref string? errorMessage) {
-        foreach (var component in Components)
-            component.Value.OnPlacementCheck(ref origReturnVal, part, alternativeChamberPos, offset, rotationOffset, ref errorMessage);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                    component.OnPlacementCheck(ref origReturnVal, part, alternativeChamberPos, offset, rotationOffset, ref errorMessage);
+        }
     }
     internal void OnCreateSnapshot(ref UndoSnapshot created) {
-        foreach (var component in Components)
-            component.Value.OnCreateSnapshot(ref created);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                    component.OnCreateSnapshot(ref created);
+        }
     }
     internal void OnRestoreSnapshot(UndoSnapshot restored) {
-        foreach (var component in Components)
-            component.Value.OnRestoreSnapshot(restored);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                    component.OnRestoreSnapshot(restored);
+        }
     }
     internal void OnMakeCopyOfSolution(ref Solution copy) {
-        foreach (var component in Components)
-            component.Value.OnMakeCopyOfSolution(ref copy);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                    component.OnMakeCopyOfSolution(ref copy);
+        }
     }
 
     [MonoModILInject("IsAllowedPlacement")]

@@ -51,9 +51,11 @@ public class patch_Bond : ISerializableComponentHolder<patch_Bond, IBondComponen
 
     public CycleEventExecutionType CallbackType => (CycleEventExecutionType)0b_0111_1111;
     public void OnCycleCallback(patch_Sim sim, CycleEventExecutionType executionType) {
-        foreach (var component in Components) {
-            if (component.Value.CallbackType.HasFlag(executionType))
-                component.Value.OnCycleCallback(sim, executionType);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                if (component.CallbackType.HasFlag(executionType))
+                    component.OnCycleCallback(sim, executionType);
         }
     }
 
@@ -64,18 +66,27 @@ public class patch_Bond : ISerializableComponentHolder<patch_Bond, IBondComponen
     protected patch_Molecule Molecule;
 
     internal void OnClone(ref patch_Bond cloned) {
-        foreach (var component in Components)
-            component.Value.OnClone(ref cloned);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                    component.OnClone(ref cloned);
+        }
     }
     internal void OnRemoveFromMolecule(patch_Molecule molecule) {
-        foreach (var component in Components)
-            component.Value.OnRemoveFromMolecule(molecule);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnRemoveFromMolecule(molecule);
+        }
         Molecule = null;
     }
     internal void OnAddToMolecule(patch_Molecule molecule) {
         Molecule = molecule;
-        foreach (var component in Components)
-            component.Value.OnAddToMolecule(molecule);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnAddToMolecule(molecule);
+        }
     }
     public void RenderBond(Vector2 offset, HexIndex hexOffset, float rotationAngle, float opacityMultiplier, float height, SolutionEditorBase solutionEditor) {
         using var enumerator = Components.GetEnumerator();

@@ -1209,8 +1209,11 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
         foreach (var molecule in molecules) {
             ((patch_Molecule)(object)molecule).OnCycleCallback(this, executionType);
         }
-        foreach (var component in Components) {
-            component.Value.OnCycleCallback(this, executionType);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                if (component.CallbackType.HasFlag(executionType))
+                    component.OnCycleCallback(this, executionType);
         }
     }
 
