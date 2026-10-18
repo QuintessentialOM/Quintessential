@@ -127,4 +127,31 @@ class patch_SolutionEditorBase {
 
         // TODO: unification symbols?
     }
+
+    [MonoModILInject("RenderBoard")]
+    static void PatchBoardScale(MethodDefinition method, CustomAttribute attribute) {
+
+        ILCursor cursor = new(new ILContext(method));
+        var scale = method.Parameters[^1];
+        TypeDefinition color = MonoModRule.Modder.FindType("Color").Resolve();
+        MethodDefinition withAlpha = color.Methods.First(f => f.Name.Equals("WithAlpha"));
+
+        cursor.GotoNext(MoveType.After, instr => instr.MatchLdfld("ShaderAssets", "board"));
+        cursor.GotoNext(MoveType.After, instr => instr.MatchLdsfld("Color", "White"));
+        method.Body.Variables.Add(new VariableDefinition(color));
+        var colorVariable = method.Body.Variables[^1];
+        cursor.EmitStloc(colorVariable);
+        cursor.EmitLdloca(colorVariable);
+        cursor.EmitLdarg(scale);
+        cursor.EmitCallvirt(withAlpha);
+
+        cursor.GotoNext(MoveType.After, instr => instr.MatchLdfld("ShaderAssets", "board"));
+        cursor.GotoNext(MoveType.After, instr => instr.MatchLdsfld("Color", "White"));
+        method.Body.Variables.Add(new VariableDefinition(color));
+        colorVariable = method.Body.Variables[^1];
+        cursor.EmitStloc(colorVariable);
+        cursor.EmitLdloca(colorVariable);
+        cursor.EmitLdarg(scale);
+        cursor.EmitCallvirt(withAlpha);
+    }
 }
