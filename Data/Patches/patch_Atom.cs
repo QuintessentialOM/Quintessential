@@ -124,7 +124,9 @@ public class patch_Atom : ISerializableComponentHolder<patch_Atom, IAtomComponen
             if (enumerator.MoveNext()) {
                 enumerator.Current.Value.OnRender(CallRecursive, ref atomType, ref translation, ref scaleMultiplier, ref opacityMultiplier, ref height, ref shadowStrength, ref shadowOffset, ref shadowAngle, shadow, overlayEffect, isOutputRender, solutionEditor);
             } else {
+                patch_Editor.RenderedAtom = this;
                 Editor.RenderAtom(atomType, translation, scaleMultiplier, opacityMultiplier, height, shadowStrength, shadowOffset, shadowAngle, shadow, overlayEffect, isOutputRender);
+                patch_Editor.RenderedAtom = null;
             }
         }
     }

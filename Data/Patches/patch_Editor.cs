@@ -1,7 +1,9 @@
 ﻿using Mono.Cecil;
+using Mono.Cecil.Cil;
 using MonoMod;
 using MonoMod.Cil;
 using MonoMod.InlineRT;
+using Quintessential;
 using Quintessential.Internal;
 using System;
 using System.Collections.Generic;
@@ -29,6 +31,33 @@ public static class patch_Editor {
         onCall = MonoModRule.Modder.FindType("Bond").Resolve().Methods.First(f => f.Name.Equals("RenderBond"));
         cursor.GotoNext(MoveType.Before, instr => instr.MatchCall("Editor", "RenderBond"));
         cursor.Next.Operand = onCall;
+    }
+
+    internal static patch_Atom RenderedAtom;
+    private static bool HandleCustomAtomRenderers(AtomType atomType, Vector2 translation, float scaleMultiplier, float opacityMultiplier, float height, float shadowStrength, float shadowOffset, float shadowAngle, Texture shadow, Texture overlayEffect, bool isOutputRender) {
+        foreach (var renderer in QApi.AtomRenderers) {
+            if (renderer(RenderedAtom, atomType, translation, scaleMultiplier, opacityMultiplier, height, shadowStrength, shadowOffset, shadowAngle, shadow, overlayEffect, isOutputRender)) return true;
+        }
+        return false;
+    }
+
+    [MonoModILInject("RenderAtom")]
+    static void PatchRenderAtomShaders(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodReference handleCustom = method.DeclaringType.Methods.First(f => f.Name.Equals("HandleCustomAtomRenderers"));
+        cursor.Index = cursor.Instrs.Count;
+        cursor.GotoPrev(MoveType.After, instr => instr.OpCode == OpCodes.Br_S);
+        Instruction end = (Instruction)cursor.Prev.Operand;
+        cursor.Index++;
+        cursor.EmitLdarg0();
+        cursor.Index--;
+        cursor.Prev.OpCode = OpCodes.Nop;
+
+        foreach (var arg in method.Parameters) {
+            cursor.EmitLdarg(arg);
+        }
+        cursor.EmitCall(handleCustom);
+        cursor.Emit(OpCodes.Brtrue_S, end);
     }
 
     private static readonly Dictionary<IReadOnlyList<BondType>, Tuple<Texture, Index2, Texture, bool>> RenderedBondTextures = new(new BondTypesComparer());
