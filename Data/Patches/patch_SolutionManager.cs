@@ -15,7 +15,7 @@ public class patch_SolutionManager {
             ".jsonc"
         };
         foreach (var extension in ExtraFileExtensions) {
-            IEnumerable<string> enumerable = Directory.EnumerateFiles(class_269.field_2102, "*" + Solution.fileExtension + extension).OrderBy(path => File.GetCreationTimeUtc(path));
+            IEnumerable<string> enumerable = Directory.EnumerateFiles(PlatformBridge.savePath, "*" + Solution.fileExtension + extension).OrderBy(path => File.GetCreationTimeUtc(path));
             foreach (string text in enumerable) {
                 Maybe<Solution> solutionAt = Solution.GetSolutionAt(text);
                 if (solutionAt.HasValue()) {

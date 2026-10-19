@@ -21,7 +21,7 @@ internal class patch_WorkshopManager {
     //private IEnumerable<Puzzle> LoadPuzzlesOfFolder(string folder) {
     //    var orig = orig_LoadPuzzlesOfFolder(folder).ToList();
 
-    //    string path = Path.Combine(class_269.field_2102, folder);
+    //    string path = Path.Combine(PlatformBridge.savePath, folder);
     //    foreach (var puzzleFilePath in Directory.EnumerateFiles(path, "*.puzzle.yaml")) {
     //        PuzzleModel model = YamlHelper.Deserializer.Deserialize<PuzzleModel>(File.ReadAllText(puzzleFilePath));
     //        Puzzle fromModel;
@@ -49,7 +49,7 @@ internal class patch_WorkshopManager {
     public extern string CustomPuzzlePath(Puzzle puzzle);
     // {
     //    return ((patch_Puzzle)(object)puzzle).IsModdedPuzzle
-    //        ? Path.Combine(class_269.field_2102, "custom", puzzle.puzzleId + ".puzzle.yaml")
+    //        ? Path.Combine(PlatformBridge.savePath, "custom", puzzle.puzzleId + ".puzzle.yaml")
     //        : orig_CustomPuzzlePath(puzzle);
     //}
 }
