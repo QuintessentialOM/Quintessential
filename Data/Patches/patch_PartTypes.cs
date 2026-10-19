@@ -2,6 +2,7 @@
 using MonoMod;
 using MonoMod.Cil;
 using MonoMod.InlineRT;
+using Quintessential;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,7 @@ class patch_PartTypes {
         MethodDefinition referenceCode = method.DeclaringType.Methods.First(f => f.Name.Equals("PatchPartTypesInitBondersCodeReference"));
         ILCursor referenceCulsor = new(new ILContext(referenceCode));
         FieldReference fireAtom = MonoModRule.Modder.FindType("AtomTypes").Resolve().Fields.First(f => f.Name.Equals("fire"));
-
+        
         MethodReference simpleNewCtor = null;
         referenceCulsor.GotoNext(MoveType.After, instr => instr.MatchNewobj(out simpleNewCtor));
         MethodReference createList = null;
@@ -33,16 +34,20 @@ class patch_PartTypes {
         referenceCulsor.GotoNext(MoveType.Before, instr => instr.MatchCastclass(out var _));
         MethodReference complexNewCtor = referenceCulsor.Prev.Operand as MethodReference;
 
+        referenceCulsor.Index = referenceCulsor.Instrs.Count;
+        MethodReference newCtorWithTag;
+        referenceCulsor.GotoPrev(MoveType.After, instr => instr.MatchNewobj(out newCtorWithTag));
+
         int referenceIndex = 0;
-        (bool, string, FieldReference)[] bondIds = {
-            (false, "om:standard", null),
-            (true, "om:standard, om:prisma0, om:prisma1, om:prisma2", null),
-            (false, "om:standard", null),
-            (false, "om:standard", null),
-            (false, "om:standard", null),
-            (false, "om:prisma0", fireAtom),
-            (false, "om:prisma1", fireAtom),
-            (false, "om:prisma2", fireAtom),
+        (bool, string, FieldReference, string)[] bondIds = {
+            (false, "om:standard", null, null),
+            (true, "om:standard, om:prisma0, om:prisma1, om:prisma2", null, null),
+            (false, "om:standard", null, null),
+            (false, "om:standard", null, null),
+            (false, "om:standard", null, null),
+            (false, "om:prisma0", fireAtom, "om:triplexable"),
+            (false, "om:prisma1", fireAtom, "om:triplexable"),
+            (false, "om:prisma2", fireAtom, "om:triplexable"),
         };
 
         while (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchNewobj(out var oldCtor) && oldCtor.DeclaringType.Name == "BonderInfo")) {
@@ -63,17 +68,22 @@ class patch_PartTypes {
                 cursor.EmitNewobj(createListAtomType);
                 cursor.EmitDup();
                 cursor.EmitLdsfld(bondIds[referenceIndex].Item3);
+                
+                // cursor.EmitLdstr(bondIds[referenceIndex].Item4);
                 cursor.EmitCallvirt(addToListAtomType);
+                // cursor.EmitLdstr(bondIds[referenceIndex].Item4);
+
             }
             referenceIndex++;
             cursor.TryGotoNext(MoveType.After, instr => instr.MatchNewobj(out var _));
         }
         if (referenceIndex != bondIds.Length) throw new Exception("Failed to find all bonder assignments.");
 
-        referenceCode.DeclaringType.Methods.Remove(referenceCode);
+        // referenceCode.DeclaringType.Methods.Remove(referenceCode);
     }
     public static void PatchPartTypesInitBondersCodeReference() {
         BonderInfo a = (BonderInfo)(object)new patch_BonderInfo(default, false, default, default);
-        BonderInfo b = (BonderInfo)(object)new patch_BonderInfo(new List<BondType>() { "standard" }, false, new List<AtomType> { AtomTypes.fire }, new HexIndex(0, 0), new HexIndex(1, 0));
+        BonderInfo b = (BonderInfo)(object)new patch_BonderInfo(new List<BondType>() { "standard" }, false, new List<AtomType> { AtomTypes.fire }, new AtomTag("om:triplexable"), new HexIndex(0, 0), new HexIndex(1, 0));
+    //
     }
 }
