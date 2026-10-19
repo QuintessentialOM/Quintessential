@@ -2,9 +2,7 @@
 using MonoMod;
 using MonoMod.Cil;
 using MonoMod.InlineRT;
-using Quintessential;
 using Quintessential.Internal;
-using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +22,7 @@ public static class patch_Editor {
         cursor.GotoNext(MoveType.Before, instr => instr.MatchCall("Editor", "RenderAtom"));
         cursor.Next.Operand = onCall;
         cursor.EmitLdarg(8);
+        cursor.EmitLdnull();
         cursor.GotoPrev(MoveType.Before, instr => instr.MatchLdfld("Atom","atomType"));
         cursor.Remove();
 

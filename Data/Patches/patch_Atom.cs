@@ -116,8 +116,8 @@ public class patch_Atom : ISerializableComponentHolder<patch_Atom, IAtomComponen
                 component.OnAddToMolecule(molecule, hexPos);
         }
     }
-    public void RenderAtom(Vector2 translation, float scaleMultiplier, float opacityMultiplier, float height, float shadowStrength, float shadowOffset, float shadowAngle, Texture shadow, Texture overlayEffect, bool isOutputRender, SolutionEditorBase solutionEditor) {
-        AtomType atomType = ((Atom)(object)this).atomType;
+    public void RenderAtom(Vector2 translation, float scaleMultiplier, float opacityMultiplier, float height, float shadowStrength, float shadowOffset, float shadowAngle, Texture shadow, Texture overlayEffect, bool isOutputRender, SolutionEditorBase solutionEditor, AtomType transmutingAtomType) {
+        AtomType atomType = transmutingAtomType ?? ((Atom)(object)this).atomType;
         using var enumerator = Components.GetEnumerator();
         CallRecursive();
         void CallRecursive() {
@@ -127,6 +127,9 @@ public class patch_Atom : ISerializableComponentHolder<patch_Atom, IAtomComponen
                 Editor.RenderAtom(atomType, translation, scaleMultiplier, opacityMultiplier, height, shadowStrength, shadowOffset, shadowAngle, shadow, overlayEffect, isOutputRender);
             }
         }
+    }
+    public void RenderAtomAlt(AtomType transmutingAtomType, Vector2 translation, float scaleMultiplier, float opacityMultiplier, float height, float shadowStrength, float shadowOffset, float shadowAngle, Texture shadow, Texture overlayEffect, bool isOutputRender, SolutionEditorBase solutionEditor) {
+        RenderAtom(translation, scaleMultiplier, opacityMultiplier, height, shadowStrength, shadowOffset, shadowAngle, shadow, overlayEffect, isOutputRender, solutionEditor, transmutingAtomType);
     }
 
     #endregion
