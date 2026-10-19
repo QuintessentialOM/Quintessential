@@ -1209,24 +1209,12 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
         foreach (var molecule in molecules) {
             ((patch_Molecule)(object)molecule).OnCycleCallback(this, executionType);
         }
-        foreach (var component in Components) {
-            component.Value.OnCycleCallback(this, executionType);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                if (component.CallbackType.HasFlag(executionType))
+                    component.OnCycleCallback(this, executionType);
         }
-        //if (QuintessentialDataSettings.Puzzle == null) {
-
-        //    if (executionType == CycleEventExecutionType.First && GetCycle() == 0) {
-        //        QuintessentialDataSettings.Puzzle = Codecs.PUZZLE.Encode(JsonCodecMap.Instance, solutionEditor.GetSolution().GetPuzzle());
-        //        Logger.LogNoTime(QuintessentialDataSettings.Puzzle.ToString());
-        //    }
-        //    if (executionType == CycleEventExecutionType.First && GetCycle() == 0) {
-        //        QuintessentialDataSettings.Solution = Codecs.SOLUTION.Encode(JsonCodecMap.Instance, solutionEditor.GetSolution());
-        //        Logger.LogNoTime(QuintessentialDataSettings.Solution.ToString());
-        //    }
-        //}
-        //if (executionType == CycleEventExecutionType.First && GetCycle() < solutionEditor.GetSolution().parts.Count) {
-        //    var json = patch_Part.PART.Encode(JsonCodecMap.Instance, solutionEditor.GetSolution().parts[GetCycle()]);
-        //    Logger.LogNoTime(json.ToString());
-        //}
     }
 
     [MonoModILInject("BeginCycle")]

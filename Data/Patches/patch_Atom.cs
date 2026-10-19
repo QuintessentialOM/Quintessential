@@ -18,7 +18,7 @@ public class patch_Atom : ISerializableComponentHolder<patch_Atom, IAtomComponen
 
     public void AddComponent(IAtomComponent toAdd) {
         if (!RegisteredComponents.ContainsKey(toAdd.Id))
-            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
+            RegisterComponent(toAdd.Id, null);
         if (Components.ContainsKey(toAdd.Id))
             throw new Exception("A component with the same " + toAdd.Id + " was already added to this Atom.");
         toAdd.OnBind(this, Molecule);
@@ -26,7 +26,7 @@ public class patch_Atom : ISerializableComponentHolder<patch_Atom, IAtomComponen
     }
     public void AddComponentSafe(Identifier id, Func<IAtomComponent> ctor) {
         if (!RegisteredComponents.ContainsKey(id))
-            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
+            RegisterComponent(id, null);
         if (Components.ContainsKey(id)) return;
         var component = ctor();
         if (id != component.Id) throw new Exception($"Id of created component '{component.Id}' not matching provided '{id}'.");
@@ -55,9 +55,11 @@ public class patch_Atom : ISerializableComponentHolder<patch_Atom, IAtomComponen
 
     public CycleEventExecutionType CallbackType => (CycleEventExecutionType)0b_0111_1111;
     public void OnCycleCallback(patch_Sim sim, CycleEventExecutionType executionType) {
-        foreach (var component in Components) {
-            if (component.Value.CallbackType.HasFlag(executionType))
-                component.Value.OnCycleCallback(sim, executionType);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                if (component.CallbackType.HasFlag(executionType))
+                    component.OnCycleCallback(sim, executionType);
         }
     }
 
@@ -82,25 +84,37 @@ public class patch_Atom : ISerializableComponentHolder<patch_Atom, IAtomComponen
     }
 
     internal void OnClone(ref patch_Atom cloned) {
-        foreach (var component in Components)
-            component.Value.OnClone(ref cloned);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnClone(ref cloned);
+        }
     }
     internal void OnReplace(AtomType newType) {
-        foreach (var component in Components)
-            component.Value.OnReplace(newType);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnReplace(newType);
+        }
         if (CtorsByIDAfterReplace.TryGetValue(newType.Id, out var componentCtors))
             foreach (var item in componentCtors)
                 AddComponent(item(this, newType));
     }
     internal void OnRemoveFromMolecule(patch_Molecule molecule, HexIndex hexPos) {
-        foreach (var component in Components)
-            component.Value.OnRemoveFromMolecule(molecule, hexPos);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnRemoveFromMolecule(molecule, hexPos);
+        }
         Molecule = null;
     }
     internal void OnAddToMolecule(patch_Molecule molecule, HexIndex hexPos) {
         Molecule = molecule;
-        foreach (var component in Components)
-            component.Value.OnAddToMolecule(molecule, hexPos);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnAddToMolecule(molecule, hexPos);
+        }
     }
     public void RenderAtom(Vector2 translation, float scaleMultiplier, float opacityMultiplier, float height, float shadowStrength, float shadowOffset, float shadowAngle, Texture shadow, Texture overlayEffect, bool isOutputRender, SolutionEditorBase solutionEditor) {
         AtomType atomType = ((Atom)(object)this).atomType;
@@ -124,7 +138,7 @@ public class patch_Atom : ISerializableComponentHolder<patch_Atom, IAtomComponen
     );
     internal static readonly Codec<Atom> ATOM = Codec<Atom>.Create(
         Codecs.ATOMTYPE.Seal("Type", (Atom atom) => atom.atomType),
-        componentsCodec.Seal("Components", (Atom atom) => ((patch_Atom)(object)atom).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
+        componentsCodec.Seal("Components", (Atom atom) => ((patch_Atom)(object)atom).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefault([]),
         (type, components) => {
             Atom atom = new(type);
             foreach (var component in components) {

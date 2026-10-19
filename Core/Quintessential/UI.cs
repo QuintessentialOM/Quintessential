@@ -232,13 +232,13 @@ public static class UI {
 	}
 
     /// <summary>
-    /// Set the <see cref="Texture"/> scale in the global class.
+    /// Set the <see cref="Texture"/> pivot offset (center) in the global class.
     /// </summary>
-    /// <param name="tex">The <see cref="Texture"/> to set the scale for.</param>
-    /// <param name="scale">The scale to set.</param>
+    /// <param name="tex">The <see cref="Texture"/> to set the pivot offset (center) for.</param>
+    /// <param name="offset">The pivot offset to set.</param>
     /// <returns>The texture.</returns>
-    public static Texture AssignScale(Texture tex, Vector2 scale) {
-		new DynamicData(typeof(TextureOffsets)).Get<Dictionary<Texture, Vector2>>("scales")[tex] = scale;
+    public static Texture AssignCentre(Texture tex, Vector2 offset) {
+		new DynamicData(typeof(TextureOffsets)).Get<Dictionary<Texture, Vector2>>("centers")[tex] = offset;
 		return tex;
 	}
 

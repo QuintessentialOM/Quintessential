@@ -19,7 +19,7 @@ public class patch_Translations {
     public static void Init() {
         orig_Init();
 
-        // Loading localisation data into LocalisationLayer.GlobalLayer
+        // Loading localisation data into LocalizationLayer.GlobalLayer
         foreach (var dir in QuintessentialLoader.ModContentDirectories) {
             var langDirPath = Path.Combine(dir, "Content", "lang");
             if (Directory.Exists(langDirPath)) {
@@ -29,13 +29,13 @@ public class patch_Translations {
                         new(0, null));
 
                     if (Language.Value != null) {
-                        LocalisationLayer.CurrentFileLanguage = Language.Key;
-                        DataSerializer.Deserialize<LocalisationLayer>(file);
+                        LocalizationLayer.CurrentFileLanguage = Language.Key;
+                        DataSerializer.Deserialize<LocalizationLayer>(file);
                     }
                 }
             }
         }
-        LocalisationLayer.GlobalLayer.AddSelfAndSubToDictionary(translationDict);
+        LocalizationLayer.GlobalLayer.AddSelfAndSubToDictionary(translationDict);
     }
 
     public static extern LocString orig_Translate(string toTranslate);

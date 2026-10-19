@@ -17,7 +17,7 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
 
     public void AddComponent(IPartComponent toAdd) {
         if (!RegisteredComponents.ContainsKey(toAdd.Id))
-            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
+            RegisterComponent(toAdd.Id, null);
         if (Components.ContainsKey(toAdd.Id))
             throw new Exception("A component with the same " + toAdd.Id + " was already added to this Part.");
         toAdd.OnBind(this);
@@ -25,7 +25,7 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
     }
     public void AddComponentSafe(Identifier id, Func<IPartComponent> ctor) {
         if (!RegisteredComponents.ContainsKey(id))
-            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
+            RegisterComponent(id, null);
         if (Components.ContainsKey(id)) return;
         var component = ctor();
         if (id != component.Id) throw new Exception($"Id of created component '{component.Id}' not matching provided '{id}'.");
@@ -57,48 +57,81 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
     #region ComponentCalls
 
     internal void OnClone(ref patch_Part cloned, Solution solution) {
-        foreach (var component in Components)
-            component.Value.OnClone(ref cloned, solution);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnClone(ref cloned, solution);
+        }
     }
     internal void OnReset() {
-        foreach (var component in Components)
-            component.Value.OnReset();
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnReset();
+        }
     }
-    internal void OnGetMoleculeForInputOutput(ref Molecule resoult, Solution solution) {
-        foreach (var component in Components)
-            component.Value.OnGetMoleculeForInputOutput(ref resoult, solution);
+    internal void OnGetMoleculeForInputOutput(ref PuzzleInputOutput resoult, Solution solution) {
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnGetMoleculeForInputOutput(ref resoult, solution);
+        }
     }
     internal void OnAddTrackFront() {
-        foreach (var component in Components)
-            component.Value.OnAddTrackFront();
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnAddTrackFront();
+        }
     }
     internal void OnAddTrackBack() {
-        foreach (var component in Components)
-            component.Value.OnAddTrackBack();
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnAddTrackBack();
+        }
     }
     internal void OnRemoveTrackFront() {
-        foreach (var component in Components)
-            component.Value.OnRemoveTrackFront();
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnRemoveTrackFront();
+        }
     }
     internal void OnRemoveTrackBack() {
-        foreach (var component in Components)
-            component.Value.OnRemoveTrackBack();
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnRemoveTrackBack();
+        }
     }
     internal void OnSetHexPos(HexIndex newPos) {
-        foreach (var component in Components)
-            component.Value.OnSetHexPos(newPos);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnSetHexPos(newPos);
+        }
     }
     internal void OnRotateBy(Solution solution, HexRotation rotation) {
-        foreach (var component in Components)
-            component.Value.OnRotateBy(solution, rotation);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnRotateBy(solution, rotation);
+        }
     }
     internal void OnSetRotation(Solution solution, HexRotation rotation) {
-        foreach (var component in Components)
-            component.Value.OnSetRotation(solution, rotation);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnSetRotation(solution, rotation);
+        }
     }
     internal void OnSetLength(int newLenght) {
-        foreach (var component in Components)
-            component.Value.OnSetLength(newLenght);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnSetLength(newLenght);
+        }
     }
 
     [MonoModILInject("Clone")]
@@ -128,14 +161,6 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
         MethodReference onCall = method.DeclaringType.Methods.First(f => f.Name.Equals("OnGetMoleculeForInputOutput"));
         method.Body.Variables.Add(new VariableDefinition(method.ReturnType));
         VariableDefinition cloned = method.Body.Variables[^1];
-        cursor.GotoNext(instr => instr.MatchRet());
-        cursor.EmitStloc(cloned);
-        cursor.EmitLdarg0();
-        cursor.EmitLdloca(cloned);
-        cursor.EmitLdarg1();
-        cursor.EmitCall(onCall);
-        cursor.EmitLdloc(cloned);
-        cursor.Index++;
         cursor.GotoNext(instr => instr.MatchRet());
         cursor.EmitStloc(cloned);
         cursor.EmitLdarg0();
@@ -245,23 +270,23 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
     );
     internal static readonly Codec<Part> PART = Codec<Part>.Create(
         Codecs.ID.Seal("Id", (Part part) => part.GetType().Id),
-        Codecs.BOOL.Seal("IsFixed", (Part part) => part.GetIsFixed()).WithDefaut(false),
+        Codecs.BOOL.Seal("IsFixed", (Part part) => part.GetIsFixed()).WithDefault(false),
         Codecs.HEXINDEX.Seal("Pos", (Part part) => part.GetHexPos()),
-        Codecs.INT.Seal("Length", (Part part) => part.GetArmLength()).WithDefaut(1).WriteDefautIf(part => PartTag.PartTags["om:arm"].HasPart(part)),
-        Codecs.INT.Seal("Rotation", (Part part) => part.GetRotation().GetNumberOfTurns()).WithDefaut(0).WriteDefautIf(part => part.GetType().canRotateInEditor),
-        Codecs.INT.Seal("IOIndex", (Part part) => part.GetInputOutputIndex()).WithDefaut(0).WriteDefautIf(part => PartTag.PartTags["om:inputoutput"].HasPart(part)),
-        Codecs.INT.Seal("ProgramIndex", (Part part) => part.programIndex).WithDefaut(0).WriteDefautIf(part => PartTag.PartTags["om:programmable"].HasPart(part)),
-        programCodec.Seal("Program", (Part part) => new Dictionary<int, InstructionType>(part.program.method_902().ToList().Select(indexed => KeyValuePair.Create(indexed.index, indexed.instruction)))).WithDefaut([]).WriteDefautIf(part => PartTag.PartTags["om:programmable"].HasPart(part)),
-        Codecs.LIST_HEXINDEX.Seal("Track", (Part part) => part.GetTrack()?.ToList() ?? []).WithDefaut([]),
-        Codecs.INT.Seal("ConduitId", (Part part) => part.conduitId).WithDefaut(0).WriteDefautIf(part => part.GetType().Id == "om:conduit"),
-        Codecs.LIST_HEXINDEX.Seal("Conduit", (Part part) => part?.GetConduitHexes() ?? []).WithDefaut([]),
-        componentsCodec.Seal("Components", (Part part) => ((patch_Part)(object)part).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
+        Codecs.INT.Seal("Length", (Part part) => part.GetArmLength()).WithDefault(1).WriteDefautIf(part => PartTag.PartTags["om:arm"].HasPart(part)),
+        Codecs.INT.Seal("Rotation", (Part part) => part.GetRotation().GetNumberOfTurns()).WithDefault(0).WriteDefautIf(part => part.GetType().canRotateInEditor),
+        Codecs.INT.Seal("IOIndex", (Part part) => part.GetInputOutputIndex()).WithDefault(0).WriteDefautIf(part => PartTag.PartTags["om:inputoutput"].HasPart(part)),
+        Codecs.INT.Seal("ProgramIndex", (Part part) => part.programIndex).WithDefault(0).WriteDefautIf(part => PartTag.PartTags["om:programmable"].HasPart(part)),
+        programCodec.Seal("Program", (Part part) => new Dictionary<int, InstructionType>(part.program.method_902().ToList().Select(indexed => KeyValuePair.Create(indexed.index, indexed.instruction)))).WithDefault([]).WriteDefautIf(part => PartTag.PartTags["om:programmable"].HasPart(part)),
+        Codecs.LIST_HEXINDEX.Seal("Track", (Part part) => part.GetTrack()?.ToList() ?? []).WithDefault([]),
+        Codecs.INT.Seal("ConduitId", (Part part) => part.conduitId).WithDefault(0).WriteDefautIf(part => part.GetType().Id == "om:conduit"),
+        Codecs.LIST_HEXINDEX.Seal("Conduit", (Part part) => part?.GetConduitHexes() ?? []).WithDefault([]),
+        componentsCodec.Seal("Components", (Part part) => ((patch_Part)(object)part).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefault([]),
         (id, isFixed, pos, lenght, rotation, ioIndex, programIndex, program, track, conduitId, conduit, components) => {
             Part part = new(PartTypes.GetById(id).GetValue(), isFixed);
             part.SetHexPosAndUpdate(pos);
             part.SetAllowedLength(lenght);
             ((patch_Part)(object)part).SetRotation(new HexRotation(rotation));
-            ((patch_Part)(object)part).SetInputOutputIndex(ioIndex); // TODO setup from solution
+            ((patch_Part)(object)part).SetInputOutputIndex(ioIndex);
             part.programIndex = programIndex;
             foreach (var instruction in program)
                 part.program.SetInstruction(instruction.Key, instruction.Value);

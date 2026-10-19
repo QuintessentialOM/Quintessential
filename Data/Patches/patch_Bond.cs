@@ -14,7 +14,7 @@ public class patch_Bond : ISerializableComponentHolder<patch_Bond, IBondComponen
 
     public void AddComponent(IBondComponent toAdd) {
         if (!RegisteredComponents.ContainsKey(toAdd.Id))
-            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
+            RegisterComponent(toAdd.Id, null);
         if (Components.ContainsKey(toAdd.Id))
             throw new Exception("A component with the same " + toAdd.Id + " was already added to this Bond.");
         toAdd.OnBind(this, Molecule);
@@ -22,7 +22,7 @@ public class patch_Bond : ISerializableComponentHolder<patch_Bond, IBondComponen
     }
     public void AddComponentSafe(Identifier id, Func<IBondComponent> ctor) {
         if (!RegisteredComponents.ContainsKey(id))
-            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
+            RegisterComponent(id, null);
         if (Components.ContainsKey(id)) return;
         var component = ctor();
         if (id != component.Id) throw new Exception($"Id of created component '{component.Id}' not matching provided '{id}'.");
@@ -51,9 +51,11 @@ public class patch_Bond : ISerializableComponentHolder<patch_Bond, IBondComponen
 
     public CycleEventExecutionType CallbackType => (CycleEventExecutionType)0b_0111_1111;
     public void OnCycleCallback(patch_Sim sim, CycleEventExecutionType executionType) {
-        foreach (var component in Components) {
-            if (component.Value.CallbackType.HasFlag(executionType))
-                component.Value.OnCycleCallback(sim, executionType);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                if (component.CallbackType.HasFlag(executionType))
+                    component.OnCycleCallback(sim, executionType);
         }
     }
 
@@ -64,18 +66,27 @@ public class patch_Bond : ISerializableComponentHolder<patch_Bond, IBondComponen
     protected patch_Molecule Molecule;
 
     internal void OnClone(ref patch_Bond cloned) {
-        foreach (var component in Components)
-            component.Value.OnClone(ref cloned);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                    component.OnClone(ref cloned);
+        }
     }
     internal void OnRemoveFromMolecule(patch_Molecule molecule) {
-        foreach (var component in Components)
-            component.Value.OnRemoveFromMolecule(molecule);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnRemoveFromMolecule(molecule);
+        }
         Molecule = null;
     }
     internal void OnAddToMolecule(patch_Molecule molecule) {
         Molecule = molecule;
-        foreach (var component in Components)
-            component.Value.OnAddToMolecule(molecule);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnAddToMolecule(molecule);
+        }
     }
     public void RenderBond(Vector2 offset, HexIndex hexOffset, float rotationAngle, float opacityMultiplier, float height, SolutionEditorBase solutionEditor) {
         using var enumerator = Components.GetEnumerator();
@@ -168,6 +179,27 @@ public class patch_Bond : ISerializableComponentHolder<patch_Bond, IBondComponen
     }
     public IReadOnlyList<BondType> GetBondTypes() => bondTypes;
 
+    internal byte GetVanillaTypeData() {
+        byte toReturn = 0;
+        foreach (var type in bondTypes) {
+            switch (type.Id) {
+                case "om:standard":
+                    toReturn += 1;
+                    break;
+                case "om:prisma0":
+                    toReturn += 2;
+                    break;
+                case "om:prisma1":
+                    toReturn += 4;
+                    break;
+                case "om:prisma2":
+                    toReturn += 8;
+                    break;
+            }
+        }
+        return toReturn;
+    }
+
     #endregion
 
     #region Serialization
@@ -176,10 +208,10 @@ public class patch_Bond : ISerializableComponentHolder<patch_Bond, IBondComponen
         RegisteredComponents, id => id.ToString(), str => new Identifier(str)
     );
     internal static readonly Codec<Bond> BOND = Codec<Bond>.Create(
-        Codecs.LIST_ID.Seal("Types", (Bond bond) => [.. ((patch_Bond)(object)bond).bondTypes.Select(bondType => bondType.Id)]).WithDefaut([]),
+        Codecs.LIST_ID.Seal("Types", (Bond bond) => [.. ((patch_Bond)(object)bond).bondTypes.Select(bondType => bondType.Id)]).WithDefault([]),
         Codecs.HEXINDEX.Seal("Pos1", (Bond bond) => bond.hexPos1),
         Codecs.HEXINDEX.Seal("Pos2", (Bond bond) => bond.hexPos2),
-        componentsCodec.Seal("Components", (Bond bond) => ((patch_Bond)(object)bond).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
+        componentsCodec.Seal("Components", (Bond bond) => ((patch_Bond)(object)bond).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefault([]),
         (types, pos1, pos2, components) => {
             patch_Bond bond;
             bond = new([.. types.Select(id => BondTypes.GetBondType(id))], pos1, pos2);

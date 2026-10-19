@@ -10,13 +10,11 @@ public static class Dumping {
         Directory.CreateDirectory(outDir);
         DataSerializer.SetMultilineFormat(true);
         foreach (var p in Puzzles.campaignPuzzles) {
-            PuzzleModel m = PuzzleModel.FromPuzzle(p);
-            m.Serialize(Path.Combine(outDir, m.ID + ".puzzle.jsonc"));
+            File.WriteAllText(Path.Combine(outDir, p.puzzleId + ".puzzle.jsonc"), Codecs.PUZZLE.Encode(JsonCodecMap.Instance, p).ToString());
         }
         foreach (var volume in JournalVolumes.volumes) {
             foreach (var p in volume.puzzles) {
-                PuzzleModel m = PuzzleModel.FromPuzzle(p);
-                m.Serialize(Path.Combine(outDir, "X" + m.ID + ".puzzle.jsonc"));
+                File.WriteAllText(Path.Combine(outDir, "X" + p.puzzleId + ".puzzle.jsonc"), Codecs.PUZZLE.Encode(JsonCodecMap.Instance, p).ToString());
             }
         }
         Logger.Log($"Dumped puzzles to {outDir}");

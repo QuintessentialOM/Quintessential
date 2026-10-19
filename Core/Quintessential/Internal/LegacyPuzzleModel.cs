@@ -1,14 +1,16 @@
-﻿using System;
+﻿using Quintessential.Serialization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
-namespace Quintessential.Serialization;
+namespace Quintessential.Internal;
 [DataContract]
-public class PuzzleModel {
+public partial class LegacyPuzzleModel {
 
-    [DataMember] public string NameKey { get; set; }
+    [DataMember] public string Name { get; set; }
     [DataMember] public string ID { get; set; }
     [DataMember] public string Author { get; set; }
     [DataMember] public List<PuzzleIoM> Inputs { get; set; } = [];
@@ -21,16 +23,16 @@ public class PuzzleModel {
     [DataMember(EmitDefaultValue = false)] public ProductionInfoM ProductionInfo { get; set; } = null;
     [DataMember(EmitDefaultValue = false)] public List<ConduitM> Conduits { get; set; } = null;
 
-	public static PuzzleModel FromPuzzle(Puzzle puzzle) {
-		PuzzleModel model = new(){
+	public static LegacyPuzzleModel FromPuzzle(Puzzle puzzle) {
+		LegacyPuzzleModel model = new(){
 			ID = puzzle.puzzleId,
 			PermissionFlags = puzzle.permissionFlags,
-			NameKey = puzzle.puzzleName != null ? ((patch_LocString)(object)puzzle.puzzleName).Key : "",
+			Name = puzzle.puzzleName != null ? ((patch_LocString)(object)puzzle.puzzleName).Key : "",
 			Author = puzzle.journalAuthor.HasValue() ? puzzle.journalAuthor.GetValue() : "",
 			CustomPermissions = [..((patch_Puzzle)(object)puzzle).CustomPermissions ?? []],
 			OutputMultiplier = puzzle.outputMultiplier
         };
-		foreach(var @in in puzzle.inputs)
+        foreach(var @in in puzzle.inputs)
 			model.Inputs.Add(@in);
 		foreach(var @out in puzzle.outputs)
 			model.Outputs.Add(@out);
@@ -48,10 +50,10 @@ public class PuzzleModel {
 		return model;
 	}
 
-	public static Puzzle FromModel(PuzzleModel model) {
+	public static Puzzle FromModel(LegacyPuzzleModel model) {
 		Puzzle ret = new(){
             puzzleId = model.ID,
-            puzzleName = patch_Translations.TranslateByType(model.NameKey),
+            puzzleName = Translations.WithAllLanguages(model.Name),
             inputs = [.. model.Inputs],
             outputs = [.. model.Outputs],
             permissionFlags = model.PermissionFlags,
@@ -72,9 +74,12 @@ public class PuzzleModel {
 			// if it's not a cabinet, use these
 			((patch_Puzzle)(object)ret).EngineConduits = (PlacedConduit[])[.. model.Conduits];
 		}
-		((patch_Puzzle)(object)ret).CustomPermissions = [..model.CustomPermissions];
-
-		return ret;
+		((patch_Puzzle)(object)ret).CustomPermissions = [..model.CustomPermissions.Select(perm => 
+            QApi.PuzzleOptions.FirstOrDefault(pu => pu.ID.ToString().Equals(ConvertNewFormat(perm)))?.ID ??
+            (LegacyPorting.UnsafeLegacyExport ? new Identifier(ConvertNewFormat(perm)) :
+            throw new Exception($"CustomPermissions \"{ConvertNewFormat(perm)}\" does not exist!"))
+        )];
+        return ret;
 	}
 
     [DataContract]
@@ -122,12 +127,12 @@ public class PuzzleModel {
     public class MoleculeM {
         [DataMember] public List<AtomM> Atoms { get; set; } = [];
         [DataMember] public List<BondM> Bonds { get; set; } = [];
-        [DataMember] public string NameKey { get; set; } = "";
+        [DataMember] public string Name { get; set; } = "";
 
         public MoleculeM() { }
         public static implicit operator MoleculeM (Molecule mol) {
             MoleculeM toReturn = new() {
-				NameKey = mol.displayName.HasValue() ? ((patch_LocString)(object)mol.displayName.GetValue()).Key : "",
+				Name = mol.displayName.HasValue() ? ((patch_LocString)(object)mol.displayName.GetValue()).Key : "",
 			};
 			foreach (var atom in mol.GetMonomer().GetAtoms())
                 toReturn.Atoms.Add(new AtomM(atom.Value, atom.Key));
@@ -142,8 +147,8 @@ public class PuzzleModel {
 			foreach(var item in mol.Bonds)
                 monomer.AddBond((BondTypeEnum)item.BondBits(), item.A, item.B);
 			Molecule toReturn = Molecule.RepeatMonomer(monomer);
-			if (!string.IsNullOrEmpty(mol.NameKey))
-				toReturn.displayName = patch_Translations.TranslateByType(mol.NameKey);
+			if (!string.IsNullOrEmpty(mol.Name))
+				toReturn.displayName = Translations.WithAllLanguages(mol.Name);
 			else toReturn.displayName = new(false, null);
             return toReturn;
         }
@@ -164,11 +169,48 @@ public class PuzzleModel {
 				throw new NullReferenceException("Missing atom type!");
 
 			return new Atom(
-				AtomTypes.atoms.FirstOrDefault(k => model.AtomType.Equals(((patch_AtomType)(object)k).Id))
-				?? throw new Exception($"Atom type \"{model.AtomType}\" does not exist!")
-			);
+				AtomTypes.atoms.FirstOrDefault(k => AtomMap(model.AtomType).Equals(((patch_AtomType)(object)k).Id)) ??
+				AtomTypes.atoms.FirstOrDefault(k => ConvertNewFormat(model.AtomType).Equals(((patch_AtomType)(object)k).Id)) ??
+				(LegacyPorting.UnsafeLegacyExport ? (AtomType)(object)new patch_AtomType() { Id = ConvertNewFormat(AtomMap(model.AtomType)) } :
+				throw new Exception($"Atom type \"{AtomMap(model.AtomType)}\" or \"{ConvertNewFormat(model.AtomType)}\" does not exist!"))
+            );
 		}
-	}
+		public static string AtomMap(string s) => s switch {
+            "salt" => "om:salt",
+            "air" => "om:air",
+            "earth" => "om:earth",
+            "fire" => "om:fire",
+            "water" => "om:water",
+            "quicksilver" => "om:quicksilver",
+            "lead" => "om:lead",
+            "copper" => "om:copper",
+            "tin" => "om:tin",
+            "iron" => "om:iron",
+            "silver" => "om:silver",
+            "gold" => "om:gold",
+            "vitae" => "om:vitae",
+            "mors" => "om:mors",
+            "repeat" => "om:repeat",
+            "quintessence" => "om:quintessence",
+            "Red Vitae:redvitae" => "true_animismus:redvitae",
+            "True Vitae:truevitae" => "true_animismus:truevitae",
+            "Grey Mors:greymors" => "true_animismus:greymors",
+            "True Mors:truemors" => "true_animismus:truemors",
+            "TA-Dummy:ta-dummy" => "true_animismus:dummy",
+            "Vaca:vaca" => "vacancy:vaca",
+            _ => s
+        };
+
+    }
+
+	private static string ConvertNewFormat(string old) {
+		if (!old.Contains(':') && old.Count('-') == 1) old = old.Replace('-', ':');
+        if (old.StartsWith("extransmutations-")) old = old.ReplaceFirst("extransmutations-", "extransmutations:");
+		return AddUnderscore().Replace(old, "_").ToLower().Replace('-', '_').Replace(' ', '_');
+    }
+
+    [GeneratedRegex("(?<=[a-z])(?=[A-Z])", RegexOptions.Compiled)]
+    private static partial Regex AddUnderscore();
 
     [DataContract]
     public class BondM {
@@ -284,7 +326,7 @@ public class PuzzleModel {
     public class VialM {
         [DataMember] public HexIndexM Position { get; set; }
         [DataMember] public bool Top { get; set; }
-        [DataMember] public List<Tuple<string, string>> Sprites { get; set; } = [];
+        [DataMember] public List<Pair<string, string>> Sprites { get; set; } = [];
 
         public VialM() { }
         public static implicit operator VialM(PlacedVial v) {
@@ -298,7 +340,7 @@ public class PuzzleModel {
 		}
         public static implicit operator PlacedVial (VialM v) {
 			return new PlacedVial(v.Position.Q(), v.Position.R(), v.Top,
-                [.. v.Sprites.Select(xs => Tuple.Create(AssetLoaderHelper.LoadTexture(xs.Item1), AssetLoaderHelper.LoadTexture(xs.Item2)))]);
+                [.. v.Sprites.Select(xs => Tuple.Create(AssetLoaderHelper.LoadTexture(xs.Left), AssetLoaderHelper.LoadTexture(xs.Right)))]);
 		}
 		private static string CleanName(Texture texture){
 			string name = texture.sourceFile.GetValue();
@@ -307,4 +349,15 @@ public class PuzzleModel {
 			return name;
 		}
 	}
+
+	public class Pair<T1, T2>{
+
+        public Pair() {}
+        public Pair(T1 t1, T2 t2){
+            Left = t1;
+            Right = t2;
+        }
+        public T1 Left { get; set; }
+        public T2 Right { get; set; }
+    }
 }

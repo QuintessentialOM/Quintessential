@@ -166,21 +166,33 @@ public class ListOrDictCodec<T> : PrimitiveCodec<Tuple<List<T>, Dictionary<strin
     }
 }
 public class EnumCodec<T> : PrimitiveCodec<T> where T : struct, Enum {
-    private EnumCodec(bool useTextEncoding) { UseTextEncoding = useTextEncoding; }
-    public static EnumCodec<T> Create(bool useTextEncoding = false) => new(useTextEncoding);
+    private EnumCodec(bool useTextEncoding, bool forceUseTextEncoding) { UseTextEncoding = useTextEncoding; Force = forceUseTextEncoding; }
+    public static EnumCodec<T> Create(bool useTextEncoding = false, bool forceUseTextEncoding = false) => new(useTextEncoding , forceUseTextEncoding);
 
     readonly bool UseTextEncoding;
+    readonly bool Force;
 
     public override T Decode<TData>(CodecMap<TData> map, TData encoding) {
-        if (UseTextEncoding && map.IsHumanReadable()) {
-            if (Enum.TryParse(map.ReadString(encoding), out T result))
-                return result;
+        try {
+            if (UseTextEncoding && (map.IsHumanReadable() || Force)) {
+                try {
+                    if (Enum.TryParse(map.ReadString(encoding), out T result))
+                        return result;
+                } catch (Exception ex) {
+                    if (ex.Message != "Not String value: Number") throw;
+                }
+            }
+            return (T)(object)map.ReadInt(encoding);
+        } catch (Exception ex) {
+            if (ex.Message != "Not Number value: String") throw;
+            throw new Exception($"Failed to parse Enum value of type {typeof(T).FullName}. Valid string values are:\n{
+                string.Join(", ", typeof(T).GetFields().Select(field => field.Name).Where(str => str != "value__"))
+            }", ex);
         }
-        return (T)(object)map.ReadInt(encoding);
     }
 
     public override TData Encode<TData>(CodecMap<TData> map, T item) {
-        if (UseTextEncoding && map.IsHumanReadable()) {
+        if (UseTextEncoding && (map.IsHumanReadable() || Force)) {
             return map.WriteString(item.ToString());
         }
         return map.WriteInt((int)(object)item);

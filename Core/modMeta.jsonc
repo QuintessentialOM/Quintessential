@@ -1,10 +1,10 @@
 {
   "mod_id": "quintessential_core",
-  "version": "0.7.0",
+  "version": "0.8.1",
   "mod_page_url": "https://github.com/QuintessentialOM/Quintessential",
   "dll": "QuintessentialCore.dll",
   "authors": [],
-  "icon": "",
+  "icon": "quint_icon",
   "mappings": "",
   "dependencies": {},
   "conflicts": []

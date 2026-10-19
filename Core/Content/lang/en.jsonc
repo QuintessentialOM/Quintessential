@@ -2,7 +2,7 @@
   "quintessential_core": {
     "": "Quintessential Core",
     "simple": "Quintessential",
-    "description": "Example description...",
+    "description": "The _beating heart_ of the *Quintessential* mod loader!",
     "display_text": {
       "mods_loaded": "mods loaded.",
       "empty_keybind": "None",
@@ -18,6 +18,12 @@
         "left": "Switch Campaign Left",
         "right": "Switch Campaign Right"
       }
+    },
+    "naming": {
+      "elemental": "Elemental {0}",
+      "stabilized": "Stabilized {0}",
+      "reactive": "Reactive {0}",
+      "cinnabar": "Cinnabar Fragment"
     }
   },
   "om": {

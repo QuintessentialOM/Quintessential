@@ -1,4 +1,6 @@
-﻿using Quintessential.Serialization;
+﻿using Quintessential.Components;
+using Quintessential.Serialization;
+using System.IO;
 //using Quintessential.Settings;
 //using System;
 //using System.IO;
@@ -18,7 +20,7 @@ internal class QuintessentialData : QuintessentialMod, IDataMod {
     }
 
     public override void LoadContent() {
-        this.AddRecipe(new GlyphRecipe(),"om:bonder", "om:bonder");
+        this.AddRecipe(new GlyphRecipe(), "om:bonder", "om:bonder");
         this.AddRecipe(new GlyphRecipe(), "om:unbonder", "om:unbonder");
         this.AddRecipe(new GlyphRecipe(), "om:multi_bonder", "om:multi_bonder");
         this.AddRecipe(new GlyphRecipe(), "om:triplex_bonder", "om:triplex_bonder");
@@ -38,6 +40,26 @@ internal class QuintessentialData : QuintessentialMod, IDataMod {
 
         this.AddRecipe(new GlyphRecipe(VanillaRecipes.BasicUnification), "om:unification", "om:unification");
         this.AddRecipe(new GlyphRecipe(VanillaRecipes.BasicDispersion), "om:dispersion", "om:dispersion");
+
+        /*
+        var EtherealTextures = new BondTexture {
+            texture = AssetLoaderHelper.LoadTexture(Path.Combine("textures", ModId, "bonds", "golden")),
+            normalMap = Assets.textures.black,
+            bondAnim = BondTextures.standard.bondAnim,
+            glyphAnim = BondTextures.standard.glyphAnim,
+            bondSound = BondTextures.standard.bondSound,
+            textureOffset = new Vector2(1, 0),
+        };
+        this.AddBondType(new BondType(
+          GetIdentifier("golden"),
+          EtherealTextures,
+          BondTypes.GetBondType("om:standard").unbondAnim,
+          [],
+          0,
+          BondOverlapMode.OnlyListed,
+          [new HexIndex(-1, 2)]
+        ), false);
+        */
 
         //this.AddRecipe(new GlyphRecipe() {
         //    RecipeGlyphId = "om:animismus",
@@ -134,22 +156,7 @@ internal class QuintessentialData : QuintessentialMod, IDataMod {
         //    })
         //}, GetIdentifier("quix_duplication"));
     }
-    public override void LoadCompatContent() {
-        //var bm = new CodecsBenchmark();
-        //bm.TestCompareDynamic(1, false);
-        //bm.TestCompareDynamic(1, false);
-        //bm.TestCompareDynamic(1, false);
-        //bm.TestCompareDynamic(1, false);
-        //bm.TestCompareDynamic(1, false);
-        //bm.TestCompareDynamic(1, false);
-        //bm.TestCompareDynamic(1, false);
-        //bm.TestCompareDynamic(1, false);
-        //bm.TestCompareDynamic(2, false);
-        //bm.TestCompareDynamic(2, false);
-        //new CodecsBenchmark().Test(1000, false);
-        //new CodecsBenchmark().Test(10000, false);
-        //new CodecsBenchmark().Test(100000, false);
-    }
+    public override void LoadCompatContent() { }
     public override void FinaliseContent() { }
 
     public override void PostLoad() { }

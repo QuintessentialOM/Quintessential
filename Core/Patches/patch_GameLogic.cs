@@ -4,8 +4,10 @@ using MonoMod;
 using MonoMod.Cil;
 using MonoMod.InlineRT;
 using Quintessential;
+using Quintessential.Internal;
 using SDL2;
 using System;
+using System.IO;
 using System.Linq;
 
 #pragma warning disable CS0626 // Method, operator, or accessor is marked external and has no attributes on it
@@ -35,6 +37,7 @@ class patch_GameLogic {
 
 	public void ContentInit(){
         orig_ContentInit();
+        patch_Portraits.CreateRescaledVersions();
         QuintessentialLoader.ModContentInit();
     }
 
@@ -151,5 +154,10 @@ class patch_GameLogic {
         cursor.EmitLdarg0();
         cursor.EmitLdfld(window);
         cursor.Emit(OpCodes.Callvirt, call);
+    }
+
+    [MonoModWrapOperation("GameInit", "Literal-String", "Content/icon.png")]
+    string GetIconPath(string orig) {
+        return Path.Combine(QuintessentialCore.Instance.Meta.PathToDirectory, "Content", "quint_icon_slant.png");
     }
 }

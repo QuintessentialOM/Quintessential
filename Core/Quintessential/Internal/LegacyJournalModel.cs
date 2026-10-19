@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
-
 using YamlDotNet.Serialization;
 
-namespace Quintessential.Serialization;
+namespace Quintessential.Internal;
 
-public class JournalModel {
+public class LegacyJournalModel {
 
-	public string TitleKey { get; set; }
+	public string Title { get; set; }
 
     public string PuzzleBackgroundLarge { get; set; }
 	public string PuzzleBackgroundSmall { get; set; }
@@ -22,9 +21,9 @@ public class JournalModel {
 
 public class JournalChapterModel {
 
-	public string TitleKey { get; set; }
+	public string Title { get; set; }
 
-    public string DescriptionKey { get; set; }
+    public string Description { get; set; }
 
     public List<string> Puzzles = [];
 }

@@ -111,7 +111,7 @@ public class PuzzleOption{
     public PartType PartIn(Puzzle from){
 		string choice = ChoiceIn(from);
 		foreach(PartType type in PartTypes.partTypes)
-			if(type.id.Equals(choice)) // TODO use new part id
+			if(((patch_PartType)(object)type).Id.Equals(choice))
 				return type;
 
 		return null;

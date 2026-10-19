@@ -9,8 +9,10 @@ using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using static Quintessential.Components.IMoleculeComponent;
 using static Quintessential.CycleEvent;
+using static Quintessential.Internal.LegacyPuzzleModel;
 
 public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMoleculeComponent>, ISimCallbacks, IRecipeOutput, IRecipeInput {
 
@@ -19,7 +21,7 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
 
     public void AddComponent(IMoleculeComponent toAdd) {
         if (!RegisteredComponents.ContainsKey(toAdd.Id))
-            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
+            RegisterComponent(toAdd.Id, null);
         if (Components.ContainsKey(toAdd.Id))
             throw new Exception("A component with the same " + toAdd.Id + " was already added to this Molecule.");
         toAdd.OnBind(this);
@@ -27,7 +29,7 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
     }
     public void AddComponentSafe(Identifier id, Func<IMoleculeComponent> ctor) {
         if (!RegisteredComponents.ContainsKey(id))
-            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
+            RegisterComponent(id, null);
         if (Components.ContainsKey(id)) return;
         var component = ctor();
         if (id != component.Id) throw new Exception($"Id of created component '{component.Id}' not matching provided '{id}'.");
@@ -56,15 +58,22 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
 
     public CycleEventExecutionType CallbackType => (CycleEventExecutionType) 0b_0111_1111;
     public void OnCycleCallback(patch_Sim sim, CycleEventExecutionType executionType) {
-        foreach (var atom in atoms) {
-            ((patch_Atom)(object)atom.Value).OnCycleCallback(sim, executionType);
+        HexIndex[] atomPos = [.. atoms.Keys];
+        for (int i = 0; i < atomPos.Length; i++) {
+            if (atoms.TryGetValue(atomPos[i], out var atom))
+                ((patch_Atom)(object)atom).OnCycleCallback(sim, executionType);
         }
-        foreach (var bond in bonds) {
-            ((patch_Bond)(object)bond).OnCycleCallback(sim, executionType);
+        (HexIndex, HexIndex)[] bondPos = [.. bonds.Select(bond => (bond.hexPos1, bond.hexPos2))];
+        for (int i = 0; i < bondPos.Length; i++) {
+            var bond = bonds.FirstOrDefault(bond => bond.hexPos1 == bondPos[i].Item1 && bond.hexPos2 == bondPos[i].Item2);
+            if (bond != null)
+                ((patch_Bond)(object)bond).OnCycleCallback(sim, executionType);
         }
-        foreach (var component in Components) {
-            if (component.Value.CallbackType.HasFlag(executionType))
-                component.Value.OnCycleCallback(sim, executionType);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                if (component.CallbackType.HasFlag(executionType))
+                    component.OnCycleCallback(sim, executionType);
         }
     }
 
@@ -87,7 +96,7 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
     }
     protected void OnAddBonds(List<patch_Bond> bonds) {
         foreach (var bond in bonds) {
-            bond.OnRemoveFromMolecule(this);
+            bond.OnAddToMolecule(this);
             OnAddBond?.Invoke(bond);
         }
     }
@@ -197,42 +206,6 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
         atoms.ContainsKey(pos);
     }
 
-    //[MonoModILInject("RemoveBond")]
-    //static void PatchRemoveBond(MethodDefinition method, CustomAttribute attribute) {
-    //    ILCursor cursor = new(new ILContext(method));
-    //    MethodReference onCallBond = method.DeclaringType.Methods.First(f => f.Name.Equals("OnRemoveBonds"));
-    //    cursor.GotoNext(MoveType.Before, instr => instr.MatchLdfld("Molecule", "bonds"));
-    //    FieldReference bonds = cursor.Next.Operand as FieldReference;
-    //    MethodReference isMatchingBond = null;
-    //    cursor.GotoNext(MoveType.After, instr => instr.MatchLdftn(out isMatchingBond));
-    //    MethodReference predicateCtor = cursor.Next.Operand as MethodReference;
-
-    //    MethodDefinition referenceCode = method.DeclaringType.Methods.First(f => f.Name.Equals("PatchRemoveBondCodeReference"));
-    //    ILCursor referenceCulsor = new(new ILContext(referenceCode));
-    //    MethodReference findAllBonds = null;
-    //    referenceCulsor.GotoNext(MoveType.After, instr => instr.MatchCallvirt(out findAllBonds));
-
-    //    cursor.Index = 0;
-    //    cursor.GotoNext(MoveType.After, instr => instr.MatchStloc0());
-    //    cursor.GotoNext(MoveType.After, instr => instr.MatchStfld(out _));
-    //    cursor.GotoNext(MoveType.After, instr => instr.MatchStfld(out _));
-
-    //    // this.OnRemoveBonds(this.bonds.FindAll( new Predicate(IsBondToHex)));
-    //    cursor.EmitLdarg0();
-    //    cursor.EmitLdarg0();
-    //    cursor.EmitLdfld(bonds);
-    //    cursor.EmitLdloc0();
-    //    cursor.EmitLdftn(isMatchingBond);
-    //    cursor.EmitNewobj(predicateCtor);
-    //    cursor.EmitCallvirt(findAllBonds);
-    //    cursor.EmitCall(onCallBond);
-
-    //    referenceCode.DeclaringType.Methods.Remove(referenceCode);
-    //}
-    //static void PatchRemoveBondCodeReference(List<Bond> bonds, Predicate<Bond> predicate) {
-    //    bonds.FindAll(predicate);
-    //}
-
     [MonoModILInject("AddAtom")]
     static void PatchAddAtom(MethodDefinition method, CustomAttribute attribute) {
         ILCursor cursor = new(new ILContext(method));
@@ -245,20 +218,6 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
         cursor.EmitLdarg2();
         cursor.EmitCall(onCall);
     }
-
-    //[MonoModILInject("System.Boolean Molecule::AddBond(BondTypeEnum,HexIndex,HexIndex,Maybe`1<BondEffect>)")]
-    //static void PatchAddBond(MethodDefinition method, CustomAttribute attribute) {
-    //    ILCursor cursor = new(new ILContext(method));
-    //    MethodReference onCall = method.DeclaringType.Methods.First(f => f.Name.Equals("OnAddSingleBond"));
-    //    cursor.GotoNext(MoveType.After, instr => instr.MatchCallvirt(out var add) && add.Name == "Add");
-    //    FieldReference bond = cursor.Previous.Previous.Operand as FieldReference;
-
-    //    //& bondAdder.bond.OnAddToMolecule(this);
-    //    cursor.EmitLdarg0();
-    //    cursor.EmitLdloc(4);
-    //    cursor.EmitLdfld(bond);
-    //    cursor.EmitCall(onCall);
-    //}
 
     [MonoModILInject("MergeWith")]
     static void PatchMergeWithAddBond(MethodDefinition method, CustomAttribute attribute) {
@@ -411,20 +370,32 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
     #region ComponentCalls - Molecule Handling
 
     internal void OnClone(ref patch_Molecule cloned) {
-        foreach (var component in Components)
-            component.Value.OnClone(ref cloned);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnClone(ref cloned);
+        }
     }
     internal void OnMerge(ref patch_Molecule resoult, patch_Molecule other, bool asPrimary) {
-        foreach (var component in Components)
-            component.Value.OnMerge(ref resoult, other, asPrimary);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnMerge(ref resoult, other, asPrimary);
+        }
     }
     internal void OnSplit(List<patch_Molecule> resoult) {
-        foreach (var component in Components)
-            component.Value.OnSplit(resoult);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnSplit(resoult);
+        }
     }
     internal void OnRepeatAsMonomer(ref patch_Molecule resoult, HexIndex repetitionPos) {
-        foreach (var component in Components)
-            component.Value.OnRepeatAsMonomer(ref resoult, repetitionPos);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnRepeatAsMonomer(ref resoult, repetitionPos);
+        }
     }
     public void RenderMolecule(Vector2 offset, HexIndex hexPos, float rotationAngle, float opacityMultiplier, float height, float shadowStrength, bool isOutputRender, SolutionEditorBase solutionEditor) {
         using var enumerator = Components.GetEnumerator();
@@ -514,30 +485,32 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
     public Maybe<Bond> GetBondAt(HexIndex pos1, HexIndex pos2) =>
         bonds.Where(bond => (bond.hexPos1 == pos1 && bond.hexPos2 == pos2) || (bond.hexPos1 == pos2 && bond.hexPos2 == pos1)).FirstOrNone();
 
-    public void SetBond(Bond bond, HexIndex pos1, HexIndex pos2) {
-        if (HexIndex.Distance(pos1, pos2) != 1) {
-            throw new OpusMagnumException("Invalid distance between ends of bond");
+    public void SetBond(patch_Bond bond, HexIndex pos1, HexIndex pos2) {
+        foreach (var type in bond.GetBondTypes()) {
+            if (!type.validDistances.Contains(pos2 - pos1)) {
+                throw new OpusMagnumException($"Invalid distance between ends of BondType, '{type.Id}' can't connect to from {new HexIndex(0, 0)} to {pos2 - pos1}.");
+            }
         }
         RemoveBond(pos1, pos2);
         var created = bond.Clone();
         created.hexPos1 = pos1;
         created.hexPos2 = pos2;
-        bonds.Add(created);
-        OnAddSingleBond((patch_Bond)(object)created);
+        bonds.Add((Bond)(object)created);
+        OnAddSingleBond(created);
         return;
     }
     public bool AddBond(BondType type, HexIndex pos1, HexIndex pos2) {
         return AddBond(type, pos1, pos2, MaybeHelper.empty);
     }
     public bool AddBond(BondType type, HexIndex pos1, HexIndex pos2, Maybe<BondEffect> effects) {
-        if (HexIndex.Distance(pos1, pos2) != 1) {
-            throw new OpusMagnumException("Invalid distance between ends of bond");
+        if (!type.validDistances.Contains(pos2 - pos1)) {
+            throw new OpusMagnumException($"Invalid distance between ends of BondType, '{type.Id}' can't connect to from {new HexIndex(0, 0)} to {pos2 - pos1}.");
         }
         Maybe<Bond> thisBond = GetBondAt(pos1, pos2);
 
         if (!thisBond.HasValue()) {
             Bond bond = (Bond)(object)new patch_Bond(type, pos1, pos2);
-            effects.ApplyIfPresent(bond.effects.Add);
+            effects.OnValue(bond.effects.Add);
             bonds.Add(bond);
             OnAddSingleBond((patch_Bond)(object)bond);
             return true;
@@ -546,7 +519,7 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
         if (!bond2.GetBondTypes().All( bondType => bondType.CanOverlapBond(type) )) return false;
         if (bond2.AddTypeSafe(type)) {
             // TODO add on add bondType Callback!
-            effects.ApplyIfPresent(bond2.effects.Add);
+            effects.OnValue(bond2.effects.Add);
             return true;
         }
         return false;
@@ -644,10 +617,10 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
     );
     private static readonly Codec<List<Bond>> bondsCodec = ListCodec<Bond>.Create(Codecs.BOND);
     internal static readonly Codec<patch_Molecule> MOLECULE = Codec<patch_Molecule>.Create(
-        Codecs.M_LOCSTRING.Seal("Name", (patch_Molecule molec) => ((Molecule)(object)molec).GetMonomer().displayName.GetOrDefault(LocString.emptyString)).WithDefaut(LocString.emptyString),
-        atomsCodec.Seal("Atoms", (patch_Molecule molec) => molec.GetMonomer().atoms).WithDefaut([]),
-        bondsCodec.Seal("Bonds", (patch_Molecule molec) => molec.GetMonomer().bonds).WithDefaut([]),
-        componentsCodec.Seal("Components", (patch_Molecule molec) => molec.GetMonomer().Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
+        Codecs.M_LOCSTRING.Seal("Name", (patch_Molecule molec) => ((Molecule)(object)molec).GetMonomer().displayName.GetOrDefault(LocString.emptyString)).WithDefault(LocString.emptyString),
+        atomsCodec.Seal("Atoms", (patch_Molecule molec) => molec.GetMonomer().atoms).WithDefault([]),
+        bondsCodec.Seal("Bonds", (patch_Molecule molec) => molec.GetMonomer().bonds).WithDefault([]),
+        componentsCodec.Seal("Components", (patch_Molecule molec) => molec.GetMonomer().Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefault([]),
         (name, atoms, bonds, components) => {
             patch_Molecule molec = (patch_Molecule)(object)new Molecule();
             if (name != LocString.emptyString)

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Quintessential.Internal;
+using System;
 using System.Collections.Generic;
 
 namespace Quintessential;
@@ -12,7 +13,6 @@ public static class QApi {
 	public static readonly List<Tuple<PartType, PartType>> PanelParts = [];
 	public static readonly List<AtomType> ModAtomTypes = [];
 	public static readonly List<Action<Sim, bool>> ToRunAfterCycle = [];
-	public static readonly List<Tuple<string, SolutionPayloadHandler>> SolutionPayloadHandler = [];
 	public static readonly List<PuzzleOption> PuzzleOptions = [];
 
 	/// <summary>
@@ -88,7 +88,7 @@ public static class QApi {
 		type.byteId = 255; // doesn't really matter - should not overlap vanilla atom ids
 		((patch_AtomType)(object)type).Id = mod.GetIdentifier(id);
 		type.name = mod.Translate("atoms." + id);
-		type.elementalName = mod.Translate("atoms." + id + ".elemental");
+		type.elementalName = patch_LocString.Format(QuintessentialCore.Instance.Translate("naming.elemental"), type.name);
 		type.defaultName = mod.Translate("atoms." + id).locDictionary[Language.English];
 
 		ModAtomTypes.Add(type);
@@ -104,11 +104,12 @@ public static class QApi {
 	[Obsolete("Use BindGlyphCycle instead from the Data Module of Quintessential.")]
 	public static void RunDuringCycle(Action<Sim, Part, PartSimState, bool> runnable) { }
 
-	/// <summary>
-	/// Runs the given action at the end of every half-cycle.
-	/// </summary>
-	/// <param name="runnable">An action to be run every half-cycle, given the sim and whether it is the start or end.</param>
-	public static void RunAfterCycle(Action<Sim, bool> runnable) {
+    /// <summary>
+    /// Runs the given action at the end of every half-cycle.
+    /// </summary>
+    /// <param name="runnable">An action to be run every half-cycle, given the sim and whether it is the start or end.</param>
+    [Obsolete("Use AddCycleEvent instead from the Data Module of Quintessential with the AfterCycle Enum values.")]
+    public static void RunAfterCycle(Action<Sim, bool> runnable) {
 		ToRunAfterCycle.Add(runnable);
 	}
 
@@ -144,18 +145,6 @@ public static class QApi {
 	public static void AddPuzzleOption(PuzzleOption option){
 		PuzzleOptions.Add(option);
 	}
-
-	// TODO improve on this...
-	/// <summary>
-	/// 
-	/// </summary>
-	/// <param name="address"></param>
-	/// <param name="handler"></param>
-	public static void AddSolutionPayloadHandler(string address, SolutionPayloadHandler handler)
-	{
-		SolutionPayloadHandler.Add(new(address, handler));
-	}
-
 
 
 	/// <summary>
@@ -204,7 +193,6 @@ public static class QApi {
 /// <param name="helper">An object containing functions for rendering images, at different positions/rotations and lightmaps.</param>
 public delegate void PartRendererDelegate(Part part, Vector2 position, SolutionEditorBase editor, PartRenderer helper);
 
-public delegate void SolutionPayloadHandler(Solution solution, string data);
 
 /// <summary>
 /// A static class containing extensions that make PartRenderers easier to use.
@@ -236,11 +224,6 @@ public static class PartRendererExtensions {
 				renderer(part, pos + offset, editor, helper);
 		};
 	}
-
-	/*public static PartRenderer WithOffsets(this PartRenderer renderer, params HexIndex[] offsets) {
-		const double angle = (1/3) * Math.PI;
-		return renderer.WithOffsets(offsets.Select(off => new Vector2((float)(off.Q + Math.Cos(angle) * off.R), -(float)(Math.Sin(angle) * off.R))).ToArray());
-	}*/
 
 	/// <summary>
 	/// Render the <see cref="Texture"/> at each <see cref="HexIndex"/>.

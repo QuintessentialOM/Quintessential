@@ -106,7 +106,7 @@ public static class DataSerializer {
         throw new SerializationException("Invalid file extension while reading from stream.");
     }
 
-    public static void Serialize<T>(this T data, string filePath) {
+    public static void Serialize<T>(T data, string filePath) {
         try {
             string filename = Path.GetFileName(filePath);
 

@@ -67,7 +67,7 @@ public class AtomTag : Tag {
     /// <param name="mapped"><inheritdoc cref="Tag.HasEntry(Identifier, out Identifier?)"/></param>
     public bool HasAtom(AtomReference atom, out Identifier? mapped) => HasEntry(atom.atomType.Id, out mapped);
     public Identifier? GetMapped(AtomType atom) => GetMapped(atom.Id);
-    public Identifier? GetPair(Atom atom) => GetMapped(atom.atomType.Id);
+    public Identifier? GetMapped(Atom atom) => GetMapped(atom.atomType.Id);
     public Identifier? GetMapped(AtomReference atom) => GetMapped(atom.atomType.Id);
 
 }

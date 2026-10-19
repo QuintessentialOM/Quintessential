@@ -57,24 +57,39 @@ public class patch_PartSimState : IComponentHolder<patch_PartSimState, ISimState
     #region ComponentCalls
 
     internal void OnReset() {
-        foreach (var component in Components)
-            component.Value.OnReset();
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnReset();
+        }
     }
     internal void OnResetForGlyphs() {
-        foreach (var component in Components)
-            component.Value.OnResetForGlyphs();
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnResetForGlyphs();
+        }
     }
     internal void OnSpawnMolecules(HashSet<HexIndex> occupied) {
-        foreach (var component in Components)
-            component.Value.OnSpawnMolecules(occupied);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnSpawnMolecules(occupied);
+        }
     }
     internal void OnInstruction(InstructionType instruction, Maybe<int> index, InstructionCycleState instructionState) {
-        foreach (var component in Components)
-            component.Value.OnInstruction(instruction, index, instructionState);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnInstruction(instruction, index, instructionState);
+        }
     }
     internal void OnGrabStateChange(Maybe<Molecule> molecule, bool newState) {
-        foreach (var component in Components)
-            component.Value.OnGrabStateChange(molecule, newState);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnGrabStateChange(molecule, newState);
+        }
     }
 
     #endregion

@@ -18,7 +18,7 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
 
     public void AddComponent(IPuzzleComponent toAdd) {
         if (!RegisteredComponents.ContainsKey(toAdd.Id))
-            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
+            RegisterComponent(toAdd.Id, null);
         if (Components.ContainsKey(toAdd.Id))
             throw new Exception("A component with the same " + toAdd.Id + " was already added to this Puzzle.");
         toAdd.OnBind(this);
@@ -26,7 +26,7 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
     }
     public void AddComponentSafe(Identifier id, Func<IPuzzleComponent> ctor) {
         if (!RegisteredComponents.ContainsKey(id))
-            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
+            RegisterComponent(id, null);
         if (Components.ContainsKey(id)) return;
         var component = ctor();
         if (id != component.Id) throw new Exception($"Id of created component '{component.Id}' not matching provided '{id}'.");
@@ -55,9 +55,6 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
 
     #endregion
 
-    #region ComponentCalls
-    #endregion
-
     #region Serialization
     private static readonly Codec<Dictionary<Identifier, IPuzzleComponent>> componentsCodec = CatalogueCodec<Identifier, IPuzzleComponent>.Create(
         RegisteredComponents, id => id.ToString(), str => new Identifier(str)
@@ -79,25 +76,27 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
         (pos1, pos2, hexes) =>  new PlacedConduit(pos1.Q, pos1.R, pos2.Q, pos2.R, [.. hexes])
     );
     private static readonly Codec<List<PlacedConduit>> conduitsCodec = ListCodec<PlacedConduit>.Create(conduitCodec);
+
+    private static readonly Codec<Tuple<Texture, Texture>> vialTexture = Codec<Tuple<Texture, Texture>>.Create(
+        Codecs.STRING.Seal("Primary", (Tuple<Texture, Texture> textures) => patch_DataLoader.GetTexturePath(textures.Item1, "")).WithDefault(""),
+        Codecs.STRING.Seal("Secondary", (Tuple<Texture, Texture> textures) => patch_DataLoader.GetTexturePath(textures.Item2, "")).WithDefault(""),
+        (primary, secondary) => new Tuple<Texture, Texture>(patch_DataLoader.GetVial(primary), patch_DataLoader.GetVial(secondary))
+    );
+    private static readonly Codec<List<Tuple<Texture, Texture>>> vialTextures = ListCodec<Tuple<Texture, Texture>>.Create(vialTexture);
     private static readonly Codec<PlacedVial> vialCodec = Codec<PlacedVial>.Create(
         Codecs.HEXINDEX.Seal("Pos", (PlacedVial vial) => vial.hexPos),
         Codecs.BOOL.Seal("TopConnected", (PlacedVial vial) => vial.isTopConnected),
-        Codecs.INT.Seal("TextureCount", (PlacedVial vial) => vial.textures.Length),
-        (pos, topConnected, textureCount) => {
-            Tuple<Texture, Texture>[] textures = new Tuple<Texture, Texture>[textureCount];
-            for (int i = 0; i < textureCount; i++)
-                textures[i] = Tuple.Create(Assets.textures.pipelines.vials.generic.empty, Assets.textures.pipelines.vials.generic.empty);
-            return new PlacedVial(pos.Q, pos.R, topConnected, textures);
-        }
+        vialTextures.Seal("Textures", (PlacedVial vial) => [..vial.textures]),
+        (pos, topConnected, textures) => new PlacedVial(pos.Q, pos.R, topConnected, [..textures])
     );
     private static readonly Codec<List<PlacedVial>> vialsCodec = ListCodec<PlacedVial>.Create(vialCodec);
     private static readonly Codec<ProductionInfo> productionInfoCodec = Codec<ProductionInfo>.Create(
-        Codecs.BOOL.Seal("TightLeft", (ProductionInfo prodInfo) => prodInfo.tightLeftBound).WithDefaut(false),
-        Codecs.BOOL.Seal("TightRight", (ProductionInfo prodInfo) => prodInfo.tightRightBound).WithDefaut(false),
-        Codecs.BOOL.Seal("Isolation", (ProductionInfo prodInfo) => prodInfo.requireIsolation).WithDefaut(false),
-        chambersCodec.Seal("Chambers", (ProductionInfo prodInfo) => [.. prodInfo.chambers]).WithDefaut([]),
-        conduitsCodec.Seal("Conduits", (ProductionInfo prodInfo) => [.. prodInfo.conduits]).WithDefaut([]),
-        vialsCodec.Seal("Vial", (ProductionInfo prodInfo) => [.. prodInfo.vials]).WithDefaut([]),
+        Codecs.BOOL.Seal("TightLeft", (ProductionInfo prodInfo) => prodInfo.tightLeftBound).WithDefault(false),
+        Codecs.BOOL.Seal("TightRight", (ProductionInfo prodInfo) => prodInfo.tightRightBound).WithDefault(false),
+        Codecs.BOOL.Seal("Isolation", (ProductionInfo prodInfo) => prodInfo.requireIsolation).WithDefault(false),
+        chambersCodec.Seal("Chambers", (ProductionInfo prodInfo) => [.. prodInfo.chambers]).WithDefault([]),
+        conduitsCodec.Seal("Conduits", (ProductionInfo prodInfo) => [.. prodInfo.conduits]).WithDefault([]),
+        vialsCodec.Seal("Vial", (ProductionInfo prodInfo) => [.. prodInfo.vials]).WithDefault([]),
         (tightLeft, tightRight, isolation, chambers, conduits, vials) => {
             return new() {
                 tightLeftBound = tightLeft,
@@ -112,14 +111,14 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
     internal static readonly Codec<Puzzle> PUZZLE = Codec<Puzzle>.Create(
         Codecs.STRING.Seal("Id", (Puzzle puzzle) => puzzle.puzzleId),
         Codecs.LOCSTRING.Seal("Name", (Puzzle puzzle) => puzzle.puzzleName),
-        Codecs.STRING.Seal("Author", (Puzzle puzzle) => puzzle.journalAuthor.HasValue() ? puzzle.journalAuthor.GetValue() : "").WithDefaut(""),
+        Codecs.STRING.Seal("Author", (Puzzle puzzle) => puzzle.journalAuthor.HasValue() ? puzzle.journalAuthor.GetValue() : "").WithDefault(""),
         Codecs.PERMISSIONS.Seal("Permissions", (Puzzle puzzle) => puzzle.permissionFlags),
-        Codecs.LIST_ID.Seal("CustomPermissions", (Puzzle puzzle) => puzzle.CustomPermissions != null ? [.. puzzle.CustomPermissions] : []).WithDefaut([]),
+        Codecs.LIST_ID.Seal("CustomPermissions", (Puzzle puzzle) => puzzle.CustomPermissions != null ? [.. puzzle.CustomPermissions] : []).WithDefault([]),
         moleculesCodec.Seal("Inputs", (Puzzle puzzle) => [.. puzzle.inputs.Select(io => (patch_Molecule)(object)io.molecule)]),
         moleculesCodec.Seal("Outputs", (Puzzle puzzle) => [.. puzzle.outputs.Select(io => (patch_Molecule)(object)io.molecule)]),
-        Codecs.INT.Seal("OutputMultiplier", (Puzzle puzzle) => puzzle.outputMultiplier).WithDefaut(1),
-        productionInfoCodec.Seal("ProductionInfo", (Puzzle puzzle) => puzzle.productionInfo.HasValue() ? puzzle.productionInfo.GetValue() : null).WithDefaut(null),
-        componentsCodec.Seal("Components", (Puzzle puzzle) => ((patch_Puzzle)(object)puzzle).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
+        Codecs.INT.Seal("OutputMultiplier", (Puzzle puzzle) => puzzle.outputMultiplier).WithDefault(1),
+        productionInfoCodec.Seal("ProductionInfo", (Puzzle puzzle) => puzzle.productionInfo.HasValue() ? puzzle.productionInfo.GetValue() : null).WithDefault(null),
+        componentsCodec.Seal("Components", (Puzzle puzzle) => ((patch_Puzzle)(object)puzzle).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefault([]),
         (id, name, author, permissions, customPermissions, inputs, outputs, multiplier, prodInfo, components) => {
             Puzzle puzzle = new() {
                 puzzleId = id,
@@ -140,10 +139,67 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
             return puzzle;
         }
     );
-
-    [MonoModReplace]
+    [MonoModIgnore] // # unsafe assuming first patch
+    public extern void layer_0_SaveToFile(string path);
     public void SaveToFile(string path) {
-        File.WriteAllText(path, PUZZLE.Encode(JsonCodecMap.Instance,(Puzzle)(object)this).ToJsonString());
+        bool enabledVanillaFormat = true;
+
+        var encoded = PUZZLE.Encode(JsonCodecMap.Instance, (Puzzle)(object)this);
+        bool isVanillaSafe = false;
+
+        if (enabledVanillaFormat && path == GetFilePath()) {
+            try {
+                Puzzle s = (Puzzle)(object)this;
+                if (s.inputs.All(i => i.molecule.GetAtoms().All(atom => atom.Value.atomType.Id.namespc.Equals("om"))) &&
+                    s.outputs.All(i => i.molecule.GetAtoms().All(atom => atom.Value.atomType.Id.namespc.Equals("om"))))
+                {
+                    if (!Directory.Exists("modded/temp")) {
+                        Directory.CreateDirectory("modded/temp");
+                    }
+                    string tempPath = Path.Combine("modded/temp", s.puzzleId + ".puzzle");
+                    layer_0_SaveToFile(tempPath);
+                    var transformed = Puzzle.LoadFromFile(tempPath);
+                    if (File.Exists(tempPath)) File.Delete(tempPath);
+                    if (transformed.puzzleId == s.puzzleId)
+                        isVanillaSafe = encoded.ToJsonString() == PUZZLE.Encode(JsonCodecMap.Instance, transformed).ToJsonString();
+                    //Logger.LogNoTime("#------");
+                    //Logger.LogNoTime(encoded.ToJsonString());
+                    //Logger.LogNoTime(PUZZLE.Encode(JsonCodecMap.Instance, transformed).ToJsonString());
+                }
+            } catch { }
+        }
+
+        if (isVanillaSafe) {
+            ChangeFileExtension("", ref path, () => layer_0_SaveToFile(path));
+        } else if (ExtraFileExtension == "") {
+            ChangeFileExtension(".json", ref path, () => File.WriteAllText(path, encoded.ToJsonString()));
+        } else if (ExtraFileExtension == ".json") {
+            File.WriteAllText(path, encoded.ToJsonString());
+        } else if (ExtraFileExtension == ".jsonc") { // Human readable version of
+            File.WriteAllText(path, encoded.ToString());
+        } else
+            throw new Exception("Invalid extra file extension '" + ExtraFileExtension + "' for puzzle.");
+    }
+    private void ChangeFileExtension(string newExtension, ref string path, Action save) {
+        if (newExtension != ExtraFileExtension) {
+
+            bool wasVanillaFormat = Path.GetExtension(path) == ".puzzle";
+            string origPathStripped = Path.Combine(Path.GetDirectoryName(path), wasVanillaFormat ? Path.GetFileName(path) : Path.GetFileNameWithoutExtension(path));
+            newExtension ??= "";
+            string orig = path;
+            path = origPathStripped + newExtension;
+            ExtraFileExtension = newExtension;
+            if (save != null) {
+                save();
+                if (File.Exists(orig) && orig != path) {
+                    File.Delete(orig);
+                }
+            }
+        } else
+            save?.Invoke();
+    }
+    private string GetFilePath() {
+        return GameLogic.instance.workshopManager.CustomPuzzlePath((Puzzle)(object)this);
     }
 
     [MonoModIgnore] public static extern Puzzle orig_LoadFromFile(string path);
@@ -153,9 +209,24 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
             if (Path.GetExtension(path) == ".jsonc") file = DataSerializer.JsoncToJson(file);
 
             Puzzle p = PUZZLE.Decode(JsonCodecMap.Instance,JsonNode.Parse(file));
+            ((patch_Puzzle)(object)p).ExtraFileExtension = Path.GetExtension(path);
             return p;
         }
-        return orig_LoadFromFile(path);
+        
+        var pOrig = orig_LoadFromFile(path);
+        ((patch_Puzzle)(object)pOrig).ExtraFileExtension = "";
+        return pOrig; ;
+    }
+    public string ExtraFileExtension;
+
+    [MonoModILInject("WriteMoleculeToFile")]
+    static void WriteBondToFile(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodReference getBytes = MonoModRule.Modder.FindType("Bond").Resolve().Methods.First(f => f.Name.Equals("GetVanillaTypeData"));
+
+        cursor.GotoNext(MoveType.Before, instr => instr.MatchLdfld("Bond", "type"));
+        cursor.Remove();
+        cursor.EmitCallvirt(getBytes);
     }
 
     #endregion

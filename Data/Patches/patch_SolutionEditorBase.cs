@@ -24,8 +24,37 @@ class patch_SolutionEditorBase {
         cursor.Remove();
         cursor.EmitLdloc(1);
         cursor.EmitLdfld(processingAtoms);
-        cursor.EmitLdloc(104);
+        cursor.EmitLdloc(103);
         cursor.EmitLdelemRef();
+
+        cursor.GotoNext(MoveType.Before, instr => instr.MatchLdsfld("AtomTypes", "mors"));
+        cursor.EmitLdloc(1);
+        cursor.EmitLdfld(processingAtoms);
+        cursor.EmitLdcI4(3);
+        cursor.Index--;
+        cursor.EmitDup();
+        cursor.Emit(OpCodes.Brtrue, cursor.Next);
+        cursor.EmitPop();
+        cursor.Emit(OpCodes.Br, cursor.Next.Next);
+        cursor.Index++;
+        cursor.EmitLdelemRef();
+        cursor.Emit(OpCodes.Br, cursor.Next.Next);
+        cursor.GotoNext(MoveType.Before, instr => instr.MatchLdsfld("AtomTypes", "vitae"));
+        cursor.EmitLdloc(1);
+        var newTarget = (Instruction)cursor.Prev;
+        cursor.EmitLdfld(processingAtoms);
+        cursor.EmitLdcI4(2);
+        cursor.Index--;
+        cursor.EmitDup();
+        cursor.Emit(OpCodes.Brtrue, cursor.Next);
+        cursor.EmitPop();
+        cursor.Emit(OpCodes.Br, cursor.Next.Next);
+        cursor.Index++;
+        cursor.EmitLdelemRef();
+        cursor.Emit(OpCodes.Br, cursor.Next.Next);
+        cursor.GotoPrev(MoveType.Before, instr => instr.OpCode == OpCodes.Brfalse_S);
+        cursor.Next.Operand = newTarget;
+
         cursor.GotoNext(MoveType.After, instr => instr.MatchLdsfld("AtomTypes", "mors"));
         cursor.GotoNext(MoveType.Before, instr => instr.MatchLdsfld("AtomTypes", "mors"));
         cursor.Remove();
@@ -36,7 +65,7 @@ class patch_SolutionEditorBase {
         cursor.GotoNext(MoveType.Before, instr => instr.MatchLdsfld("AtomTypes", "vitae"));
         cursor.Remove();
         cursor.EmitLdloc(1);
-        var newTarget = (Instruction)cursor.Prev; 
+        newTarget = (Instruction)cursor.Prev;
         cursor.EmitLdfld(processingAtoms);
         cursor.EmitLdcI4(2);
         cursor.EmitLdelemRef();
@@ -67,13 +96,33 @@ class patch_SolutionEditorBase {
         cursor.EmitLdfld(processingAtoms);
         cursor.EmitLdcI4(0);
         cursor.EmitLdelemRef();
-        cursor.GotoNext(MoveType.Before, instr => instr.MatchLdloc(197));
-        cursor.GotoNext(MoveType.Before, instr => instr.MatchLdloc(197));
-        cursor.Remove();
+        cursor.GotoNext(MoveType.After, instr => instr.MatchCall("Molecule", "CreateMonoatomic"));
+
+        cursor.GotoNext(MoveType.After, instr => instr.MatchCall("Molecule", "CreateMonoatomic"));
+        cursor.GotoPrev(MoveType.Before, instr => instr.MatchLdloc(196));
         cursor.EmitLdloc(1);
         cursor.EmitLdfld(processingAtoms);
-        cursor.EmitLdcI4(1);
+        cursor.EmitNop();
+        cursor.Index--;
+        cursor.EmitDup();
+        cursor.Emit(OpCodes.Brtrue, cursor.Next);
+        cursor.EmitPop();
+        cursor.Emit(OpCodes.Br, cursor.Next.Next);
         cursor.Index++;
+        cursor.EmitLdloc(207);
+        cursor.EmitLdcI4(1);
+        cursor.EmitAdd();
+        cursor.EmitLdelemRef();
+        cursor.Emit(OpCodes.Br, cursor.Next.Next.Next.Next);
+        cursor.GotoNext(MoveType.After, instr => instr.MatchCall("Molecule", "CreateMonoatomic"));
+
+        cursor.GotoNext(MoveType.After, instr => instr.MatchCall("Molecule", "CreateMonoatomic"));
+        cursor.GotoPrev(MoveType.Before, instr => instr.MatchLdloc(196));
+        cursor.RemoveRange(2);
+        cursor.EmitLdloc(1);
+        cursor.EmitLdfld(processingAtoms);
+        cursor.EmitLdloc(210);
+        cursor.EmitLdcI4(1);
         cursor.EmitAdd();
 
         // TODO: unification symbols?

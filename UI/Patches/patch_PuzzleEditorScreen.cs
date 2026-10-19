@@ -200,8 +200,8 @@ class patch_PuzzleEditorScreen {
 
                         Vector2 namePos = bounds2.BottomLeft + new Vector2(bounds2.Width / 2f - 7, -17);
                         var isElement = array[j].molecule.GetAtoms().Count == 1;
-                        var fallbackPvw = isElement ? ("_(" + array[j].molecule.GetAtoms().Values.First().atomType.elementalName + ")_") : QuintessentialUI.Instance.ModId + ".editor.unnamed_molecule";
-                        Bounds2 textArea = TextureRenderer.RenderText(array[j].molecule.displayName.GetOrDefault(Translations.Translate(fallbackPvw)), namePos, Assets.fonts.crimson_13, UI.TextColor, TextAlignment.Center, 1f, 0.6f, 236, 206, 0, new Color(), null, int.MaxValue, true, true);
+                        LocString fallback = LocString.Format(Translations.WithAllLanguages("_({0})_"), array[j].molecule.GetDisplayName().GetOrDefault(QuintessentialUI.Instance.Translate("editor.unnamed_molecule")));
+                        Bounds2 textArea = TextureRenderer.RenderText(array[j].molecule.displayName.GetOrDefault(fallback), namePos, Assets.fonts.crimson_13, UI.TextColor, TextAlignment.Center, 1f, 0.6f, 236, 206, 0, new Color(), null, int.MaxValue, true, true);
                         if (textArea.Contains(InputManager.MousePos()) && InputManager.IsClickPressed(MouseButtonType.LeftClick) && !screenOpened) {
                             screenOpened = true;
                             int J = j;
@@ -209,10 +209,10 @@ class patch_PuzzleEditorScreen {
                                 MessageBoxScreenEx.Textbox(
                                     bounds,
                                     QuintessentialUI.Instance.Translate("editor.renaming." + (i == 0 ? "product" : "reagent")),
-                                    array[j].molecule.displayName.HasValue() ? array[j].molecule.displayName.GetValue() : (isElement ? array[j].molecule.GetAtoms().Values.First().atomType.elementalName : ""),
+                                    array[j].molecule.GetDisplayName().GetOrDefault(LocString.emptyString),
                                     QuintessentialUI.Instance.Translate("editor.renaming.confirm_" + (i == 0 ? "product" : "reagent")),
                                     s => {
-                                        array[J].molecule.displayName = Translations.Translate(s);
+                                        array[J].molecule.displayName = Translations.WithAllLanguages(s);
                                         puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
                                     }
                                 )
@@ -273,7 +273,6 @@ class patch_PuzzleEditorScreen {
         return new Vector2((float)(236 * x), (float)(-37 * y));
     }
 
-    // TODO: generalize?
     private static bool DrawAtomSelector(Vector2 pos, string label, AtomType atom){
         Bounds2 labelBounds = TextureRenderer.RenderText(label, pos + new Vector2(45f, 13f), Assets.fonts.crimson_13, UI.TextColor, TextAlignment.Left, 1, 0.6f,float.MaxValue, float.MaxValue,0,new Color(),null,int.MaxValue,true, true);
         Vector2 atomPos = pos + new Vector2(17, 16);
@@ -346,7 +345,7 @@ class patch_PuzzleEditorScreen {
         }
 
         TypeDefinition holder = MonoModRule.Modder.FindType("PuzzleEditorScreen").Resolve();
-        MethodDefinition getName = holder.Methods.First(m => m.Name.Equals("DrawPuzzleButton")); // TODO fix this line
+        MethodDefinition getName = holder.Methods.First(m => m.Name.Equals("DrawPuzzleButton"));
         cursor.Remove();
         cursor.Emit(OpCodes.Call, getName);
     }

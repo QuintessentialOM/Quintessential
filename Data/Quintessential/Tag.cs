@@ -54,7 +54,7 @@ public abstract class Tag {
         DataSerializer.SetMultilineFormat(true);
         string outDir = Path.Combine(QuintessentialLoader.PathModSaves, "Quintessential", "DumpedTags");
         Directory.CreateDirectory(outDir);
-        tags.Serialize(Path.Combine(outDir, fileName));
+        DataSerializer.Serialize(tags, Path.Combine(outDir, fileName));
     }
 
     /// <summary>

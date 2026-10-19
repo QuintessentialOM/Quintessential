@@ -21,7 +21,7 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
 
     public void AddComponent(ISolutionComponent toAdd) {
         if (!RegisteredComponents.ContainsKey(toAdd.Id))
-            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
+            RegisterComponent(toAdd.Id, null);
         if (Components.ContainsKey(toAdd.Id))
             throw new Exception("A component with the same " + toAdd.Id + " was already added to this Solution.");
         toAdd.OnBind(this);
@@ -29,7 +29,7 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
     }
     public void AddComponentSafe(Identifier id, Func<ISolutionComponent> ctor) {
         if (!RegisteredComponents.ContainsKey(id))
-            throw new Exception("Attempted to add a component that wasnt Registered.\nTry to register the component type with RegisterComponent() first.");
+            RegisterComponent(id, null);
         if (Components.ContainsKey(id)) return;
         var component = ctor();
         if (id != component.Id) throw new Exception($"Id of created component '{component.Id}' not matching provided '{id}'.");
@@ -60,21 +60,33 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
 
     #region ComponentCalls
 
-    internal void OnPlacementCheck(ref bool origReturnVal, Part part, HexIndex otherInputOutputIndex, HexIndex offset, HexRotation rotationOffset, ref string? errorMessage) {
-        foreach (var component in Components)
-            component.Value.OnPlacementCheck(ref origReturnVal, part, otherInputOutputIndex, offset, rotationOffset, ref errorMessage);
+    internal void OnPlacementCheck(ref bool origReturnVal, Part part, HexIndex alternativeChamberPos, HexIndex offset, HexRotation rotationOffset, ref string? errorMessage) {
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                    component.OnPlacementCheck(ref origReturnVal, part, alternativeChamberPos, offset, rotationOffset, ref errorMessage);
+        }
     }
-    internal void OnCreateSnapshot(ref PartsSnapshot created) {
-        foreach (var component in Components)
-            component.Value.OnCreateSnapshot(ref created);
+    internal void OnCreateSnapshot(ref UndoSnapshot created) {
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                    component.OnCreateSnapshot(ref created);
+        }
     }
-    internal void OnRestoreSnapshot(PartsSnapshot restored) {
-        foreach (var component in Components)
-            component.Value.OnRestoreSnapshot(restored);
+    internal void OnRestoreSnapshot(UndoSnapshot restored) {
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                    component.OnRestoreSnapshot(restored);
+        }
     }
     internal void OnMakeCopyOfSolution(ref Solution copy) {
-        foreach (var component in Components)
-            component.Value.OnMakeCopyOfSolution(ref copy);
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                    component.OnMakeCopyOfSolution(ref copy);
+        }
     }
 
     [MonoModILInject("IsAllowedPlacement")]
@@ -97,7 +109,7 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
             cursor.TryGotoNext(MoveType.After, instr => instr.MatchRet());
         }
     }
-    [MonoModILInject("CreatePartsSnapshot")]
+    [MonoModILInject("CreateSnapshot")]
     static void PatchSaveSnapshot(MethodDefinition method, CustomAttribute attribute) {
         ILCursor cursor = new(new ILContext(method));
         MethodReference onCall = method.DeclaringType.Methods.First(f => f.Name.Equals("OnCreateSnapshot"));
@@ -110,8 +122,8 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
         cursor.EmitCall(onCall);
         cursor.EmitLdloc(cloned);
     }
-    [MonoModILInject("RestorePartsSnapshot")]
-    static void RestorePartsSnapshot(MethodDefinition method, CustomAttribute attribute) {
+    [MonoModILInject("RestoreSnapshot")]
+    static void RestoreSnapshot(MethodDefinition method, CustomAttribute attribute) {
         ILCursor cursor = new(new ILContext(method));
         MethodReference onCall = method.DeclaringType.Methods.First(f => f.Name.Equals("OnRestoreSnapshot"));
         cursor.EmitLdarg0();
@@ -134,7 +146,7 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
     #region Serialization
 
     [MonoModIgnore]
-    private extern PartsSnapshot CreatePartsSnapshot();
+    private extern UndoSnapshot CreateSnapshot();
     [MonoModIgnore]
     private extern void OrderProgrammables();
     private static readonly Codec<Dictionary<Identifier, ISolutionComponent>> componentsCodec = CatalogueCodec<Identifier, ISolutionComponent>.Create(
@@ -151,7 +163,7 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
         Codecs.STRING.Seal("Name", (Solution solution) => solution.name),
         scoreCodec.Seal("Scores", (Solution solution) => solution.scores),
         partsCodec.Seal("Parts", (Solution solution) => [.. solution.CollectPartsAndSubparts().Where(part => !part.GetIsFixed() && !part.GetType().isSubpart)]),
-        componentsCodec.Seal("Components", (Solution solution) => ((patch_Solution)(object)solution).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefaut([]),
+        componentsCodec.Seal("Components", (Solution solution) => ((patch_Solution)(object)solution).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefault([]),
         (id, nameOnDisc, creationTime, name, scores, parts, components) => {
             if (!Puzzles.GetById(id).GetOrDefault(out Puzzle puzzle))
                 throw new Exception($"Failed loading puzzle '{name}' puzzle with id '{id}' not found.");
@@ -168,7 +180,7 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
                     ((patch_Solution)(object)solution).RemoveComponent(component.Key);
                 ((patch_Solution)(object)solution).AddComponent(component.Value);
             }
-            solution.undoRedoBuffer.ClearAndAdd(((patch_Solution)(object)solution).CreatePartsSnapshot());
+            solution.undoRedoBuffer.ClearAndAdd(((patch_Solution)(object)solution).CreateSnapshot());
             ((patch_Solution)(object)solution).OrderProgrammables();
             return solution;
         }
@@ -178,29 +190,50 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
 
     [MonoModReplace]
     public void Save() {
-        if (ExtraFileExtension == "") {
-            ChangeFileExtension(".json");
+        bool enabledVanillaFormat = true;
+
+        var encoded = SOLUTION.Encode(JsonCodecMap.Instance, (Solution)(object)this);
+        bool isVanillaSafe = false;
+        if (enabledVanillaFormat) {
+            try {
+                Solution s = (Solution)(object)this;
+                var transformed = Solution.FromData(s.ToData(), s.nameOnDisk, s.creationTime);
+                if (transformed.HasValue())
+                    isVanillaSafe = encoded.ToJsonString() == SOLUTION.Encode(JsonCodecMap.Instance, transformed.GetValue()).ToJsonString();
+            } catch { }
+        }
+
+        if (isVanillaSafe) {
+            OrderProgrammables();
+            ChangeFileExtension("", () => PlatformBridge.fileWriter.method_1355(GetFilePath(), ((Solution)(object)this).ToData()));
+        } else if (string.IsNullOrWhiteSpace(ExtraFileExtension)) {
+            OrderProgrammables();
+            ChangeFileExtension(".json", () => PlatformBridge.fileWriter.method_1356(GetFilePath(), encoded.ToJsonString()));
         } else if (ExtraFileExtension == ".json") {
             OrderProgrammables();
-            PlatformBridge.fileWriter.method_1356(GetFilePath(), SOLUTION.Encode(JsonCodecMap.Instance, (Solution)(object)this).ToJsonString());
+            PlatformBridge.fileWriter.method_1356(GetFilePath(), encoded.ToJsonString());
         } else if (ExtraFileExtension == ".jsonc") { // Human readable version of json
             OrderProgrammables();
-            PlatformBridge.fileWriter.method_1356(GetFilePath(), SOLUTION.Encode(JsonCodecMap.Instance, (Solution)(object)this).ToString());
+            PlatformBridge.fileWriter.method_1356(GetFilePath(), encoded.ToString());
         } else
             throw new Exception("Invalid extra file extension '" + ExtraFileExtension + "' for solution from: " + GetFilePath());
     }
 
-    private void ChangeFileExtension(string newExtension) {
-        if (newExtension == ExtraFileExtension) return;
-        string toDelete = File.Exists(GetFilePath()) ? GetFilePath() : "";
-        ExtraFileExtension = newExtension;
-        Save();
-        if (toDelete != "") {
-             // Can't do this because Save is async.
-            //var creationTime = File.GetCreationTime(toDelete);
-            File.Delete(toDelete);
-            //if (creationTime != default) File.SetCreationTime(GetFilePath(), creationTime);
-        }
+    private void ChangeFileExtension(string newExtension, Action save) {
+        if (newExtension != ExtraFileExtension) {
+            string toDelete = File.Exists(GetFilePath()) ? GetFilePath() : "";
+            ExtraFileExtension = newExtension;
+            if (save != null) {
+                save();
+                if (toDelete != "") {
+                    // Can't do this because Save is async.
+                    //var creationTime = File.GetCreationTime(toDelete);
+                    File.Delete(toDelete);
+                    //if (creationTime != default) File.SetCreationTime(GetFilePath(), creationTime);
+                }
+            }
+        } else
+            save?.Invoke();
     }
 
     [MonoModReplace]
@@ -215,12 +248,13 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
             return orig;
         }
         if (Path.GetExtension(path) == ".json" || Path.GetExtension(path) == ".jsonc") {
-            string file = File.ReadAllText(path);
-            if (Path.GetExtension(path) == ".jsonc") file = DataSerializer.JsoncToJson(file);
-
-            var orig = SOLUTION.Decode(JsonCodecMap.Instance, JsonNode.Parse(file));
-            ((patch_Solution)(object)orig).ExtraFileExtension = Path.GetExtension(path);
-            return orig;
+            try {
+                string file = File.ReadAllText(path);
+                if (Path.GetExtension(path) == ".jsonc") file = DataSerializer.JsoncToJson(file);
+                var orig = SOLUTION.Decode(JsonCodecMap.Instance, JsonNode.Parse(file));
+                ((patch_Solution)(object)orig).ExtraFileExtension = Path.GetExtension(path);
+                return orig;
+            } catch { return MaybeHelper.empty; }
         }
         throw new Exception("Invalid extra file extension for solution file, failed to load. " + Path.GetExtension(path));
     }

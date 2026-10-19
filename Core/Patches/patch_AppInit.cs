@@ -1,4 +1,5 @@
 ﻿using MonoMod;
+using Quintessential.Internal;
 using System;
 using System.Linq;
 
@@ -21,6 +22,10 @@ class patch_AppInit {
             if (args.Contains("-pseudoLang")) {
                 appConsts.GetField("allowPseudo").SetValue(null, true);
             }
+            if (args.Contains("-unsafeExport")) {
+                LegacyPorting.UnsafeLegacyExport = true;
+            }
+            
         }
 
         orig_Main(args);
