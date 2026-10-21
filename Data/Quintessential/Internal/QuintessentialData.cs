@@ -1,6 +1,7 @@
 ﻿using Quintessential.Components;
 using Quintessential.Serialization;
 using System.IO;
+using System.Linq;
 //using Quintessential.Settings;
 //using System;
 //using System.IO;
@@ -40,6 +41,49 @@ internal class QuintessentialData : QuintessentialMod, IDataMod {
 
         this.AddRecipe(new GlyphRecipe(VanillaRecipes.BasicUnification), "om:unification", "om:unification");
         this.AddRecipe(new GlyphRecipe(VanillaRecipes.BasicDispersion), "om:dispersion", "om:dispersion");
+
+        /*
+        this.AddRecipe(new GlyphRecipe((sim, part) => {
+            if (!sim.GetAtomReference(part, new HexIndex(0, 0), false, out var calcified) ||
+                calcified.atomType != AtomTypes.quintessence) return false;
+
+            var cardinals = new AtomReference[6];
+            sim.GetAtomReference(part, new HexIndex(0, 1), false, out cardinals[0]);
+            sim.GetAtomReference(part, new HexIndex(1, 0), false, out cardinals[1]);
+            sim.GetAtomReference(part, new HexIndex(1, -1), false, out cardinals[2]);
+            sim.GetAtomReference(part, new HexIndex(0, -1), false, out cardinals[3]);
+            sim.GetAtomReference(part, new HexIndex(-1, 0), false, out cardinals[4]);
+            sim.GetAtomReference(part, new HexIndex(-1, 1), false, out cardinals[5]);
+            if (!cardinals.Any(atom => atom != null && atom.atomType == AtomTypes.fire) ||
+                !cardinals.Any(atom => atom != null && atom.atomType == AtomTypes.water) ||
+                !cardinals.Any(atom => atom != null && atom.atomType == AtomTypes.earth) ||
+                !cardinals.Any(atom => atom != null && atom.atomType == AtomTypes.air)) return false;
+
+            sim.RecipeInputs.Add(new HexIndex(0, 0), (patch_AtomReference)(object)calcified);
+            sim.RecipeOutputs.Add(new HexIndex(0, 0), (patch_AtomType)(object)AtomTypes.salt);
+            return true;
+        }), "example:quint_calcification", "om:calcification");
+
+
+        this.AddRecipe(new GlyphRecipe((sim, part) => {
+            if (!sim.GetAtomReference(part, new HexIndex(0, 0), false, out var rejected) ||
+                rejected.atomType != AtomTypes.mors ||
+                sim.HasAtomAt(part, new HexIndex(1, 0), false)) return false;
+
+            bool movingPart = sim.GetPartsAt(part, new HexIndex(0, 1), PartTag.PartTags["om:arm"], out var parts) && parts.Count == 1;
+            movingPart = movingPart && (parts[0].Value.deltaPosition == new HexIndex(1, 0).Rotated(part.GetRotation()));
+            if (!movingPart) {
+                movingPart = sim.GetPartsAt(part, new HexIndex(1, -1), PartTag.PartTags["om:arm"], out parts) && parts.Count == 1;
+                movingPart = movingPart && (parts[0].Value.deltaPosition == new HexIndex(1, 0).Rotated(part.GetRotation()));
+                if (!movingPart) return false;
+            }
+
+            sim.RecipeInputs.Add(new HexIndex(0, 0), (patch_AtomReference)(object)rejected);
+            sim.RecipeOutputs.Add(new HexIndex(0, 0), (patch_AtomType)(object)AtomTypes.salt);
+            sim.RecipeOutputs.Add(new HexIndex(1, 0), (patch_AtomType)(object)AtomTypes.salt);
+            return true;
+        }), "example:momentum_rejection", "om:rejection");
+        */
 
         /*
         var EtherealTextures = new BondTexture {
