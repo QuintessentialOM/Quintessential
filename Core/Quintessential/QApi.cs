@@ -14,14 +14,16 @@ public static class QApi {
 	public static readonly List<AtomType> ModAtomTypes = [];
 	public static readonly List<Action<Sim, bool>> ToRunAfterCycle = [];
 	public static readonly List<PuzzleOption> PuzzleOptions = [];
+    public static readonly List<Tuple<AtomType, LocString>> AtomTypePrefixes= [];
+    public static readonly List<Tuple<Predicate<patch_Molecule>, LocString>> MoleculeNames = [];
 
-	/// <summary>
-	/// Adds a part type to the end of a part panel section, making it accessible for placement.<br/>
-	/// This does not allow for adding inputs or outputs.
-	/// </summary>
-	/// <param name="type">The part type to be added.</param>
-	/// <param name="mechanism">Whether to add to the mechanisms section or the glyphs section.</param>
-	public static void AddPartTypeToPanel(PartType type, bool mechanism){
+    /// <summary>
+    /// Adds a part type to the end of a part panel section, making it accessible for placement.<br/>
+    /// This does not allow for adding inputs or outputs.
+    /// </summary>
+    /// <param name="type">The part type to be added.</param>
+    /// <param name="mechanism">Whether to add to the mechanisms section or the glyphs section.</param>
+    public static void AddPartTypeToPanel(PartType type, bool mechanism){
 		AddPartTypeToPanel(type, mechanism ? PartTypes.berlosWheel : PartTypes.equilibriumGlyph);
 	}
 
@@ -169,12 +171,33 @@ public static class QApi {
 			UI.AssignOffset(productionChamber.borderTexture, -0.5f * productionChamber.borderTexture.size.ToVector2());
 	}
 
-	/// <summary>
-	/// Returns the settings of the given type for the first registered mod, or null if no registered mod has settings of that type.
-	/// </summary>
-	/// <typeparam name="T">The type of settings to get.</typeparam>
-	/// <returns></returns>
-	public static T GetSettingsByType<T>() {
+    /// <summary>
+    /// Adds a prefix for diatomic Molecules basde on one of the atoms.<br/>
+    /// <paramref name="prefix"/> must have the format `<b><c>Prefix {0} Postfix</c></b>` where {0} <br/>
+	/// will get replaced with the original name.
+    /// </summary>
+    /// <param name="atom">The AtomType to add the prefix for.</param>
+    /// <param name="prefix">The localized prefix.</param>
+    public static void AddMoleculeName(AtomType atom, LocString prefix) {
+		AtomTypePrefixes.Add(new(atom, prefix));
+
+    }
+
+    /// <summary>
+    /// Adds a name for Molecules basde on a predicate.
+    /// </summary>
+    /// <param name="predicate">A predicate to decide if a Molecule should have the given <paramref name="name"/></param>
+    /// <param name="name">The localized name.</param>
+    public static void AddMoleculeName(Predicate<patch_Molecule> predicate, LocString name) {
+		MoleculeNames.Add(new(predicate, name));
+    }
+
+    /// <summary>
+    /// Returns the settings of the given type for the first registered mod, or null if no registered mod has settings of that type.
+    /// </summary>
+    /// <typeparam name="T">The type of settings to get.</typeparam>
+    /// <returns></returns>
+    public static T GetSettingsByType<T>() {
 		foreach(var mod in QuintessentialLoader.CodeMods) {
 			if(mod.Settings is T settings) {
 				return settings;
