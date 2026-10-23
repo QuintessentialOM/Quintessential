@@ -1,5 +1,7 @@
 ﻿using MonoMod;
+using Quintessential;
 using System.Collections.Generic;
+using System.Linq;
 
 [MonoModPatch("BonderInfo")]
 class patch_BonderInfo {
@@ -16,14 +18,24 @@ class patch_BonderInfo {
         this.isUnbond = isUnbond;
         uniqueAtoms = [];
     }
+    
+
 
     [MonoModConstructor]
-    public patch_BonderInfo(List<BondType> bondTypes, bool isUnbond, List<AtomType> uniqueAtoms, HexIndex hexPos1, HexIndex hexPos2) {
+    public patch_BonderInfo(List<BondType> bondTypes, bool isUnbond, List<AtomType> uniqueAtoms, AtomTag uniqueAtomsTag, HexIndex hexPos1, HexIndex hexPos2) {
+    
         this.hexPos1 = hexPos1;
         this.hexPos2 = hexPos2;
         this.bondTypes = bondTypes;
         this.isUnbond = isUnbond;
         this.uniqueAtoms = uniqueAtoms;
+        foreach (AtomType uniqueAtom in AtomTypes.atoms)
+        {
+            if (uniqueAtomsTag.HasAtom(uniqueAtom)) {
+                this.uniqueAtoms.Add(uniqueAtom);
+            }
+        }
+
     }
 
     [MonoModRemove] [MonoModConstructor]

@@ -5,6 +5,13 @@
     "om:water",
     "om:earth"
   ],
+
+    "om:triplexable": [
+    "om:air",
+    "om:fire",
+    "om:water",
+    "om:earth"
+  ],
   "om:duplicatable": [
     "om:air",
     "om:fire",

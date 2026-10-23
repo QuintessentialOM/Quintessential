@@ -11,7 +11,7 @@
 
 	<PropertyGroup>
 		<!-- Path to Opus Magnum folder, Contains Lightning.exe et.al -->
-		<OpusDir>D:\C#_projects\Quintessential\TestEnvironment\modded</OpusDir>
+		<OpusDir>D:\SteamLibrary\steamapps\common\Opus Magnum\modded</OpusDir>
 		<PlatformTarget>x64</PlatformTarget>
 	</PropertyGroup>
 	
@@ -43,4 +43,5 @@
     </Reference>
   </ItemGroup>
 
+	
 </Project>
