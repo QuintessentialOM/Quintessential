@@ -365,7 +365,3 @@ FodyWeavers.xsd
 
 # Runtime
 TestEnvironment/
-Core/QuintessentialCore.csproj
-Data/QuintessentialData.csproj
-UI/QuintessentialUI.csproj
-Data/Patches/patch_Solution.cs

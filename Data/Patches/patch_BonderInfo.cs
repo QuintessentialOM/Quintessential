@@ -8,6 +8,7 @@ class patch_BonderInfo {
 
     public List<BondType> bondTypes;
     public List<AtomType> uniqueAtoms;
+    public AtomTag uniqueTag;
     public bool isUnbond = false;
 
     [MonoModConstructor]
@@ -17,25 +18,48 @@ class patch_BonderInfo {
         this.bondTypes = bondTypes;
         this.isUnbond = isUnbond;
         uniqueAtoms = [];
+        uniqueTag = null;
     }
-    
-
 
     [MonoModConstructor]
-    public patch_BonderInfo(List<BondType> bondTypes, bool isUnbond, List<AtomType> uniqueAtoms, AtomTag uniqueAtomsTag, HexIndex hexPos1, HexIndex hexPos2) {
-    
+    public patch_BonderInfo(List<BondType> bondTypes, bool isUnbond, List<AtomType> uniqueAtoms, HexIndex hexPos1, HexIndex hexPos2) {
         this.hexPos1 = hexPos1;
         this.hexPos2 = hexPos2;
         this.bondTypes = bondTypes;
         this.isUnbond = isUnbond;
         this.uniqueAtoms = uniqueAtoms;
-        foreach (AtomType uniqueAtom in AtomTypes.atoms)
-        {
-            if (uniqueAtomsTag.HasAtom(uniqueAtom)) {
-                this.uniqueAtoms.Add(uniqueAtom);
-            }
-        }
+        uniqueTag = null;
+    }
 
+    [MonoModConstructor]
+    public patch_BonderInfo(List<BondType> bondTypes, bool isUnbond, List<AtomType> uniqueAtoms, AtomTag uniqueAtomTag, HexIndex hexPos1, HexIndex hexPos2) {
+
+        this.hexPos1 = hexPos1;
+        this.hexPos2 = hexPos2;
+        this.bondTypes = bondTypes;
+        this.isUnbond = isUnbond;
+        this.uniqueAtoms = uniqueAtoms;
+        uniqueTag = uniqueAtomTag;
+    }
+
+    [MonoModConstructor]
+    public patch_BonderInfo(List<BondType> bondTypes, bool isUnbond, AtomTag uniqueAtomTag, HexIndex hexPos1, HexIndex hexPos2) {
+
+        this.hexPos1 = hexPos1;
+        this.hexPos2 = hexPos2;
+        this.bondTypes = bondTypes;
+        this.isUnbond = isUnbond;
+        uniqueAtoms = [];
+        uniqueTag = uniqueAtomTag;
+    }
+
+    public virtual bool IsBondable(AtomType atomType) {
+        if (uniqueAtoms.Count == 0 && uniqueTag == null) return true;
+        if (uniqueAtoms.Count != 0 &&
+            uniqueAtoms.Any(atom => atom == atomType)) return true;
+        if (uniqueTag != null &&
+            uniqueTag.HasAtom(atomType)) return true;
+        return false;
     }
 
     [MonoModRemove] [MonoModConstructor]

@@ -21,6 +21,9 @@ internal class QuintessentialData : QuintessentialMod, IDataMod {
     }
 
     public override void LoadContent() {
+        foreach (var bonder in PartTypes.triplexBonder.bonders) {
+            ((patch_BonderInfo)(object)bonder).uniqueTag = AtomTag.AtomTags.GetOrInsert("om:triplexable", new AtomTag("om:triplexable"));
+        }
         this.AddRecipe(new GlyphRecipe(), "om:bonder", "om:bonder");
         this.AddRecipe(new GlyphRecipe(), "om:unbonder", "om:unbonder");
         this.AddRecipe(new GlyphRecipe(), "om:multi_bonder", "om:multi_bonder");
