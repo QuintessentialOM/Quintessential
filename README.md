@@ -2,8 +2,8 @@
 the Opus Magnum mod loader.
 
 > [!CAUTION]
-> The the main branch of this repository is the still work in progress Community Editon version of the modloader.<br/>
-> If you want to setup modding for the previous version use the previous-old branch.
+> The main branch of this repository is the still work in progress Community Editon version of the mod loader.<br/>
+> If you want to set up modding for the previous version, use the previous-old branch.
 
 Quintessential extends the game Opus Magnum with the ability to load mods, and provides mods with the groundwork that makes compatibility possible.
 
