@@ -187,8 +187,9 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
         foreach (var bonder in part.GetType().bonders) {
             var bonderInfo = (patch_BonderInfo)(object)bonder;
             if (GetAtomReference(part, bonderInfo.hexPos1, false, out AtomReference atomReference1) &&
+                bonderInfo.IsBondable(atomReference1.atomType) &&
                 GetAtomReference(part, bonderInfo.hexPos2, false, out AtomReference atomReference2) &&
-                (bonderInfo.uniqueAtoms.Count == 0 || (bonderInfo.uniqueAtoms.Contains(atomReference1.atomType) && bonderInfo.uniqueAtoms.Contains(atomReference2.atomType))))
+                bonderInfo.IsBondable(atomReference2.atomType))
             {
                 HexIndex pos1 = part.InFrontBy(bonderInfo.hexPos1);
                 HexIndex pos2 = part.InFrontBy(bonderInfo.hexPos2);
