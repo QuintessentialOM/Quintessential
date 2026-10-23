@@ -70,16 +70,16 @@ public static class patch_Editor {
             var textureSizes = bond.GetBondTypes().Select(t => t.bondTexture.texture.size);
             Index2 textureSize = new(textureSizes.Max(vec => vec.X), textureSizes.Max(vec => vec.Y));
             RenderTarget bondRenderTarget = Renderer.CreateRenderTarget(textureSize.X, textureSize.Y);
-            using (class_226.method_596(bondRenderTarget)) {
-                class_226.method_600(Color.Transparent);
+            using (RenderTargetStackManager.Push(bondRenderTarget)) {
+                RenderTargetStackManager.Clear(Color.Transparent);
                 foreach (var bondType in bond.GetBondTypes()) {
                     TextureRenderer.Render(bondType.bondTexture.texture, (textureSize.ToVector2() - bondType.bondTexture.texture.size.ToVector2()) / 2f);
                 }
             }
             RenderTarget bondNormalMapRenderTarget = Renderer.CreateRenderTarget(textureSize.X, textureSize.Y);
             bool noNormals = true;
-            using (class_226.method_596(bondNormalMapRenderTarget)) {
-                class_226.method_600(Color.Black);
+            using (RenderTargetStackManager.Push(bondNormalMapRenderTarget)) {
+                RenderTargetStackManager.Clear(Color.Black);
                 foreach (var bondType in bond.GetBondTypes()) {
                     TextureRenderer.Render(bondType.bondTexture.normalMap, (textureSize.ToVector2() - bondType.bondTexture.normalMap.size.ToVector2()) / 2f);
                     noNormals &= bondType.bondTexture.normalMap == Assets.textures.black || bondType.bondTexture.normalMap == Assets.textures.transparent;

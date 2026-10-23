@@ -46,8 +46,8 @@ public static class Dumping {
         renderTargetHandle.targetSize = size;
         RenderTarget class95 = renderTargetHandle.GetTarget(out var flag);
         if (flag) {
-            using (class_226.method_597(class95, Matrix4.GetScale(new Vector3(1, -1, 1)))) {
-                class_226.method_600(Color.Transparent);
+            using (RenderTargetStackManager.Push(class95, Matrix4.GetScale(new Vector3(1, -1, 1)))) {
+                RenderTargetStackManager.Clear(Color.Transparent);
                 Editor.RenderAtom(type, pos, 1, 1, 1, 1, -21, 0, Assets.textures.white, null, false);
             }
         }
