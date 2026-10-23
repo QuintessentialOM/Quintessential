@@ -160,4 +160,28 @@ class patch_GameLogic {
     string GetIconPath(string orig) {
         return Path.Combine(QuintessentialCore.Instance.Meta.PathToDirectory, "Content", "quint_icon_slant.png");
     }
+
+    [MonoModILInject("GameInit")]
+    static void PatchForceOpenGL(MethodDefinition method, CustomAttribute attribute) {
+
+        ILCursor cursor = new(new ILContext(method));
+
+        cursor.GotoNext(MoveType.After,
+            instr => instr.MatchLdarg0(),
+            instr => instr.MatchLdfld("GameLogic", "settingsData"),
+            instr => instr.MatchLdfld("Settings", "windowsUseOpenGL"),
+            instr => instr.MatchCallvirt(out var m) && m.Name == "Get"
+        );
+        cursor.EmitPop();
+        cursor.EmitLdcI4(1);
+
+        while (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchLdstr("TypicalVS"))) {
+
+            cursor.Next.Operand = Path.Combine("shaders", "TypicalVS");
+
+            string str = null;
+            cursor.GotoNext(MoveType.Before, instr => instr.MatchLdstr(out str));
+            cursor.Next.Operand = Path.Combine("shaders", str ?? throw new Exception("Failed to find PS shader name!"));
+        }
+    }
 }

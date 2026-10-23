@@ -11,6 +11,8 @@ internal class patch_Window : Window {
     [MonoModIgnore] public patch_Window(nint window, nint renderWindow) : base(window, renderWindow) { }
 
     public void FixWindowAboveGrabRange() {
+        if (InputManager.IsClickHeld(MouseButtonType.RightClick) || !InputManager.IsClickHeld(MouseButtonType.LeftClick)) return;
+
         int x = ((patch_Settings)(object)GameLogic.instance.settingsData).windowXPos.Get();
         int y = ((patch_Settings)(object)GameLogic.instance.settingsData).windowYPos.Get();
         //SDL.SDL_GetWindowPosition(window, out int x, out int y);
@@ -30,8 +32,7 @@ internal class patch_Window : Window {
         }
         ILCursor cursor = new(new ILContext(method));
 
-        TypeDefinition holder = MonoModRule.Modder.FindType("Window").Resolve();
-        MethodDefinition call = holder.Methods.First((f) => f.Name == "FixWindowAboveGrabRange");
+        MethodDefinition call = method.DeclaringType.Methods.First((f) => f.Name == "FixWindowAboveGrabRange");
 
         cursor.EmitLdarg1();
         cursor.Emit(OpCodes.Brtrue, cursor.Next);

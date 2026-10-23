@@ -5,6 +5,7 @@ using System.Collections.Generic;
 namespace Quintessential;
 public static class QApi {
     public static readonly List<BondType> ModBondTypes = [];
+    public static readonly List<AtomRendererDelegate> AtomRenderers = [];
 
     // TODO link to online documentation
     /// <summary>
@@ -60,6 +61,9 @@ public static class QApi {
         ModBondTypes.Add(type);
     }
 
+    public static void AddCustomAtomRenderer(AtomRendererDelegate renderer) {
+        AtomRenderers.Add(renderer);
+    }
 
     /// <summary>
     /// Adds a component to every new <see cref="Atom"/> instance of the give <see cref="AtomType"/>.
@@ -139,3 +143,5 @@ public static class QApi {
         return del.Invoke(sim, part);
     }
 }
+
+public delegate bool AtomRendererDelegate(patch_Atom? atom, AtomType atomType, Vector2 translation, float scaleMultiplier, float opacityMultiplier, float height, float shadowStrength, float shadowOffset, float shadowAngle, Texture shadow, Texture overlayEffect, bool isOutputRender);

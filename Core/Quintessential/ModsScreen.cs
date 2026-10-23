@@ -58,8 +58,8 @@ class ModsScreen : IScreen {
 
         // draw mod buttons
         using (var _ = modsListScrollbar.RenderScrollbar(bgPos + new Vector2(0, 5), new(modButtonWidth + 60, (int)bgSize.Y - 10), 0, -30)){
-			// clear scroll zone
-			class_226.method_600(Color.Transparent);
+            // clear scroll zone
+            RenderTargetStackManager.Clear(Color.Transparent);
 			
 			int y = -(int)modsListScrollbar.scrollOffset;
 			UI.DrawHeader("Mods", new Vector2(20, size.Y - 200 - y), modButtonWidth, true, true);

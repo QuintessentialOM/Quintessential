@@ -8,7 +8,7 @@ using System.Linq;
 [MonoModPatch("SolutionEditorPartsPanel/PartsSection")]
 internal class patch_PartsSection {
 
-    [MonoModILInject("method_2052")]
+    [MonoModILInject("RenderFrame")]
     static void PatchMoleculeDisplayName(MethodDefinition method, CustomAttribute attribute) {
 
         ILCursor cursor = new(new ILContext(method)); // Create cursor

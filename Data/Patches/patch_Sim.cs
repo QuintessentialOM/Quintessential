@@ -187,8 +187,9 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
         foreach (var bonder in part.GetType().bonders) {
             var bonderInfo = (patch_BonderInfo)(object)bonder;
             if (GetAtomReference(part, bonderInfo.hexPos1, false, out AtomReference atomReference1) &&
+                bonderInfo.IsBondable(atomReference1.atomType) &&
                 GetAtomReference(part, bonderInfo.hexPos2, false, out AtomReference atomReference2) &&
-                (bonderInfo.uniqueAtoms.Count == 0 || (bonderInfo.uniqueAtoms.Contains(atomReference1.atomType) && bonderInfo.uniqueAtoms.Contains(atomReference2.atomType))))
+                bonderInfo.IsBondable(atomReference2.atomType))
             {
                 HexIndex pos1 = part.InFrontBy(bonderInfo.hexPos1);
                 HexIndex pos2 = part.InFrontBy(bonderInfo.hexPos2);
@@ -290,18 +291,164 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
     }
     #endregion
 
-    #region RecipeSystem
+    #region GetPartsAndAtoms
 
-    public RecipeInputDictionary<HexIndex, IRecipeInput> RecipeInputs;
-    public RecipeOutputDictionary<HexIndex, IRecipeOutput> RecipeOutputs;
+    [MonoModIgnore]
+    [MonoModPublic]
+    public extern Solution GetSolution();
+
     public List<Part> HoldingParts;
-
     public bool GetAtomReference(Part part, HexIndex offset, bool allowPartAttachedAtoms, out AtomReference atomReference) {
         return GetAtomReference(part, offset, HoldingParts, allowPartAttachedAtoms).GetOrDefault(out atomReference);
     }
     public bool HasAtomAt(Part part, HexIndex offset, bool allowPartAttachedAtoms) {
         return GetAtomReference(part, offset, HoldingParts, allowPartAttachedAtoms).HasValue();
     }
+    public bool GetPartsAt(Part part, HexIndex offset, out List<KeyValuePair<Part, PartSimState>> parts) {
+        parts = [.. base.simulationDict.Where(partPair => {
+            var pos = partPair.Value.newPosition;
+            if (pos == part.InFrontBy(offset)) return true;
+            var rot = partPair.Value.rotation;
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
+            if (hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+            return false;
+        })];
+        return parts.Count != 0;
+    }
+    public bool GetPartsAt(Part part, HexIndex offset, Identifier partId, out List<KeyValuePair<Part, PartSimState>> parts) {
+        parts = [.. base.simulationDict.Where(partPair => {
+            if (partPair.Key.GetType().Id != partId) return false;
+            var pos = partPair.Value.newPosition;
+            if (pos == part.InFrontBy(offset)) return true;
+            var rot = partPair.Value.rotation;
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
+            if (hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+            return false;
+        })];
+        return parts.Count != 0;
+    }
+    public bool GetPartsAt(Part part, HexIndex offset, PartTag tag, out List<KeyValuePair<Part, PartSimState>> parts) {
+        parts = [.. base.simulationDict.Where(partPair => {
+            if (!tag.HasPart(partPair.Key)) return false;
+            var pos = partPair.Value.newPosition;
+            if (pos == part.InFrontBy(offset)) return true;
+            var rot = partPair.Value.rotation;
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
+            if (hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+            return false;
+        })];
+        return parts.Count != 0;
+    }
+    public bool GetPartsAt(Part part, HexIndex offset, Predicate<Part> predicate, out List<KeyValuePair<Part, PartSimState>> parts) {
+        parts = [.. base.simulationDict.Where(partPair => {
+            if (predicate(partPair.Key)) return false;
+            var pos = partPair.Value.newPosition;
+            if (pos == part.InFrontBy(offset)) return true;
+            var rot = partPair.Value.rotation;
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
+            if (hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+            return false;
+        })];
+        return parts.Count != 0;
+    }
+    public bool GetPartsAt(Part part, HexIndex offset, Predicate<KeyValuePair<Part, PartSimState>> predicate, out List<KeyValuePair<Part, PartSimState>> parts) {
+        parts = [.. base.simulationDict.Where(partPair => {
+            if (predicate(partPair)) return false;
+            var pos = partPair.Value.newPosition;
+            if (pos == part.InFrontBy(offset)) return true;
+            var rot = partPair.Value.rotation;
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
+            if (hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+            return false;
+        })];
+        return parts.Count != 0;
+    }
+    public bool GetPartsAt(Part part, IEnumerable<HexIndex> offsets, out List<KeyValuePair<Part, PartSimState>> parts) {
+        parts = [.. base.simulationDict.Where(partPair => {
+            var pos = partPair.Value.newPosition;
+            foreach (var offset in offsets)
+                if (pos == part.InFrontBy(offset)) return true;
+            var rot = partPair.Value.rotation;
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
+            foreach (var offset in offsets)
+                if (hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+            return false;
+        })];
+        return parts.Count != 0;
+    }
+    public bool GetPartsAt(Part part, IEnumerable<HexIndex> offsets, Identifier partId, out List<KeyValuePair<Part, PartSimState>> parts) {
+        parts = [.. base.simulationDict.Where(partPair => {
+            if (partPair.Key.GetType().Id != partId) return false;
+            var pos = partPair.Value.newPosition;
+            foreach (var offset in offsets)
+                if (pos == part.InFrontBy(offset)) return true;
+            var rot = partPair.Value.rotation;
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
+            foreach (var offset in offsets)
+                if (hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+            return false;
+        })];
+        return parts.Count != 0;
+    }
+    public bool GetPartsAt(Part part, IEnumerable<HexIndex> offsets, PartTag tag, out List<KeyValuePair<Part, PartSimState>> parts) {
+        parts = [.. base.simulationDict.Where(partPair => {
+            if (!tag.HasPart(partPair.Key)) return false;
+            var pos = partPair.Value.newPosition;
+            foreach(var offset in offsets)
+                if(pos == part.InFrontBy(offset)) return true;
+            var rot = partPair.Value.rotation;
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
+            foreach(var offset in offsets)
+                if(hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+            return false;
+        })];
+        return parts.Count != 0;
+    }
+    public bool GetPartsAt(Part part, IEnumerable<HexIndex> offsets, Predicate<Part> predicate, out List<KeyValuePair<Part, PartSimState>> parts) {
+        parts = [.. base.simulationDict.Where(partPair => {
+            if (predicate(partPair.Key)) return false;
+            var pos = partPair.Value.newPosition;
+            foreach(var offset in offsets)
+                if(pos == part.InFrontBy(offset)) return true;
+            var rot = partPair.Value.rotation;
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
+            foreach(var offset in offsets)
+                if(hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+            return false;
+        })];
+        return parts.Count != 0;
+    }
+    public bool GetPartsAt(Part part, IEnumerable<HexIndex> offsets, Predicate<KeyValuePair<Part, PartSimState>> predicate, out List<KeyValuePair<Part, PartSimState>> parts) {
+        parts = [.. base.simulationDict.Where(partPair => {
+            if (predicate(partPair)) return false;
+            var pos = partPair.Value.newPosition;
+            foreach(var offset in offsets)
+                if (pos == part.InFrontBy(offset)) return true;
+            var rot = partPair.Value.rotation;
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
+            foreach(var offset in offsets)
+                if (hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+            return false;
+        })];
+        return parts.Count != 0;
+    }
+    public bool HasPart(Identifier partId) {
+        return base.simulationDict.Any(pair => pair.Key.GetType().Id == partId);
+    }
+    public bool HasPart(Predicate<Part> predicate) {
+        return base.simulationDict.Any(pair => predicate(pair.Key));
+    }
+    public bool HasPart(Predicate<KeyValuePair<Part, PartSimState>> predicate) {
+        return base.simulationDict.Any(pair => predicate(pair));
+    }
+
+    #endregion
+
+    #region RecipeSystem
+
+    public RecipeInputDictionary<HexIndex, IRecipeInput> RecipeInputs;
+    public RecipeOutputDictionary<HexIndex, IRecipeOutput> RecipeOutputs;
+
 
     [MonoModILInject("RunCycleGlyphs")]
     static void PatchRecipeSystem(MethodDefinition method, CustomAttribute attribute) {

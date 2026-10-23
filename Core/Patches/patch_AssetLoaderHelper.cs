@@ -24,4 +24,8 @@ internal class patch_AssetLoaderHelper {
         patch_SoundAssets.Sounds.Add(sound);
         return sound;
     }
+
+    public static Shader LoadShader(string vertexShaderPath, string pixelShaderPath) {
+        return Renderer.LoadShader(null, vertexShaderPath, pixelShaderPath);
+    }
 }

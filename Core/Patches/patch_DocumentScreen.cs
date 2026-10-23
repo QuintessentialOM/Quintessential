@@ -22,14 +22,15 @@ internal class patch_DocumentScreen {
         cursor.Goto(start);
 
         cursor.EmitLdarg0();
+        cursor.EmitLdarg1();
         cursor.EmitCall(tryRender);
         cursor.Emit(OpCodes.Brtrue, after);
     }
 
-    public bool TryRenderDocument() {
+    public bool TryRenderDocument(float deltaTime) {
         if (((patch_LocalizedVignette)(object)vignette).Document == null) 
             return false;
-        ((patch_LocalizedVignette)(object)vignette).Document.Render(InputManager.screenSize / 2f, sections);
+        ((patch_LocalizedVignette)(object)vignette).Document.Render(InputManager.screenSize / 2f, sections, deltaTime);
         return true;
     }
 }
