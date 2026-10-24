@@ -18,10 +18,10 @@ internal class patch_Volume {
         return num;
     }
 
-    public static void SetVoulme(Sound sound, float volume) {
+    public static void SetVolume(Sound sound, float volume) {
         pathVolumeDict[sound.id] = volume;
     }
-    public static void SetVoulme(string path, float volume) {
+    public static void SetVolume(string path, float volume) {
         pathVolumeDict[path] = volume;
     }
 }

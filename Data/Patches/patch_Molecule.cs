@@ -9,10 +9,8 @@ using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using static Quintessential.Components.IMoleculeComponent;
 using static Quintessential.CycleEvent;
-using static Quintessential.Internal.LegacyPuzzleModel;
 
 public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMoleculeComponent>, ISimCallbacks, IRecipeOutput, IRecipeInput {
 
@@ -599,7 +597,11 @@ public class patch_Molecule : ISerializableComponentHolder<patch_Molecule, IMole
     [Obsolete(" Use the BondType version instead.")]
     [MonoModInternalM] [MonoModIgnore]
     internal bool GetBondTypeAt(HexIndex hexPos1, HexIndex hexPos2) { return false; }
-
+    
+    [MonoModReplace]
+    private bool IsStandardBond(patch_Bond bond) {
+        return bond.GetBondTypes().Count == 1 && bond.GetBondTypes()[0] == BondTypes.standard;
+    }
     #endregion
 
     #region Serialization

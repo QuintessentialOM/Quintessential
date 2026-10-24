@@ -1,10 +1,10 @@
 ﻿using Mono.Cecil;
+using Mono.Cecil.Cil;
 using MonoMod;
 using MonoMod.Cil;
 using MonoMod.InlineRT;
 using Quintessential;
 using Quintessential.Internal;
-using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,12 +24,40 @@ public static class patch_Editor {
         cursor.GotoNext(MoveType.Before, instr => instr.MatchCall("Editor", "RenderAtom"));
         cursor.Next.Operand = onCall;
         cursor.EmitLdarg(8);
+        cursor.EmitLdnull();
         cursor.GotoPrev(MoveType.Before, instr => instr.MatchLdfld("Atom","atomType"));
         cursor.Remove();
 
         onCall = MonoModRule.Modder.FindType("Bond").Resolve().Methods.First(f => f.Name.Equals("RenderBond"));
         cursor.GotoNext(MoveType.Before, instr => instr.MatchCall("Editor", "RenderBond"));
         cursor.Next.Operand = onCall;
+    }
+
+    internal static patch_Atom RenderedAtom;
+    private static bool HandleCustomAtomRenderers(AtomType atomType, Vector2 translation, float scaleMultiplier, float opacityMultiplier, float height, float shadowStrength, float shadowOffset, float shadowAngle, Texture shadow, Texture overlayEffect, bool isOutputRender) {
+        foreach (var renderer in QApi.AtomRenderers) {
+            if (renderer(RenderedAtom, atomType, translation, scaleMultiplier, opacityMultiplier, height, shadowStrength, shadowOffset, shadowAngle, shadow, overlayEffect, isOutputRender)) return true;
+        }
+        return false;
+    }
+
+    [MonoModILInject("RenderAtom")]
+    static void PatchRenderAtomShaders(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        MethodReference handleCustom = method.DeclaringType.Methods.First(f => f.Name.Equals("HandleCustomAtomRenderers"));
+        cursor.Index = cursor.Instrs.Count;
+        cursor.GotoPrev(MoveType.After, instr => instr.OpCode == OpCodes.Br_S);
+        Instruction end = (Instruction)cursor.Prev.Operand;
+        cursor.Index++;
+        cursor.EmitLdarg0();
+        cursor.Index--;
+        cursor.Prev.OpCode = OpCodes.Nop;
+
+        foreach (var arg in method.Parameters) {
+            cursor.EmitLdarg(arg);
+        }
+        cursor.EmitCall(handleCustom);
+        cursor.Emit(OpCodes.Brtrue_S, end);
     }
 
     private static readonly Dictionary<IReadOnlyList<BondType>, Tuple<Texture, Index2, Texture, bool>> RenderedBondTextures = new(new BondTypesComparer());
@@ -42,16 +70,16 @@ public static class patch_Editor {
             var textureSizes = bond.GetBondTypes().Select(t => t.bondTexture.texture.size);
             Index2 textureSize = new(textureSizes.Max(vec => vec.X), textureSizes.Max(vec => vec.Y));
             RenderTarget bondRenderTarget = Renderer.CreateRenderTarget(textureSize.X, textureSize.Y);
-            using (class_226.method_596(bondRenderTarget)) {
-                class_226.method_600(Color.Transparent);
+            using (RenderTargetStackManager.Push(bondRenderTarget)) {
+                RenderTargetStackManager.Clear(Color.Transparent);
                 foreach (var bondType in bond.GetBondTypes()) {
                     TextureRenderer.Render(bondType.bondTexture.texture, (textureSize.ToVector2() - bondType.bondTexture.texture.size.ToVector2()) / 2f);
                 }
             }
             RenderTarget bondNormalMapRenderTarget = Renderer.CreateRenderTarget(textureSize.X, textureSize.Y);
             bool noNormals = true;
-            using (class_226.method_596(bondNormalMapRenderTarget)) {
-                class_226.method_600(Color.Black);
+            using (RenderTargetStackManager.Push(bondNormalMapRenderTarget)) {
+                RenderTargetStackManager.Clear(Color.Black);
                 foreach (var bondType in bond.GetBondTypes()) {
                     TextureRenderer.Render(bondType.bondTexture.normalMap, (textureSize.ToVector2() - bondType.bondTexture.normalMap.size.ToVector2()) / 2f);
                     noNormals &= bondType.bondTexture.normalMap == Assets.textures.black || bondType.bondTexture.normalMap == Assets.textures.transparent;

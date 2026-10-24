@@ -40,8 +40,8 @@ class patch_PuzzleEditorScreen {
 
 		// add scrollbar/scroll region
 		using (var _ = scrollbar.RenderScrollbar(panelSize.Min, panelSize.Size.CeilingToInt(), 0, -30)) {
-			// clear scroll zone
-			class_226.method_600(Color.Transparent);
+            // clear scroll zone
+            RenderTargetStackManager.Clear(Color.Transparent);
 
 			var nCorner = new Vector2(-12, scrollbar.scrollOffset - 95);
 
@@ -144,7 +144,7 @@ class patch_PuzzleEditorScreen {
 	private void VanillaEditorRender(bool isPersonal, Vector2 pos, Bounds2 bounds, Puzzle puzzle) {
 
         PuzzleEditorScreen.PuzzleContainer puzzleCont = new() {
-            field_4622 = puzzle
+            currentPuzzle = puzzle
         };
         UIUtils.RenderScreenTitle(Translations.Translate("Products"), pos + new Vector2(489f, 774f), 904, false, true);
         UIUtils.RenderScreenTitle(Translations.Translate("Reagents"), pos + new Vector2(489f, 522f), 904, false, true);
@@ -152,7 +152,7 @@ class patch_PuzzleEditorScreen {
 
         bool screenOpened = false;
         for (int i = 0; i < 2; i++) {
-            PuzzleInputOutput[] array = ((i == 0) ? puzzleCont.field_4622.outputs : puzzleCont.field_4622.inputs);
+            PuzzleInputOutput[] array = ((i == 0) ? puzzleCont.currentPuzzle.outputs : puzzleCont.currentPuzzle.inputs);
             string text = ((i == 0) ? Translations.Translate("Create New Product").ToUpper() : Translations.Translate("Create New Reagent").ToUpper());
             for (int j = 0; j < 4; j++) {
                 Bounds2 bounds2 = Bounds2.WithSize(pos + new Vector2(495f, 588f) + new Vector2((float)(j * 236), (float)((i == 0) ? (-28) : (-281))), new Vector2(226f, 201f));
@@ -168,7 +168,7 @@ class patch_PuzzleEditorScreen {
                                 int I = i;
                                 int J = j;
                                 var moleculeEditorScreen = new MoleculeEditorScreen(array[J].molecule, I == 0, new Action<Molecule>(molecule => {
-                                    (I == 0 ? puzzleCont.field_4622.outputs : puzzleCont.field_4622.inputs)[J].molecule = molecule;
+                                    (I == 0 ? puzzleCont.currentPuzzle.outputs : puzzleCont.currentPuzzle.inputs)[J].molecule = molecule;
                                     puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
                                 }));
                                 ((patch_MoleculeEditorScreen)(object)moleculeEditorScreen).editing = puzzle;
@@ -188,9 +188,9 @@ class patch_PuzzleEditorScreen {
                                 GameLogic.instance.PushScreen(MessageBoxScreen.ConfirmBox(bounds, true, (i == 0) ? Translations.Translate("Do you really want to delete this product?") : Translations.Translate("Do you really want to delete this reagent?"), MaybeHelper.empty, (i == 0) ? Translations.Translate("Delete Product") : Translations.Translate("Delete Reagent"), Translations.Translate("Cancel"), () => {
 
                                     if (I == 0) {
-                                        puzzleCont.field_4622.outputs = [.. puzzleCont.field_4622.outputs.Take(J).Concat(puzzleCont.field_4622.outputs.Skip(J + 1))];
+                                        puzzleCont.currentPuzzle.outputs = [.. puzzleCont.currentPuzzle.outputs.Take(J).Concat(puzzleCont.currentPuzzle.outputs.Skip(J + 1))];
                                     } else {
-                                        puzzleCont.field_4622.inputs = [.. puzzleCont.field_4622.inputs.Take(J).Concat(puzzleCont.field_4622.inputs.Skip(J + 1))];
+                                        puzzleCont.currentPuzzle.inputs = [.. puzzleCont.currentPuzzle.inputs.Take(J).Concat(puzzleCont.currentPuzzle.inputs.Skip(J + 1))];
                                     }
                                     puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
                                 }, () => { }));
@@ -235,9 +235,9 @@ class patch_PuzzleEditorScreen {
                             int I = i;
                             var moleculeEditorScreen =new MoleculeEditorScreen(new Molecule(), i == 0, new Action<Molecule>(molecule => {
                                 if (I == 0) {
-                                    puzzleCont.field_4622.outputs = [.. puzzleCont.field_4622.outputs, new PuzzleInputOutput(molecule)];
+                                    puzzleCont.currentPuzzle.outputs = [.. puzzleCont.currentPuzzle.outputs, new PuzzleInputOutput(molecule)];
                                 } else {
-                                    puzzleCont.field_4622.inputs = [.. puzzleCont.field_4622.inputs, new PuzzleInputOutput(molecule)];
+                                    puzzleCont.currentPuzzle.inputs = [.. puzzleCont.currentPuzzle.inputs, new PuzzleInputOutput(molecule)];
                                 }
                                 puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
                             }));
@@ -252,22 +252,22 @@ class patch_PuzzleEditorScreen {
         }
         bool flag3 = isPersonal && !PuzzleSelectScreen.HasDRM();
         Vector2 vector4 = pos + new Vector2(494f, 219f);
-        RenderPermissionToggle(isPersonal, puzzleCont.field_4622, vector4 + GetPermissionTogglePos(0, 0), Translations.Translate("Glyph of Bonding###Shorter"), PuzzlePermissions.Bonder, false);
-        RenderPermissionToggle(isPersonal, puzzleCont.field_4622, vector4 + GetPermissionTogglePos(1, 0), Translations.Translate("Glyph of Multi-bonding###Shorter"), PuzzlePermissions.SpeedBonder, false);
-        RenderPermissionToggle(isPersonal, puzzleCont.field_4622, vector4 + GetPermissionTogglePos(2, 0), Translations.Translate("Glyph of Triplex-bonding###Shorter"), PuzzlePermissions.PrismaBonder, false);
-        RenderPermissionToggle(isPersonal, puzzleCont.field_4622, vector4 + GetPermissionTogglePos(3, 0), Translations.Translate("Glyph of Unbonding###Shorter"), PuzzlePermissions.Unbonder, false);
-        RenderPermissionToggle(isPersonal, puzzleCont.field_4622, vector4 + GetPermissionTogglePos(0, 1), Translations.Translate("Glyph of Calcification###Shorter"), PuzzlePermissions.Calcification, false);
-        RenderPermissionToggle(isPersonal, puzzleCont.field_4622, vector4 + GetPermissionTogglePos(1, 1), Translations.Translate("Glyph of Duplication###Shorter"), PuzzlePermissions.Duplication, false);
-        RenderPermissionToggle(isPersonal, puzzleCont.field_4622, vector4 + GetPermissionTogglePos(2, 1), PartTypes.berlosWheel.name, PuzzlePermissions.BaronWheel, false);
-        RenderPermissionToggle(isPersonal, puzzleCont.field_4622, vector4 + GetPermissionTogglePos(3, 1), Translations.Translate("Glyph of Animismus###Shorter"), PuzzlePermissions.LifeAndDeath, false);
-        RenderPermissionToggle(isPersonal, puzzleCont.field_4622, vector4 + GetPermissionTogglePos(0, 2), Translations.Translate("Glyph of Projection###Shorter"), PuzzlePermissions.Projection, false);
-        RenderPermissionToggle(isPersonal, puzzleCont.field_4622, vector4 + GetPermissionTogglePos(1, 2), Translations.Translate("Glyph of Purification###Shorter"), PuzzlePermissions.Purification, false);
-        RenderPermissionToggle(isPersonal, puzzleCont.field_4622, vector4 + GetPermissionTogglePos(2, 2), Translations.Translate("Glyph of Disposal###Shorter"), PuzzlePermissions.Disposal, false);
-        RenderPermissionToggle(isPersonal, puzzleCont.field_4622, vector4 + GetPermissionTogglePos(3, 2), Translations.Translate("Glyphs of Quintessence"), PuzzlePermissions.Quintessence, false);
-        RenderPermissionToggle(isPersonal, puzzleCont.field_4622, vector4 + GetPermissionTogglePos(0, 3), Translations.Translate("Glyph of Rejection###Shorter"), PuzzlePermissions.Rejection, flag3);
-        RenderPermissionToggle(isPersonal, puzzleCont.field_4622, vector4 + GetPermissionTogglePos(1, 3), Translations.Translate("Glyph of Division###Shorter"), PuzzlePermissions.Division, flag3);
-        RenderPermissionToggle(isPersonal, puzzleCont.field_4622, vector4 + GetPermissionTogglePos(2, 3), Translations.Translate("Glyph of Proliferation###Shorter"), PuzzlePermissions.Proliferation, flag3);
-        RenderPermissionToggle(isPersonal, puzzleCont.field_4622, vector4 + GetPermissionTogglePos(3, 3), PartTypes.ravarisWheel.name, PuzzlePermissions.RavariWheel, flag3);
+        RenderPermissionToggle(isPersonal, puzzleCont.currentPuzzle, vector4 + GetPermissionTogglePos(0, 0), Translations.Translate("Glyph of Bonding###Shorter"), PuzzlePermissions.Bonder, false);
+        RenderPermissionToggle(isPersonal, puzzleCont.currentPuzzle, vector4 + GetPermissionTogglePos(1, 0), Translations.Translate("Glyph of Multi-bonding###Shorter"), PuzzlePermissions.SpeedBonder, false);
+        RenderPermissionToggle(isPersonal, puzzleCont.currentPuzzle, vector4 + GetPermissionTogglePos(2, 0), Translations.Translate("Glyph of Triplex-bonding###Shorter"), PuzzlePermissions.PrismaBonder, false);
+        RenderPermissionToggle(isPersonal, puzzleCont.currentPuzzle, vector4 + GetPermissionTogglePos(3, 0), Translations.Translate("Glyph of Unbonding###Shorter"), PuzzlePermissions.Unbonder, false);
+        RenderPermissionToggle(isPersonal, puzzleCont.currentPuzzle, vector4 + GetPermissionTogglePos(0, 1), Translations.Translate("Glyph of Calcification###Shorter"), PuzzlePermissions.Calcification, false);
+        RenderPermissionToggle(isPersonal, puzzleCont.currentPuzzle, vector4 + GetPermissionTogglePos(1, 1), Translations.Translate("Glyph of Duplication###Shorter"), PuzzlePermissions.Duplication, false);
+        RenderPermissionToggle(isPersonal, puzzleCont.currentPuzzle, vector4 + GetPermissionTogglePos(2, 1), PartTypes.berlosWheel.name, PuzzlePermissions.BaronWheel, false);
+        RenderPermissionToggle(isPersonal, puzzleCont.currentPuzzle, vector4 + GetPermissionTogglePos(3, 1), Translations.Translate("Glyph of Animismus###Shorter"), PuzzlePermissions.LifeAndDeath, false);
+        RenderPermissionToggle(isPersonal, puzzleCont.currentPuzzle, vector4 + GetPermissionTogglePos(0, 2), Translations.Translate("Glyph of Projection###Shorter"), PuzzlePermissions.Projection, false);
+        RenderPermissionToggle(isPersonal, puzzleCont.currentPuzzle, vector4 + GetPermissionTogglePos(1, 2), Translations.Translate("Glyph of Purification###Shorter"), PuzzlePermissions.Purification, false);
+        RenderPermissionToggle(isPersonal, puzzleCont.currentPuzzle, vector4 + GetPermissionTogglePos(2, 2), Translations.Translate("Glyph of Disposal###Shorter"), PuzzlePermissions.Disposal, false);
+        RenderPermissionToggle(isPersonal, puzzleCont.currentPuzzle, vector4 + GetPermissionTogglePos(3, 2), Translations.Translate("Glyphs of Quintessence"), PuzzlePermissions.Quintessence, false);
+        RenderPermissionToggle(isPersonal, puzzleCont.currentPuzzle, vector4 + GetPermissionTogglePos(0, 3), Translations.Translate("Glyph of Rejection###Shorter"), PuzzlePermissions.Rejection, flag3);
+        RenderPermissionToggle(isPersonal, puzzleCont.currentPuzzle, vector4 + GetPermissionTogglePos(1, 3), Translations.Translate("Glyph of Division###Shorter"), PuzzlePermissions.Division, flag3);
+        RenderPermissionToggle(isPersonal, puzzleCont.currentPuzzle, vector4 + GetPermissionTogglePos(2, 3), Translations.Translate("Glyph of Proliferation###Shorter"), PuzzlePermissions.Proliferation, flag3);
+        RenderPermissionToggle(isPersonal, puzzleCont.currentPuzzle, vector4 + GetPermissionTogglePos(3, 3), PartTypes.ravarisWheel.name, PuzzlePermissions.RavariWheel, flag3);
     }
     internal static Vector2 GetPermissionTogglePos(int x, int y) {
         return new Vector2((float)(236 * x), (float)(-37 * y));

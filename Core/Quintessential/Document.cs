@@ -9,7 +9,11 @@ public class Document {
     public List<DocumentItem> items;
     public CampaignItem campaignItem;
 
-    public void Render(Vector2 pos, string[] sections) {
+    private static readonly Texture recordingMarker = AssetLoaderHelper.LoadTexture("textures/quintessential/document_recording");
+    private static bool isRecording = false;
+    private const float refreshDelay = 0.5f;
+    private static float refreshTimer = 0f;
+    public void Render(Vector2 pos, string[] sections, float deltaTime) {
         if (CustomRender != null) {
             CustomRender.Invoke(pos, sections);
             return;
@@ -25,8 +29,18 @@ public class Document {
                 TextureRenderer.RenderText(sections[item.sectionIndex], pos + item.offset + new Vector2(0, verticalSizeOffset), item.font, item.color, item.GetTextAlignment(), item.spacing, 0.6f, item.lineWidth, float.MaxValue, 0, default, null, int.MaxValue, false, true);
             }
         }
-        if (InputManager.IsKeyPressed(SDL2.SDL.SDLKey.SDLK_F3)) {
-            TryReparse();
+        if (InputManager.IsKeyPressed(SDL2.SDL.SDLKey.SDLK_F3) && AppConsts.isDevEnv) {
+            isRecording = !isRecording;
+        }
+        if (isRecording) {
+            if (refreshTimer > refreshDelay) {
+                refreshTimer = 0;
+            }
+            refreshTimer += deltaTime;
+            if (refreshTimer > refreshDelay) {
+                TryReparse();
+            }
+            TextureRenderer.Render(recordingMarker, InputManager.screenSize * new Vector2(1, 0) + recordingMarker.size.ToVector2() * new Vector2(-1.5f, 0.5f));
         }
     }
 
@@ -49,7 +63,9 @@ public class Document {
                     }
                 }
             }
-        } catch (Exception e) { Logger.Log(e); }
+        } catch (Exception e) {
+            Logger.LogNoTime("\n" + e.Message);
+        }
     }
 }
 

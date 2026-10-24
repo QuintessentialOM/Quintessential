@@ -173,11 +173,22 @@ public class EnumCodec<T> : PrimitiveCodec<T> where T : struct, Enum {
     readonly bool Force;
 
     public override T Decode<TData>(CodecMap<TData> map, TData encoding) {
-        if (UseTextEncoding && (map.IsHumanReadable() || Force)) {
-            if (Enum.TryParse(map.ReadString(encoding), out T result))
-                return result;
+        try {
+            if (UseTextEncoding && (map.IsHumanReadable() || Force)) {
+                try {
+                    if (Enum.TryParse(map.ReadString(encoding), out T result))
+                        return result;
+                } catch (Exception ex) {
+                    if (ex.Message != "Not String value: Number") throw;
+                }
+            }
+            return (T)(object)map.ReadInt(encoding);
+        } catch (Exception ex) {
+            if (ex.Message != "Not Number value: String") throw;
+            throw new Exception($"Failed to parse Enum value of type {typeof(T).FullName}. Valid string values are:\n{
+                string.Join(", ", typeof(T).GetFields().Select(field => field.Name).Where(str => str != "value__"))
+            }", ex);
         }
-        return (T)(object)map.ReadInt(encoding);
     }
 
     public override TData Encode<TData>(CodecMap<TData> map, T item) {

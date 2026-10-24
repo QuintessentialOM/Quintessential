@@ -56,5 +56,8 @@
   ],
   "om:indisposable": [
 
+  ],
+  "om:triplexable": [
+    "om:fire"
   ]
 }

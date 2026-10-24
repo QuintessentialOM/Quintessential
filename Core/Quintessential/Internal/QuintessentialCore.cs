@@ -9,7 +9,10 @@ internal class QuintessentialCore : QuintessentialMod {
 
     public override void Load() {}
 
-    public override void LoadContent() { }
+    public override void LoadContent() {
+        QApi.AddMoleculeName(AtomTypes.salt, Translate("naming.stabilized"));
+        QApi.AddMoleculeName(AtomTypes.quicksilver, Translate("naming.reactive"));
+    }
     public override void LoadCompatContent() { }
     public override void FinaliseContent() { }
 

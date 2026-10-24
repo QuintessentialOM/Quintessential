@@ -7,21 +7,21 @@ public class patch_SolutionEditorScreen {
     public void method_2463(Action param_8705) {
         Vector2 screenSize = InputManager.screenSize;
         Index2 index = (InputManager.screenSize * ((SolutionEditorScreen)(object)this).boardScale).FlooredToInt();
-        class_193 class_ = class_268.field_2097.Peek();
+        var class_ = RenderTargetStack.stack.Peek();
         // § Added:
         TextureRenderer.CompleteRender();
-        class_268.field_2097.Push(new class_193(class_.field_1787, class_.field_1788, class_.field_1789, class_.field_1790
+        RenderTargetStack.stack.Push(new RenderTargetStackEntry(class_.canvas, class_.size, class_.projectionMatrix, class_.viewMatrix
             * Matrix4.GetScale(new Vector3(1f / ((SolutionEditorScreen)(object)this).boardScale, 1f / ((SolutionEditorScreen)(object)this).boardScale, 1f))));
         // § Changed:
-        Renderer.SetPerCameraConstants(class_.field_1789, class_268.field_2097.Peek().field_1790);
+        Renderer.SetPerCameraConstants(class_.projectionMatrix, RenderTargetStack.stack.Peek().viewMatrix);
         // # ---------
         InputManager.screenSize = index.ToVector2();
         param_8705();
         TextureRenderer.CompleteRender();
         // § Added:
-        class_268.field_2097.Pop();
+        RenderTargetStack.stack.Pop();
         // # ---------
-        Renderer.SetPerCameraConstants(class_.field_1789, class_.field_1790);
+        Renderer.SetPerCameraConstants(class_.projectionMatrix, class_.viewMatrix);
         InputManager.screenSize = screenSize;
     }
 }

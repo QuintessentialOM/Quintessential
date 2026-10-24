@@ -150,8 +150,8 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
         if (enabledVanillaFormat && path == GetFilePath()) {
             try {
                 Puzzle s = (Puzzle)(object)this;
-                if (s.inputs.All(i => i.molecule.GetAtoms().Any(atom => atom.Value.atomType.Id.namespc.Equals("om"))) &&
-                    s.outputs.All(i => i.molecule.GetAtoms().Any(atom => atom.Value.atomType.Id.namespc.Equals("om"))))
+                if (s.inputs.All(i => i.molecule.GetAtoms().All(atom => atom.Value.atomType.Id.namespc.Equals("om"))) &&
+                    s.outputs.All(i => i.molecule.GetAtoms().All(atom => atom.Value.atomType.Id.namespc.Equals("om"))))
                 {
                     if (!Directory.Exists("modded/temp")) {
                         Directory.CreateDirectory("modded/temp");
