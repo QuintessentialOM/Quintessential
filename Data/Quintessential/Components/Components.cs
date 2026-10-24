@@ -291,3 +291,24 @@ public interface IBondComponent : IComponent<patch_Bond, patch_Molecule?>, ISimC
     /// <param name="solutionEditor">The solution editor used for rendering.</param>
     public virtual void OnRender(Action doRender, ref Vector2 offset, ref HexIndex hexOffset, ref float rotationAngle, ref float opacityMultiplier, ref float height, SolutionEditorBase solutionEditor) { doRender(); }
 }
+
+/// <summary>
+/// A component interface for storing data on a <see cref="Campaign"/>
+/// </summary>
+public interface ICampaignComponent : IComponent<patch_Campaign> { }
+/// <summary>
+/// A component interface for storing data on a <see cref="CampaignChapter"/>
+/// </summary>
+public interface IChapterComponent : IComponent<patch_CampaignChapter> { }
+/// <summary>
+/// A component interface for storing data on a <see cref="CampaignItem"/>
+/// </summary>
+public interface ICampaignItemComponent : IComponent<patch_CampaignItem> { }
+/// <summary>
+/// A component interface for storing data on a <see cref="Journal"/>
+/// </summary>
+public interface IJournalComponent : IComponent<patch_Journal> { }
+/// <summary>
+/// A component interface for storing data on a <see cref="JournalVolume"/>
+/// </summary>
+public interface IJournalVolumeComponent : IComponent<patch_JournalVolume> { }
