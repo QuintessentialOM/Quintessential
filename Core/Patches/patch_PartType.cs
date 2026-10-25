@@ -50,4 +50,7 @@ class patch_PartType{
             _ => field,
         }; set;
     }
+
+    public Vector2 programIndexOffset;
+    public bool showProgramIndex;
 }
