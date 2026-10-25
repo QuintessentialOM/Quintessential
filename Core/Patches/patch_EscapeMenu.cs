@@ -14,6 +14,7 @@ class patch_PauseScreen {
 			return;
         orig_RenderFrame(deltaTime);
 		if (IsModsScreenEnabled) { // Just here so that mods can overwrite this and disable the mods screen with a WrapOperation
+            if (GameLogic.instance.GetCurrentScreen() is not EscapeScreen) return;
             float num = 65f;
 			Vector2 vector2_1 = new(570f, 440f);
 			Vector2 vector2_2 = (InputManager.screenSize / 2 - vector2_1 / 2).Rounded();
