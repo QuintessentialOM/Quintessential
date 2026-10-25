@@ -125,7 +125,7 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
                 puzzleName = name,
                 journalAuthor = author,
                 permissionFlags = permissions,
-                CustomPermissions = [.. customPermissions],
+                CustomPermissions = customPermissions is null ? null : [.. customPermissions],
                 inputs = [.. inputs.Select(io => new PuzzleInputOutput((Molecule)(object)io))],
                 outputs = [.. outputs.Select(io => new PuzzleInputOutput((Molecule)(object)io))],
                 outputMultiplier = multiplier,
@@ -136,6 +136,7 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
                     ((patch_Puzzle)(object)puzzle).RemoveComponent(component.Key);
                 ((patch_Puzzle)(object)puzzle).AddComponent(component.Value);
             }
+            puzzle.CalculateCabinetBounds();
             return puzzle;
         }
     );
