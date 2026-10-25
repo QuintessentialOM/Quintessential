@@ -1,4 +1,5 @@
 ﻿using Quintessential.Internal;
+using Quintessential.Logging;
 using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
@@ -54,9 +55,10 @@ public class QuintessentialLoader
                 SetCodeModInstance(type, mod);
                 collectedCodeMods.Add(mod);
 
-
                 if (idCheckSet.Contains(mod.ModId)) throw new Exception($"Multiple mods cannot share the same id. Found multiple mods with id '{mod.ModId}'");
                 idCheckSet.Add(mod.ModId);
+
+                mod.Log = Logging.LogManager.GetModLogger(mod.ModId);
             }
 
             // Load modMeta files
@@ -287,7 +289,7 @@ public class QuintessentialLoader
     private static void SetCodeModInstance(Type type, QuintessentialMod instance) {
         var property = type.GetProperty("Instance");
         if (property == null || !property.PropertyType.IsAssignableFrom(type) || property.SetMethod != null) {
-            Logger.Log($"Failed to find Instance properity for CodeMod.\n" +
+            Logger.Log($"Failed to find Instance property for CodeMod.\n" +
                 $"Add the following line to the ModClass:\n" +
                 $"\tpublic static {type.Name} Instance {{ get; }}");
             throw new Exception("Failed to set instance for a CodeMod.");

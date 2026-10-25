@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 
 namespace Quintessential;
 
@@ -18,8 +19,11 @@ public static class Logger {
 		private set;
 	} = false;
 
+	private static Lock threadLock;
+
 	public static void Init() {
 		if (!Setup) {
+			threadLock = new();
 			LogPath = Path.Combine(QuintessentialLoader.PathLightning, "log.txt");
 			File.Delete(LogPath);
 			Log("Quintessential log");
@@ -32,7 +36,9 @@ public static class Logger {
 	/// </summary>
 	/// <param name="text">The text to log.</param>
 	public static void Log(string text) {
-		File.AppendAllText(LogPath, $"({DateTime.Now}) {text ?? "null"}\n");
+		using (threadLock.EnterScope()) {
+			File.AppendAllText(LogPath, $"({DateTime.Now}) {text ?? "null"}\n");
+		}
     }
 
     /// <summary>
@@ -41,7 +47,9 @@ public static class Logger {
     /// </summary>
     /// <param name="text">The text to log.</param>
     public static void LogNoTime(string text) {
-        File.AppendAllText(LogPath, $"{text ?? "null"}\n");
+		using (threadLock.EnterScope()) {
+        	File.AppendAllText(LogPath, $"{text ?? "null"}\n");
+		}
     }
 
 	/// <summary>
