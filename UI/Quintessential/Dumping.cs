@@ -17,7 +17,7 @@ public static class Dumping {
                 File.WriteAllText(Path.Combine(outDir, "X" + p.puzzleId + ".puzzle.jsonc"), Codecs.PUZZLE.Encode(JsonCodecMap.Instance, p).ToString());
             }
         }
-        Logger.Log($"Dumped puzzles to {outDir}");
+        QuintessentialUI.Instance.Log.Info($"Dumped puzzles to {outDir}");
         UI.OpenScreen(new NoticeScreen(
             QuintessentialUI.Instance.Translate("dumping.puzzle"),
             QuintessentialUI.Instance.Translate("dumping.puzzle.tooltip") + " \"" + outDir.Replace('\\', '/') + "\""
@@ -31,7 +31,7 @@ public static class Dumping {
             RenderTargetHandle v = RenderAtomToTarget(atomType);
             Renderer.PngFromTexture(v.GetTarget().renderedTexture).Save(Path.Combine(outDir, atomType.Id.ToString().Replace(":", "__") + ".png"));
         }
-        Logger.Log($"Dumped atom sprites to {outDir}");
+        QuintessentialUI.Instance.Log.Info($"Dumped atom sprites to {outDir}");
         UI.OpenScreen(new NoticeScreen(
             QuintessentialUI.Instance.Translate("dumping.atom_sprite"),
             QuintessentialUI.Instance.Translate("dumping.atom_sprite.tooltip") + " \"" + outDir.Replace('\\', '/') + "\""

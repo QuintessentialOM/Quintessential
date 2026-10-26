@@ -1,5 +1,6 @@
 ﻿using MonoMod;
 using Quintessential;
+using Quintessential.Internal;
 using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
@@ -29,8 +30,8 @@ internal class patch_WorkshopManager {
 
                     orig.Add(puzzle);
                 } catch (Exception e) {
-                    Logger.Log($"Exception loading custom puzzle from path \"{Path.GetRelativePath(PlatformBridge.savePath, puzzleFilePath)}\":");
-                    Logger.Log(e.Message);
+                    QuintessentialData.Instance.Log.Warn($"Exception loading custom puzzle from path \"{Path.GetRelativePath(PlatformBridge.savePath, puzzleFilePath)}\":");
+                    QuintessentialData.Instance.Log.Warn(e.Message);
                     continue;
                 }
             }
@@ -49,8 +50,8 @@ internal class patch_WorkshopManager {
                 if (!QuintessentialLoader.TryLoadPuzzle(Path.GetDirectoryName(puzzleFilePath), Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(puzzleFilePath)), "", out Puzzle puzzle)) continue;
                 patch_LegacyPorting.ExportPuzzleNewFormat(puzzleFilePath, patch_LegacyPorting.ExportFolder, puzzle);
             } catch (Exception e) {
-                Logger.Log($"Exception loading legacy puzzle from path \"{Path.GetRelativePath(PlatformBridge.savePath, puzzleFilePath)}\":");
-                Logger.Log(e);
+                QuintessentialData.Instance.Log.Warn($"Exception loading legacy puzzle from path \"{Path.GetRelativePath(PlatformBridge.savePath, puzzleFilePath)}\":");
+                QuintessentialData.Instance.Log.Warn(e);
                 continue;
             }
         }
