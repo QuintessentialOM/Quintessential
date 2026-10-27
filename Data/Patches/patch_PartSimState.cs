@@ -6,6 +6,7 @@ using Quintessential;
 using Quintessential.Components;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using static Quintessential.CycleEvent;
 
@@ -36,6 +37,9 @@ public class patch_PartSimState : IComponentHolder<patch_PartSimState, ISimState
             throw new Exception("Identifier was not contained on object.");
         }
         return ext;
+    }
+    public ReadOnlyDictionary<Identifier, ISimStateComponent> GetComponents() {
+        return new ReadOnlyDictionary<Identifier, ISimStateComponent>(Components);
     }
     public bool RemoveComponent(Identifier toRemove) {
         if (Components.TryGetValue(toRemove, out ISimStateComponent value))

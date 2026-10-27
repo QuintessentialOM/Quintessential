@@ -3,6 +3,7 @@ using Quintessential.Components;
 using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 
 public class patch_JournalVolume : ISerializableComponentHolder<patch_JournalVolume, IJournalVolumeComponent> {
@@ -34,6 +35,9 @@ public class patch_JournalVolume : ISerializableComponentHolder<patch_JournalVol
             throw new Exception("Identifier was not contained on object.");
         }
         return ext;
+    }
+    public ReadOnlyDictionary<Identifier, IJournalVolumeComponent> GetComponents() {
+        return new ReadOnlyDictionary<Identifier, IJournalVolumeComponent>(Components);
     }
     public bool RemoveComponent(Identifier toRemove) {
         if (Components.TryGetValue(toRemove, out IJournalVolumeComponent value))

@@ -8,6 +8,7 @@ using Quintessential.Components;
 using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using static Quintessential.CycleEvent;
 
@@ -40,6 +41,9 @@ public class patch_Atom : ISerializableComponentHolder<patch_Atom, IAtomComponen
             throw new Exception("Identifier was not contained on object.");
         }
         return ext;
+    }
+    public ReadOnlyDictionary<Identifier, IAtomComponent> GetComponents() {
+        return new ReadOnlyDictionary<Identifier,IAtomComponent>(Components);
     }
     public bool RemoveComponent(Identifier toRemove) {
         if (Components.TryGetValue(toRemove, out IAtomComponent value))

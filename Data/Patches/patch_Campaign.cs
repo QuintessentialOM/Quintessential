@@ -3,6 +3,7 @@ using Quintessential.Components;
 using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 
 public class patch_Campaign : ISerializableComponentHolder<patch_Campaign, ICampaignComponent> {
@@ -34,6 +35,9 @@ public class patch_Campaign : ISerializableComponentHolder<patch_Campaign, ICamp
             throw new Exception("Identifier was not contained on object.");
         }
         return ext;
+    }
+    public ReadOnlyDictionary<Identifier, ICampaignComponent> GetComponents() {
+        return new ReadOnlyDictionary<Identifier, ICampaignComponent>(Components);
     }
     public bool RemoveComponent(Identifier toRemove) {
         if (Components.TryGetValue(toRemove, out ICampaignComponent value))

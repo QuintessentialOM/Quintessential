@@ -8,6 +8,7 @@ using Quintessential.Components;
 using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Globalization;
 using System.IO;
@@ -43,6 +44,9 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
             throw new Exception("Identifier was not contained on object.");
         }
         return ext;
+    }
+    public ReadOnlyDictionary<Identifier, ISolutionComponent> GetComponents() {
+        return new ReadOnlyDictionary<Identifier, ISolutionComponent>(Components);
     }
     public bool RemoveComponent(Identifier toRemove) {
         if (Components.TryGetValue(toRemove, out ISolutionComponent value))

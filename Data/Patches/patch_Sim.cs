@@ -9,6 +9,7 @@ using Quintessential;
 using Quintessential.Components;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using static Quintessential.CycleEvent;
 using static Quintessential.PartCycleDelegate;
@@ -39,6 +40,9 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
             throw new Exception("Identifier was not contained on object.");
         }
         return ext;
+    }
+    public ReadOnlyDictionary<Identifier, ISimComponent> GetComponents() {
+        return new ReadOnlyDictionary<Identifier, ISimComponent>(Components);
     }
     public bool RemoveComponent(Identifier toRemove) {
         if (Components.TryGetValue(toRemove, out ISimComponent value))
