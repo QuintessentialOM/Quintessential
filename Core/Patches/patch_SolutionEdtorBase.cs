@@ -15,8 +15,8 @@ abstract class patch_SolutionEditorBase : SolutionEditorBase
     public void RenderPartBase(Part part, Vector2 pos)
     {
         orig_RenderPartBase(part, pos);
-        IntermediatePartState class195 = GetIntermState(part, pos);
-        PartRenderer renderer = new(class195.pos, class195.rotation, Editor.method_922());
+        IntermediatePartState intermediateState = GetIntermState(part, pos);
+        PartRenderer renderer = new(intermediateState.pos, intermediateState.rotation, Editor.GetLightSourcePosition());
         foreach (var r in QApi.PartRenderers)
             if (r.Item1(part))
                 r.Item2(part, pos, this, renderer);

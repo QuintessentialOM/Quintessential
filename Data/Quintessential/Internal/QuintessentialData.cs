@@ -239,15 +239,15 @@ internal class QuintessentialData : QuintessentialMod, IDataMod {
 //            Puzzles.campaignPuzzles[^1] = Pu;
 
 //            Solu = Codecs.SOLUTION.Decode(JsonCodecMap.Instance, JsonNode.Parse(File.ReadAllText(solutionPath)));
-//            GameLogic.instance.field_2461.Add(Solu);
+//            GameLogic.instance.globalSolutions.Add(Solu);
 //        }
 
 //        //Logger.LogNoTime(p.puzzleId);
-//        //Logger.LogNoTime(GameLogic.instance.field_2461[^1].GetPuzzle().puzzleId);
+//        //Logger.LogNoTime(GameLogic.instance.globalSolutions[^1].GetPuzzle().puzzleId);
 //        //p.puzzleId = "TestClone";
-//        //GameLogic.instance.field_2461[^1].name = "Loaded Puzzle";
-//        //((patch_Solution)(object)GameLogic.instance.field_2461[^1]).TestSetPuzzle(p);
+//        //GameLogic.instance.globalSolutions[^1].name = "Loaded Puzzle";
+//        //((patch_Solution)(object)GameLogic.instance.globalSolutions[^1]).TestSetPuzzle(p);
 //        GameLogic.instance.PopScreen();
-//        GameLogic.instance.PushScreen(new PuzzleInfoScreen(Pu, Assets.musicTracks.field_4507, Assets.sounds.fanfare_solving4, MaybeHelper.empty), MaybeHelper.empty, Transitions.raise);
+//        GameLogic.instance.PushScreen(new PuzzleInfoScreen(Pu, Assets.musicTracks.solving8, Assets.sounds.fanfare_solving4, MaybeHelper.empty), MaybeHelper.empty, Transitions.raise);
 //    }
 //}

@@ -157,7 +157,7 @@ public static class QApi {
 	/// <param name="productionChamber">The chamber type to add.</param>
 	/// <param name="autoCentre">
 	/// Whether to automatically assign a centred offset for the chamber's overlay texture.<br/>
-	/// Otherwise, the chamber's <c>field_1730</c> must have its offset<br/>
+	/// Otherwise, the chamber's <c>borderTexture</c> must have its offset<br/>
 	/// assigned by <c>UI.AssignOffset</c>, or the chamber will be visually incorrect.
 	/// </param>
 	public static void AddProductionChamber(this QuintessentialMod mod, string id, ProductionChamber productionChamber, bool autoCentre = true){

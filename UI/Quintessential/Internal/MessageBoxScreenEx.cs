@@ -5,12 +5,12 @@ namespace Quintessential.Internal;
 
 
 // TODO: replace with more generic free text input
-internal sealed class MessageBoxScreenEx : IScreen{
+internal sealed class MessageBoxScreenEx : IScreen {
 	private const float cursorBlinkSpeed = 1.2f;
 	private Bounds2 bounds;
-	private bool field_2624 = true;
+	private bool hasCornerCutout = true;
 	private string title;
-	private Maybe<string> field_2626;
+	private Maybe<string> subtitle;
 	private string confirmText;
 	private bool confirmable;
 	private string cancelText;
@@ -37,7 +37,7 @@ internal sealed class MessageBoxScreenEx : IScreen{
 	public bool PreventLowerScreenUpdates() => false;
 
 	public void RenderFrame(float deltaTime){
-		if(field_2624){
+		if(hasCornerCutout){
 			TextureRenderer.RenderMasked(Assets.textures.window.overlay, Color.White, bounds.Min, Bounds2.WithSize(bounds.Min.X, bounds.Min.Y, bounds.Width - 27f, bounds.Height));
 			TextureRenderer.RenderMasked(Assets.textures.window.overlay, Color.White, bounds.Min, Bounds2.WithSize(bounds.Max.X - 27f, bounds.Min.Y, 27f, bounds.Height - 27f));
 		}else
@@ -68,9 +68,9 @@ internal sealed class MessageBoxScreenEx : IScreen{
 
 				cursorBlink = 0.0f;
 			}
-		}else if(field_2626.HasValue()){
+		}else if(subtitle.HasValue()){
 			TextureRenderer.RenderText(title, centre + new Vector2(0.0f, 70f), Assets.fonts.crimson_16_5, UIConsts.lightTextColor, TextAlignment.Center, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), null, int.MaxValue, false, true);
-			TextureRenderer.RenderText(field_2626.GetValue(), centre + new Vector2(0.0f, 30f), Assets.fonts.crimson_16_5, UIConsts.lightTextColor, TextAlignment.Center, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), null, int.MaxValue, false, true);
+			TextureRenderer.RenderText(subtitle.GetValue(), centre + new Vector2(0.0f, 30f), Assets.fonts.crimson_16_5, UIConsts.lightTextColor, TextAlignment.Center, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), null, int.MaxValue, false, true);
 		}else
 			TextureRenderer.RenderText(title, centre + new Vector2(0.0f, 30f), Assets.fonts.crimson_16_5, UIConsts.lightTextColor, TextAlignment.Center, 1f, 0.6f, float.MaxValue, float.MaxValue, 0, new Color(), null, int.MaxValue, false, true);
 
