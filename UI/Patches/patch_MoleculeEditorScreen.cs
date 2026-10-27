@@ -25,7 +25,7 @@ class patch_MoleculeEditorScreen
     private static readonly Texture nextAtomsFaded = AssetLoaderHelper.LoadTexture("textures/editor_go_right_faded");
     private static readonly Texture nextAtomsHover = AssetLoaderHelper.LoadTexture("textures/editor_go_right_hover");
     // for measuring stuff in debugging
-    //private static readonly Texture dot = class_235.method_618(Color.Red);
+    //private static readonly Texture dot = AssetLoaderHelper.ColorTexture(Color.Red);
 
     private static BondType summedTriplexPlaceHolder = new("quintessential_ui:triplex_placeholder", null, null, null);
 

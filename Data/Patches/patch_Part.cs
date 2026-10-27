@@ -276,7 +276,7 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
         Codecs.INT.Seal("Rotation", (Part part) => part.GetRotation().GetNumberOfTurns()).WithDefault(0).WriteDefautIf(part => part.GetType().canRotateInEditor),
         Codecs.INT.Seal("IOIndex", (Part part) => part.GetInputOutputIndex()).WithDefault(0).WriteDefautIf(part => PartTag.PartTags["om:inputoutput"].HasPart(part)),
         Codecs.INT.Seal("ProgramIndex", (Part part) => part.programIndex).WithDefault(0).WriteDefautIf(part => PartTag.PartTags["om:programmable"].HasPart(part)),
-        programCodec.Seal("Program", (Part part) => new Dictionary<int, InstructionType>(part.program.method_902().ToList().Select(indexed => KeyValuePair.Create(indexed.index, indexed.instruction)))).WithDefault([]).WriteDefautIf(part => PartTag.PartTags["om:programmable"].HasPart(part)),
+        programCodec.Seal("Program", (Part part) => new Dictionary<int, InstructionType>(part.program.GetInstructionsWithIndices().ToList().Select(indexed => KeyValuePair.Create(indexed.index, indexed.instruction)))).WithDefault([]).WriteDefautIf(part => PartTag.PartTags["om:programmable"].HasPart(part)),
         Codecs.LIST_HEXINDEX.Seal("Track", (Part part) => part.GetTrack()?.ToList() ?? []).WithDefault([]),
         Codecs.INT.Seal("ConduitId", (Part part) => part.conduitId).WithDefault(0).WriteDefautIf(part => part.GetType().Id == "om:conduit"),
         Codecs.LIST_HEXINDEX.Seal("Conduit", (Part part) => part?.GetConduitHexes() ?? []).WithDefault([]),

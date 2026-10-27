@@ -45,7 +45,7 @@ class patch_GameLogic {
         SDL.SDL_SetWindowPosition(window.window, settingsData.windowXPos.Get(), settingsData.windowYPos.Get());
     }
 
-    [MonoModILInject("method_944")]
+    [MonoModILInject("UpdateLoadingProgress")]
     static void PatchWindowPositionSet1(MethodDefinition method, CustomAttribute attribute) {
         if (!method.HasBody) {
             throw new Exception("Unable to patch window position set1. (no body)");
@@ -65,7 +65,7 @@ class patch_GameLogic {
         cursor.EmitCallvirt(call);
     }
 
-    [MonoModILInject("method_959")]
+    [MonoModILInject("UpdateFullscreenStateAndResolution")]
     static void PatchWindowPositionSet2(MethodDefinition method, CustomAttribute attribute) {
         if (!method.HasBody) {
             throw new Exception("Unable to patch window position set2. (no body)");

@@ -5,10 +5,10 @@ using System.Linq;
 
 public class patch_SolutionManager {
     [MonoModIgnore]
-    public static extern List<Solution> orig_method_2143();
+    public static extern List<Solution> orig_LoadAllSolutions();
 
-    public static List<Solution> method_2143() {
-        var orig = orig_method_2143();
+    public static List<Solution> LoadAllSolutions() {
+        var orig = orig_LoadAllSolutions();
 
         string[] ExtraFileExtensions = {
             ".json",
