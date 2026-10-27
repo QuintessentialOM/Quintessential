@@ -53,4 +53,6 @@ class patch_PartType{
 
     public Vector2 programIndexOffset;
     public bool showProgramIndex;
+    public bool isArmLike;
+    public bool isWheelLike;
 }
