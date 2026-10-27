@@ -50,9 +50,9 @@ class ModsScreen : IScreen {
 		if(UI.DrawAndCheckCloseButton(pos, size, new Vector2(104, 98)))
 			UI.HandleCloseButton();
 
-        if (InputManager.IsKeyHeld(SDL.SDLKey.SDLK_DOWN)) {
+        if (InputManager.IsKeyTyped(SDL.SDLKey.SDLK_DOWN)) {
             selectedIndex = Math.Min(selectedIndex + 1, QuintessentialLoader.Mods.Count - 1);
-        } else if (InputManager.IsKeyHeld(SDL.SDLKey.SDLK_UP)) {
+        } else if (InputManager.IsKeyTyped(SDL.SDLKey.SDLK_UP)) {
             selectedIndex = Math.Max(selectedIndex - 1, 0);
         }
 

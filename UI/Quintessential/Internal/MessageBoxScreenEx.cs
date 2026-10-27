@@ -59,7 +59,7 @@ internal sealed class MessageBoxScreenEx : IScreen {
 				cursorBlink = 0.0f;
 			}
             
-            if (InputManager.IsKeyHeld(SDL.SDLKey.SDLK_BACKSPACE) && text.Length > 0) {
+            if (InputManager.IsKeyTyped(SDL.SDLKey.SDLK_BACKSPACE) && text.Length > 0) {
 				if (InputManager.IsModifierKeyHeld(ModifierKeyType.Ctrl)) {
 					text = text.TrimEnd();
 					text = text[..(text.LastIndexOf(' ') + 1)];
