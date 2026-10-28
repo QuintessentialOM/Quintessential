@@ -303,7 +303,13 @@ public interface IChapterComponent : IComponent<patch_CampaignChapter> { }
 /// <summary>
 /// A component interface for storing data on a <see cref="CampaignItem"/>
 /// </summary>
-public interface ICampaignItemComponent : IComponent<patch_CampaignItem> { }
+public interface ICampaignItemComponent : IComponent<patch_CampaignItem> {
+    /// <summary>
+    /// Called when the capaign item is clicked in the puzzle select.
+    /// </summary>
+    /// <param name="handleAsVanilla">Set to false to stop the puzzle from being parsed normally.</param>
+    public virtual void OnSelected(ref bool handleAsVanilla) { }
+}
 /// <summary>
 /// A component interface for storing data on a <see cref="Journal"/>
 /// </summary>

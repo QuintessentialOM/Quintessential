@@ -1,9 +1,14 @@
-﻿using Quintessential;
+﻿using Mono.Cecil;
+using MonoMod;
+using MonoMod.Cil;
+using MonoMod.InlineRT;
+using Quintessential;
 using Quintessential.Components;
 using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 
 public class patch_CampaignItem : ISerializableComponentHolder<patch_CampaignItem, ICampaignItemComponent> {
@@ -49,6 +54,39 @@ public class patch_CampaignItem : ISerializableComponentHolder<patch_CampaignIte
     internal static Dictionary<Identifier, Codec<ICampaignItemComponent>> RegisteredComponents = [];
     public static void RegisterComponent(Identifier Id, Codec<ICampaignItemComponent> codec) {
         RegisteredComponents[Id] = codec;
+    }
+
+    #endregion
+
+    #region ComponentCalls
+
+    internal void OnSelected(ref bool handleAsVanilla) {
+        Identifier[] componentIDs = [.. Components.Keys];
+        for (int i = 0; i < componentIDs.Length; i++) {
+            if (Components.TryGetValue(componentIDs[i], out var component))
+                component.OnSelected(ref handleAsVanilla);
+        }
+    }
+
+    #endregion
+
+    #region Ctor
+
+    public void InitObjectsInCtor() {
+        Components = [];
+    }
+
+    [MonoModILInject(".ctor")]
+    static void PatchCtor(MethodDefinition method, CustomAttribute attribute) {
+
+        MonoModRule.Modder.Log("Patching Sim init.");
+        if (!method.HasBody) {
+            throw new Exception("Unable to patch Sim init. (no body)");
+        }
+        ILCursor cursor = new(new ILContext(method));
+        MethodReference init = method.DeclaringType.Methods.First(f => f.Name.Equals("InitObjectsInCtor"));
+        cursor.EmitLdarg0();
+        cursor.EmitCall(init);
     }
 
     #endregion
