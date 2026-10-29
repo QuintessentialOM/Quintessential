@@ -201,9 +201,11 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
         if (enabledVanillaFormat) {
             try {
                 Solution s = (Solution)(object)this;
-                var transformed = Solution.FromData(s.ToData(), s.nameOnDisk, s.creationTime);
-                if (transformed.HasValue())
-                    isVanillaSafe = encoded.ToJsonString() == SOLUTION.Encode(JsonCodecMap.Instance, transformed.GetValue()).ToJsonString();
+                if (!s.parts.Any(part => ((patch_EditableProgram)(object)part.program).GetInstructions().Any(instr => ((patch_InstructionType)instr.Value).id == ':'))) {
+                    var transformed = Solution.FromData(s.ToData(), s.nameOnDisk, s.creationTime);
+                    if (transformed.HasValue())
+                        isVanillaSafe = encoded.ToJsonString() == SOLUTION.Encode(JsonCodecMap.Instance, transformed.GetValue()).ToJsonString();
+                }
             } catch { }
         }
 

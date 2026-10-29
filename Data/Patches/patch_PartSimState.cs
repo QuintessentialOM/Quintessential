@@ -81,11 +81,12 @@ public class patch_PartSimState : IComponentHolder<patch_PartSimState, ISimState
                 component.OnSpawnMolecules(occupied);
         }
     }
-    internal void OnInstruction(InstructionType instruction, Maybe<int> index, InstructionCycleState instructionState) {
+    internal void OnInstruction(InstructionType instruction, Maybe<int> index, InstructionCycleState instructionState, ref bool handleAsVanilla) {
+        if (instruction.category == InstructionCategory.Custom) handleAsVanilla = false;
         Identifier[] componentIDs = [.. Components.Keys];
         for (int i = 0; i < componentIDs.Length; i++) {
             if (Components.TryGetValue(componentIDs[i], out var component))
-                component.OnInstruction(instruction, index, instructionState);
+                component.OnInstruction(instruction, index, instructionState, ref handleAsVanilla);
         }
     }
     internal void OnGrabStateChange(Maybe<Molecule> molecule, bool newState) {

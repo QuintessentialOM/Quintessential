@@ -125,7 +125,8 @@ public interface ISimStateComponent : IComponent<patch_PartSimState, Part, Sim?>
     /// <param name="instruction">The instruction to be executed.</param>
     /// <param name="index">The index of the instruction.</param>
     /// <param name="instructionState">The time when the execution is happeding.</param>
-    public virtual void OnInstruction(InstructionType instruction, Maybe<int> index, InstructionCycleState instructionState) { }
+    /// <param name="handleAsVanilla">Set to false to stop the instruction from being handled normally.</param>
+    public virtual void OnInstruction(InstructionType instruction, Maybe<int> index, InstructionCycleState instructionState, ref bool handleAsVanilla) { }
     /// <summary>
     /// Called when the grab state of the part is changed, befor the <see cref="Molecule"/> is released or after it's grabbed.
     /// </summary>
@@ -307,7 +308,7 @@ public interface ICampaignItemComponent : IComponent<patch_CampaignItem> {
     /// <summary>
     /// Called when the capaign item is clicked in the puzzle select.
     /// </summary>
-    /// <param name="handleAsVanilla">Set to false to stop the puzzle from being parsed normally.</param>
+    /// <param name="handleAsVanilla">Set to false to stop the campaign item from being parsed normally.</param>
     public virtual void OnSelected(ref bool handleAsVanilla) { }
 }
 /// <summary>

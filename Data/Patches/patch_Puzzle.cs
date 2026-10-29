@@ -236,6 +236,22 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
 
     #endregion
 
+    #region Custom Instructions
+
+    [MonoModIgnore]
+    public extern bool orig_HasPermissionForInstr(InstructionType instructionType);
+    public bool HasPermissionForInstr(InstructionType instructionType) {
+        if (instructionType == null) return false;
+        if (instructionType.category == InstructionCategory.Custom) {
+            ((Puzzle)(object)this).CustomPermissions ??= [];
+            return ((patch_InstructionType)instructionType).CustomPermissionCheck == null ||
+                ((patch_InstructionType)instructionType).CustomPermissionCheck(((Puzzle)(object)this).CustomPermissions);
+        }
+        return orig_HasPermissionForInstr(instructionType);
+    }
+
+    #endregion
+
     #region Ctor
 
     public void InitObjectsInCtor() {

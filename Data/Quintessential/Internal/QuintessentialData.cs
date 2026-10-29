@@ -1,12 +1,4 @@
-﻿using Quintessential.Components;
-using Quintessential.Serialization;
-using System.IO;
-using System.Linq;
-//using Quintessential.Settings;
-//using System;
-//using System.IO;
-//using System.Text.Json.Nodes;
-//using YamlDotNet.Serialization;
+﻿using Quintessential.Serialization;
 
 namespace Quintessential.Internal;
 
@@ -44,6 +36,23 @@ internal class QuintessentialData : QuintessentialMod, IDataMod {
 
         this.AddRecipe(new GlyphRecipe(VanillaRecipes.BasicUnification), "om:unification", "om:unification");
         this.AddRecipe(new GlyphRecipe(VanillaRecipes.BasicDispersion), "om:dispersion", "om:dispersion");
+
+        QApi.AddInstructionTray(new() {
+            { InstructionPosition.Row1Column1, InstructionTypes.pivotLeft },
+            { InstructionPosition.Row1Column2, InstructionTypes.extend },
+            { InstructionPosition.Row1Column3, InstructionTypes.pivotRight },
+            { InstructionPosition.Row1Column4, InstructionTypes.drop },
+            { InstructionPosition.Row1Column5, InstructionTypes.moveMinus },
+            { InstructionPosition.Row2Column1, InstructionTypes.rotateLeft },
+            { InstructionPosition.Row2Column2, InstructionTypes.retract },
+            { InstructionPosition.Row2Column3, InstructionTypes.rotateRight },
+            { InstructionPosition.Row2Column4, InstructionTypes.grab },
+            { InstructionPosition.Row2Column5, InstructionTypes.movePlus },
+            { InstructionPosition.Row3Column2, InstructionTypes.periodOverride },
+            { InstructionPosition.Row3Column3, InstructionTypes.reset },
+            { InstructionPosition.Row3Column4, InstructionTypes.repeat },
+            { InstructionPosition.Row3Column5, InstructionTypes.halt },
+        });
 
         /*
         this.AddRecipe(new GlyphRecipe((sim, part) => {
@@ -204,13 +213,20 @@ internal class QuintessentialData : QuintessentialMod, IDataMod {
         //}, GetIdentifier("quix_duplication"));
     }
     public override void LoadCompatContent() { }
-    public override void FinaliseContent() { }
+    public override void FinaliseContent() {
+        // TODO find a better place for this!
+        InstructionPlacementOptimiser.CompactInstructionTrays();
+    }
 
     public override void PostLoad() { }
     public override void Unload() { }
 }
 
 //public class QuintessentialDataSettings {
+//    public static QuintessentialDataSettings Instance => QuintessentialData.Instance.Settings as QuintessentialDataSettings;
+
+//    [SettingsLabelKey("quintessential_data.settings.test_instruction")]
+//	public Keybinding TestInstruction = new(SDL.SDL_GetKeyName(SDL.SDLKey.SDLK_m));
 
 //    [SettingsLabelKey("quintessential_data.settings.run_test")]
 //    [YamlIgnore]

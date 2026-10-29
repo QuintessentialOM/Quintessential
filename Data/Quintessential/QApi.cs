@@ -1,11 +1,13 @@
 ﻿using Quintessential.Components;
 using System;
 using System.Collections.Generic;
+using static Quintessential.Internal.InstructionPlacementOptimiser;
 
 namespace Quintessential;
 public static class QApi {
     public static readonly List<BondType> ModBondTypes = [];
     public static readonly List<AtomRendererDelegate> AtomRenderers = [];
+    internal static List<InstructionTray> InstructionTrays = [];
 
     // TODO link to online documentation
     /// <summary>
@@ -28,6 +30,39 @@ public static class QApi {
         glyphRecipes.Add(recipeId, recipe);
     }
 
+    /// <summary>
+    /// Adds an instruction type to the list of all instruction types.
+    /// </summary>
+    /// <param name="mod">The mod that adds the instruction.</param>
+    /// <param name="type">The instruction type to be added.</param>
+    /// <param name="id">The <b>name</b> of the id of the instruction.</param>
+    public static void AddInstructionType(this QuintessentialMod mod, InstructionType type, string id) {
+        ((patch_InstructionType)(object)type).id = ':';
+        type.Id = mod.GetIdentifier(id);
+        type.name = mod.Translate("instructions." + id);
+        type.description = mod.Translate("instructions." + id + ".description");
+        type.category = InstructionCategory.Custom;
+
+        Array.Resize(ref InstructionTypes.instructions, InstructionTypes.instructions.Length + 1);
+        InstructionTypes.instructions[^1] = type;
+    }
+
+    /// <summary>
+    /// Adds an arrangement of instructions to the panel to be able to be selected.
+    /// </summary>
+    /// <param name="tray">The arrangement of instructions.</param>
+    /// <param name="canRelocate">Whether this the provided positions are only relative.<br/>If <i>true</i> the section can be moved relative to the global grid to conserve space.</param>
+    public static void AddInstructionTray(Dictionary<InstructionPosition, InstructionType> tray, bool canRelocate = true) {
+        InstructionTrays.Add(new() { Tray = tray, CanRelocate = canRelocate});
+    }
+
+    /// <summary>
+    /// Adds a single instruction to the panel to be selected.
+    /// </summary>
+    /// <param name="instruction">The instruction to add.</param>
+    public static void AddInstructionToTray(InstructionType instruction) {
+        InstructionTrays.Add(new() { Tray = new() { { InstructionPosition.Row1Column1, instruction } }, Size = (1, 1), CanRelocate = true, Position = (0, 0) });
+    }
 
     // TODO link to online documentation
     /// <summary>
