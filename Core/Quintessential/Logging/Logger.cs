@@ -23,14 +23,21 @@ public class Logger {
 		return Thread.CurrentThread.Name != null ? "[Thread.CurrentThread.Name] " : $"<Thread {Thread.CurrentThread.ManagedThreadId}> ";
 	}
 
+	private static readonly string prefixTrace = new AnsiFormat().Foreground4Bit(AnsiFormat.FourBitColor.Gray) + "[TRACE]" + AnsiFormat.Reset() + " ";
+	private static readonly string prefixDebug = "[DEBUG]" + " ";
+	private static readonly string prefixInfo = new AnsiFormat().Foreground4Bit(AnsiFormat.FourBitColor.Blue) + "[INFO]" + AnsiFormat.Reset() + " ";
+	private static readonly string prefixWarn = new AnsiFormat().Foreground4Bit(AnsiFormat.FourBitColor.Yellow) + "[WARN]" + AnsiFormat.Reset() + " ";
+	private static readonly string prefixError = new AnsiFormat().Foreground4Bit(AnsiFormat.FourBitColor.Red) + "[ERROR]" + AnsiFormat.Reset() + " ";
+	private static readonly string prefixCritical = new AnsiFormat().Background4Bit(AnsiFormat.FourBitColor.Red).Foreground4Bit(AnsiFormat.FourBitColor.Black) + "[CRITICAL]" + AnsiFormat.Reset() + " ";
+
 	private static string GetLogLevelPrefix(LogLevel logLevel) {
 		return logLevel switch {
-			LogLevel.Trace => "[TRACE] ",
-			LogLevel.Debug => "[DEBUG] ",
-			LogLevel.Info => "[INFO] ",
-			LogLevel.Warn => "[WARN] ",
-			LogLevel.Error => "[ERROR] ",
-			LogLevel.Critical => "[CRITICAL] ",
+			LogLevel.Trace => prefixTrace,
+			LogLevel.Debug => prefixDebug,
+			LogLevel.Info => prefixInfo,
+			LogLevel.Warn => prefixWarn,
+			LogLevel.Error => prefixError,
+			LogLevel.Critical => prefixCritical,
 			_ => ""
 		};
 	}
@@ -50,7 +57,7 @@ public class Logger {
 		sb.Append(GetModIdPrefix());
 
 		if (message != null) {
-			sb.AppendFormat(message, formatArgs);
+			sb.Append(AnsiFormat.Unescape(string.Format(AnsiFormat.Escape(message), formatArgs)));
 		} else {
 			sb.Append("null");
 		}
