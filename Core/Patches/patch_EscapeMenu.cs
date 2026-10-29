@@ -1,17 +1,17 @@
 ﻿using MonoMod;
 using Quintessential;
+using YamlDotNet.Core.Tokens;
 
 #pragma warning disable CS0626 // Method, operator, or accessor is marked external and has no attributes on it
 
 [MonoModPatch("EscapeScreen")]
-class patch_PauseScreen {
+class patch_EscapeScreen {
 	public static readonly bool IsModsScreenEnabled = true;
 
 	public extern void orig_RenderFrame(float deltaTime);
 
 	public void RenderFrame(float deltaTime) {
-		if(GameLogic.instance.GetCurrentScreen() is ModsScreen)
-			return;
+        if (GameLogic.instance.GetCurrentScreen() is not EscapeScreen) return;
         orig_RenderFrame(deltaTime);
 		if (IsModsScreenEnabled) { // Just here so that mods can overwrite this and disable the mods screen with a WrapOperation
             float num = 65f;
@@ -21,7 +21,7 @@ class patch_PauseScreen {
 			if(UIUtils.TextButton(Translations.Translate("Mods"), vector2_2 + vector2_3).RenderAndCheckIfPressed(true,true)) {
                 // show mod options
                 UI.OpenScreen(new ModsScreen());
-			}
+            }
 		}
 	}
 }

@@ -9,6 +9,7 @@ using Quintessential;
 using Quintessential.Components;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using static Quintessential.CycleEvent;
@@ -40,6 +41,9 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
             throw new Exception("Identifier was not contained on object.");
         }
         return ext;
+    }
+    public ReadOnlyDictionary<Identifier, ISimComponent> GetComponents() {
+        return new ReadOnlyDictionary<Identifier, ISimComponent>(Components);
     }
     public bool RemoveComponent(Identifier toRemove) {
         if (Components.TryGetValue(toRemove, out ISimComponent value))
@@ -100,6 +104,12 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
         FieldReference simulationDict = cursor.Prev.Operand as FieldReference;
         MethodReference getItem = cursor.Next.Next.Operand as MethodReference;
         cursor.Goto(start, MoveType.After);
+
+        method.Body.Variables.Add(new VariableDefinition(method.Body.Variables[20].VariableType));
+        var handleAsVanilla = method.Body.Variables[^1];
+        cursor.EmitLdcI4(1);
+        cursor.EmitStloc(handleAsVanilla);
+
         cursor.EmitLdarg0();
         cursor.EmitLdfld(simulationDict);
         cursor.EmitLdloc1();
@@ -107,7 +117,15 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
         cursor.EmitLdloc3();
         cursor.EmitLdloc2();
         cursor.EmitLdarg1();
+        cursor.EmitLdloca(handleAsVanilla);
         cursor.EmitCall(onCall);
+
+        start = cursor.Prev;
+        cursor.GotoNext(MoveType.After, instr => instr.OpCode == OpCodes.Brfalse);
+        Instruction end = cursor.Prev.Operand as Instruction;
+        cursor.Goto(start, MoveType.After);
+        cursor.EmitLdloc(handleAsVanilla);
+        cursor.Emit(OpCodes.Brfalse, end);
     }
     [MonoModILInject("Grab")]
     static void PatchGrab(MethodDefinition method, CustomAttribute attribute) {

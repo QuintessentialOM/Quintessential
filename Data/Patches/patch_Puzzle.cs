@@ -7,6 +7,7 @@ using Quintessential.Components;
 using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Nodes;
@@ -40,6 +41,9 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
             throw new Exception("Identifier was not contained on object.");
         }
         return ext;
+    }
+    public ReadOnlyDictionary<Identifier, IPuzzleComponent> GetComponents() {
+        return new ReadOnlyDictionary<Identifier, IPuzzleComponent>(Components);
     }
     public bool RemoveComponent(Identifier toRemove) {
         if (Components.TryGetValue(toRemove, out IPuzzleComponent value))
@@ -125,7 +129,7 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
                 puzzleName = name,
                 journalAuthor = author,
                 permissionFlags = permissions,
-                CustomPermissions = [.. customPermissions],
+                CustomPermissions = customPermissions is null ? null : [.. customPermissions],
                 inputs = [.. inputs.Select(io => new PuzzleInputOutput((Molecule)(object)io))],
                 outputs = [.. outputs.Select(io => new PuzzleInputOutput((Molecule)(object)io))],
                 outputMultiplier = multiplier,
@@ -136,6 +140,7 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
                     ((patch_Puzzle)(object)puzzle).RemoveComponent(component.Key);
                 ((patch_Puzzle)(object)puzzle).AddComponent(component.Value);
             }
+            puzzle.CalculateCabinetBounds();
             return puzzle;
         }
     );
@@ -227,6 +232,22 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
         cursor.GotoNext(MoveType.Before, instr => instr.MatchLdfld("Bond", "type"));
         cursor.Remove();
         cursor.EmitCallvirt(getBytes);
+    }
+
+    #endregion
+
+    #region Custom Instructions
+
+    [MonoModIgnore]
+    public extern bool orig_HasPermissionForInstr(InstructionType instructionType);
+    public bool HasPermissionForInstr(InstructionType instructionType) {
+        if (instructionType == null) return false;
+        if (instructionType.category == InstructionCategory.Custom) {
+            ((Puzzle)(object)this).CustomPermissions ??= [];
+            return ((patch_InstructionType)instructionType).CustomPermissionCheck == null ||
+                ((patch_InstructionType)instructionType).CustomPermissionCheck(((Puzzle)(object)this).CustomPermissions);
+        }
+        return orig_HasPermissionForInstr(instructionType);
     }
 
     #endregion
