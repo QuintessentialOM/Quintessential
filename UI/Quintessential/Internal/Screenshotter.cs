@@ -28,7 +28,7 @@ internal class Screenshotter{
 						throw new Exception($"Failed to create surface! \"{SDL.SDL_GetError()}\"");
 					Logger.Log("Created surface!");
 					
-					var result = class_267.method_726(surface, Path.Combine(QuintessentialLoader.PathScreenshots, "screenshot-" + 1 + ".png"));
+					var result = class_267.IMG_SavePNG(surface, Path.Combine(QuintessentialLoader.PathScreenshots, "screenshot-" + 1 + ".png"));
 					if(result != 0)
 						throw new Exception($"Failed to save screenshot! \"{SDL.SDL_GetError()}\"");
 					Logger.Log("Took screenshot!");

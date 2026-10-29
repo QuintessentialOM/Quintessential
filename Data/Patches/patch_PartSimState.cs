@@ -6,6 +6,7 @@ using Quintessential;
 using Quintessential.Components;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using static Quintessential.CycleEvent;
 
@@ -36,6 +37,9 @@ public class patch_PartSimState : IComponentHolder<patch_PartSimState, ISimState
             throw new Exception("Identifier was not contained on object.");
         }
         return ext;
+    }
+    public ReadOnlyDictionary<Identifier, ISimStateComponent> GetComponents() {
+        return new ReadOnlyDictionary<Identifier, ISimStateComponent>(Components);
     }
     public bool RemoveComponent(Identifier toRemove) {
         if (Components.TryGetValue(toRemove, out ISimStateComponent value))
@@ -77,11 +81,12 @@ public class patch_PartSimState : IComponentHolder<patch_PartSimState, ISimState
                 component.OnSpawnMolecules(occupied);
         }
     }
-    internal void OnInstruction(InstructionType instruction, Maybe<int> index, InstructionCycleState instructionState) {
+    internal void OnInstruction(InstructionType instruction, Maybe<int> index, InstructionCycleState instructionState, ref bool handleAsVanilla) {
+        if (instruction.category == InstructionCategory.Custom) handleAsVanilla = false;
         Identifier[] componentIDs = [.. Components.Keys];
         for (int i = 0; i < componentIDs.Length; i++) {
             if (Components.TryGetValue(componentIDs[i], out var component))
-                component.OnInstruction(instruction, index, instructionState);
+                component.OnInstruction(instruction, index, instructionState, ref handleAsVanilla);
         }
     }
     internal void OnGrabStateChange(Maybe<Molecule> molecule, bool newState) {

@@ -130,7 +130,7 @@ public class QuintessentialLoader
             Directory.CreateDirectory(PathModSaves);
         foreach (var mod in CodeMods)
         {
-            var savePath = Path.Combine(PathModSaves, mod.ModId + ".json");
+            var savePath = Path.Combine(PathModSaves, mod.ModId + ".yaml");
             if (File.Exists(savePath))
             {
                 var settings = DataSerializer.Deserialize(savePath, mod.SettingsType);
@@ -141,7 +141,10 @@ public class QuintessentialLoader
                 } else
                     Logger.Log("Loaded null settings for mod " + Translations.Translate(mod.Meta.ModId));
             }
-            mod.Settings ??= mod.SettingsType.GetConstructor([]).Invoke([]);
+            if (mod.Settings == null) {
+                mod.Settings = mod.SettingsType.GetConstructor([]).Invoke([]);
+                mod.ApplySettings();
+            }
         }
         foreach (var mod in CodeMods)
             mod.PostLoad();

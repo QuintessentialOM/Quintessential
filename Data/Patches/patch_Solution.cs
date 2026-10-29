@@ -8,6 +8,7 @@ using Quintessential.Components;
 using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Globalization;
 using System.IO;
@@ -43,6 +44,9 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
             throw new Exception("Identifier was not contained on object.");
         }
         return ext;
+    }
+    public ReadOnlyDictionary<Identifier, ISolutionComponent> GetComponents() {
+        return new ReadOnlyDictionary<Identifier, ISolutionComponent>(Components);
     }
     public bool RemoveComponent(Identifier toRemove) {
         if (Components.TryGetValue(toRemove, out ISolutionComponent value))
@@ -197,9 +201,11 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
         if (enabledVanillaFormat) {
             try {
                 Solution s = (Solution)(object)this;
-                var transformed = Solution.FromData(s.ToData(), s.nameOnDisk, s.creationTime);
-                if (transformed.HasValue())
-                    isVanillaSafe = encoded.ToJsonString() == SOLUTION.Encode(JsonCodecMap.Instance, transformed.GetValue()).ToJsonString();
+                if (!s.parts.Any(part => ((patch_EditableProgram)(object)part.program).GetInstructions().Any(instr => ((patch_InstructionType)instr.Value).id == ':'))) {
+                    var transformed = Solution.FromData(s.ToData(), s.nameOnDisk, s.creationTime);
+                    if (transformed.HasValue())
+                        isVanillaSafe = encoded.ToJsonString() == SOLUTION.Encode(JsonCodecMap.Instance, transformed.GetValue()).ToJsonString();
+                }
             } catch { }
         }
 

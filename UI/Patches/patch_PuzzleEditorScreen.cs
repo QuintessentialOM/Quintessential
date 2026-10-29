@@ -58,9 +58,9 @@ class patch_PuzzleEditorScreen {
 			Vector2 instructionsCorner = new(nCorner.X + 489, partsCorner.Y + ruleSize.Y * 4);
 			UIUtils.RenderScreenTitle(Translations.Translate("Instructions"), instructionsCorner, 900, false, true);
 
-			InstructionType[] types = InstructionTypes.instructions;
 			var i = 0;
-			foreach (var type in types) {
+			foreach (var type in InstructionTypes.instructions) {
+                if (i >= 14) break;
 				var basePos = instructionsCorner + new Vector2(50 + 60 * i, -60);
 				var istructionPos = basePos;
 				if (type.permissionCategory == PuzzlePermissions.None)
@@ -102,7 +102,7 @@ class patch_PuzzleEditorScreen {
             //Vector2 cursor = rulesCorner + new Vector2(0, ruleSize.Y * 2.5f);
 
             // modded categories, if enabled
-            foreach (var category in QApi.PuzzleOptions.GroupBy(k => k.SectionName)) {
+            foreach (var category in QApi.PuzzleOptions.GroupBy(k => k.SectionName.ToString())) {
                 UIUtils.RenderScreenTitle(category.Key, cursor, 900, false, true);
 
                 var idx = 0;
