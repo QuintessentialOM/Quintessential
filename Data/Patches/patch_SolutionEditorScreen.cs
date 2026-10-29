@@ -4,24 +4,24 @@ using System;
 public class patch_SolutionEditorScreen {
 
     [MonoModReplace]
-    public void method_2463(Action param_8705) {
+    public void RenderAtBoardScale(Action doRender) {
         Vector2 screenSize = InputManager.screenSize;
         Index2 index = (InputManager.screenSize * ((SolutionEditorScreen)(object)this).boardScale).FlooredToInt();
-        var class_ = RenderTargetStack.stack.Peek();
+        var stackEntry = RenderTargetStack.stack.Peek();
         // § Added:
         TextureRenderer.CompleteRender();
-        RenderTargetStack.stack.Push(new RenderTargetStackEntry(class_.canvas, class_.size, class_.projectionMatrix, class_.viewMatrix
+        RenderTargetStack.stack.Push(new RenderTargetStackEntry(stackEntry.canvas, stackEntry.size, stackEntry.projectionMatrix, stackEntry.viewMatrix
             * Matrix4.GetScale(new Vector3(1f / ((SolutionEditorScreen)(object)this).boardScale, 1f / ((SolutionEditorScreen)(object)this).boardScale, 1f))));
         // § Changed:
-        Renderer.SetPerCameraConstants(class_.projectionMatrix, RenderTargetStack.stack.Peek().viewMatrix);
+        Renderer.SetPerCameraConstants(stackEntry.projectionMatrix, RenderTargetStack.stack.Peek().viewMatrix);
         // # ---------
         InputManager.screenSize = index.ToVector2();
-        param_8705();
+        doRender();
         TextureRenderer.CompleteRender();
         // § Added:
         RenderTargetStack.stack.Pop();
         // # ---------
-        Renderer.SetPerCameraConstants(class_.projectionMatrix, class_.viewMatrix);
+        Renderer.SetPerCameraConstants(stackEntry.projectionMatrix, stackEntry.viewMatrix);
         InputManager.screenSize = screenSize;
     }
 }

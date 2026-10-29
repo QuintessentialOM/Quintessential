@@ -291,17 +291,17 @@ class patch_PuzzleEditorScreen {
 		return false;
 	}
 
-	private static bool DrawPuzzleButton(Puzzle p, Vector2 param_3552, int param_3025, bool param_3553, bool param_3554, bool param_4458, bool param_4459) {
+	private static bool DrawPuzzleButton(Puzzle p, Vector2 pos, int textOverflow, bool isSelected, bool isComplete, bool isEnabled, bool canHoverAndClick) {
         bool shift = InputManager.IsModifierKeyHeld(ModifierKeyType.Shift);
         string name = shift ? "ID: " + p.puzzleId.Replace("_", "\\_") : p.puzzleName;
 
 		// draw the button
-		ButtonDrawingLogic bdl = UIUtils.PuzzleButton(name, param_3552, param_3025, param_3553, param_3554);
-        bool flag = bdl.RenderAndCheckIfPressed(param_4458, param_4459);
+		ButtonDrawingLogic bdl = UIUtils.PuzzleButton(name, pos, textOverflow, isSelected, isComplete);
+        bool flag = bdl.RenderAndCheckIfPressed(isEnabled, canHoverAndClick);
 		if (shift)
 		{
 			// draw hash line
-			TextureRenderer.RenderText("HASH: " + p.fileHash.ToString(), bdl.getBounds().Center + new Vector2(-15f, -24f), Assets.fonts.crimson_13, UI.TextColor, TextAlignment.Center, 1f, 0.6f, float.MaxValue, param_3025 - 75, 0, default, null, int.MaxValue, false, true);
+			TextureRenderer.RenderText("HASH: " + p.fileHash.ToString(), bdl.getBounds().Center + new Vector2(-15f, -24f), Assets.fonts.crimson_13, UI.TextColor, TextAlignment.Center, 1f, 0.6f, float.MaxValue, textOverflow - 75, 0, default, null, int.MaxValue, false, true);
 		}
         return flag;
     }

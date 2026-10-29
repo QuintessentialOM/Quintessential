@@ -211,16 +211,16 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
 
         if (isVanillaSafe) {
             OrderProgrammables();
-            ChangeFileExtension("", () => PlatformBridge.fileWriter.method_1355(GetFilePath(), ((Solution)(object)this).ToData()));
+            ChangeFileExtension("", () => PlatformBridge.fileWriter.WriteFile(GetFilePath(), ((Solution)(object)this).ToData()));
         } else if (string.IsNullOrWhiteSpace(ExtraFileExtension)) {
             OrderProgrammables();
-            ChangeFileExtension(".json", () => PlatformBridge.fileWriter.method_1356(GetFilePath(), encoded.ToJsonString()));
+            ChangeFileExtension(".json", () => PlatformBridge.fileWriter.WriteAsciiStringToFile(GetFilePath(), encoded.ToJsonString()));
         } else if (ExtraFileExtension == ".json") {
             OrderProgrammables();
-            PlatformBridge.fileWriter.method_1356(GetFilePath(), encoded.ToJsonString());
+            PlatformBridge.fileWriter.WriteAsciiStringToFile(GetFilePath(), encoded.ToJsonString());
         } else if (ExtraFileExtension == ".jsonc") { // Human readable version of json
             OrderProgrammables();
-            PlatformBridge.fileWriter.method_1356(GetFilePath(), encoded.ToString());
+            PlatformBridge.fileWriter.WriteAsciiStringToFile(GetFilePath(), encoded.ToString());
         } else
             throw new Exception("Invalid extra file extension '" + ExtraFileExtension + "' for solution from: " + GetFilePath());
     }

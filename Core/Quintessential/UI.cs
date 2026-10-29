@@ -129,7 +129,7 @@ public static class UI {
     /// <param name="text">The label of the button.</param>
     /// <returns>True when the button clicked.</returns>
     public static bool DrawAndCheckSimpleButton(string text, Vector2 pos, Vector2 size) {
-		return UIUtils.class_149.method_348(text, pos, size).RenderAndCheckIfPressed(true, true);
+		return UIUtils.UnusedButtons.UnusedTextButton(text, pos, size).RenderAndCheckIfPressed(true, true);
 	}
 
     #endregion

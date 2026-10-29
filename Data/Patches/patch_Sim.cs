@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using static Quintessential.CycleEvent;
 using static Quintessential.PartCycleDelegate;
 
@@ -230,7 +231,7 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
                                 Vector2 center = Utils.InterpolateVect(HexGrid.standardGrid.ToPixelCoords(pos1), HexGrid.standardGrid.ToPixelCoords(pos2), 0.5f);
                                 foreach (var type in removedTypes) {
                                     Texture[] anim = type.unbondAnim;
-                                    solutionEditor.field_3936.Add(new GlyphEffect(solutionEditor, EffectTimescaleType.RealTime, center, anim, 75f, new Vector2(1.5f, -5f), HexGrid.standardGrid.ToPixelCoords(pos2 - pos1).Angle()));
+                                    solutionEditor.glyphEffects.Add(new GlyphEffect(solutionEditor, EffectTimescaleType.RealTime, center, anim, 75f, new Vector2(1.5f, -5f), HexGrid.standardGrid.ToPixelCoords(pos2 - pos1).Angle()));
                                     PlaySound(Assets.sounds.glyph_unbonding);
                                     partSimState.wasActivated = true;
                                 }
@@ -251,7 +252,7 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
                         if (((patch_Molecule)(object)molecule1).AddBond(bondType, pos1, pos2, bondEffect)) {
 
                             Vector2 center = Utils.InterpolateVect(HexGrid.standardGrid.ToPixelCoords(pos1), HexGrid.standardGrid.ToPixelCoords(pos2), 0.5f);
-                            solutionEditor.field_3936.Add(new GlyphEffect(solutionEditor, EffectTimescaleType.RealTime, center, bondTexture.glyphAnim, 30f, Vector2.Zero, HexGrid.standardGrid.ToPixelCoords(pos2 - pos1).Angle()));
+                            solutionEditor.glyphEffects.Add(new GlyphEffect(solutionEditor, EffectTimescaleType.RealTime, center, bondTexture.glyphAnim, 30f, Vector2.Zero, HexGrid.standardGrid.ToPixelCoords(pos2 - pos1).Angle()));
                             PlaySound(bondTexture.bondSound);
                             partSimState.wasActivated = true;
                         }

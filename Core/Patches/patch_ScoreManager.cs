@@ -9,14 +9,14 @@ using System;
 
 class patch_ScoreManager {
 
-	public extern void orig_method_1370(string str);
-	public void method_1370(string str) {
+	public extern void orig_QuerySteamLeaderboard(string str);
+	public void QuerySteamLeaderboard(string str) {
 		// no-op
 	}
 
     // removes a steam-related call to upload scores
-    [MonoModILInject("method_1369")]
-    public static void PatchScoreManagerLoad(MethodDefinition method, CustomAttribute attrib) {
+    [MonoModILInject("SubmitScoreToSteamLeaderboard")]
+    public static void PatchScoreManagerSubmit(MethodDefinition method, CustomAttribute attrib) {
         MonoModRule.Modder.Log("Patching ScoreManager loading");
         if (method.HasBody) {
             ILCursor cursor = new(new ILContext(method));

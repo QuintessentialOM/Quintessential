@@ -20,9 +20,9 @@ internal class patch_CampaignsAsyncStateMachine {
 
         cursor.EmitLdloca(3);
         cursor.EmitLdarg0();
-        cursor.EmitLdfld(method.DeclaringType.Fields.First(f => f.Name.Equals("field_2339")));
+        cursor.EmitLdfld(method.DeclaringType.Fields.First(f => f.Name.Equals("currentChapter")));
         cursor.EmitLdarg0();
-        cursor.EmitLdfld(method.DeclaringType.Fields.First(f => f.Name.Equals("field_2342")));
+        cursor.EmitLdfld(method.DeclaringType.Fields.First(f => f.Name.Equals("currentCampaignItem")));
         cursor.EmitCall(handleCustom);
         cursor.Emit(OpCodes.Brtrue, target);
     }
