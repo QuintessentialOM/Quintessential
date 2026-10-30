@@ -11,8 +11,12 @@ public class Logger {
 	// TODO relies on .cctor being called from the main thread, which should always happen I think?
 	private static readonly Thread mainThread = Thread.CurrentThread;
 
+	internal static LogLevel defaultMinimumLogLevel = LogLevel.Trace;
+	internal LogLevel minimumLogLevelToDisplay;
+
 	internal Logger(string modId) {
 		this.modId = modId;
+		this.minimumLogLevelToDisplay = defaultMinimumLogLevel;
 	}
 
 	private static string GetTimePrefix() {
@@ -47,6 +51,8 @@ public class Logger {
 	}
 
 	public void Log(LogLevel logLevel, string? message, params object?[] formatArgs) {
+		if (logLevel > LogLevel.Critical || logLevel < minimumLogLevelToDisplay)
+			return;
 		var sb = new StringBuilder();
 		sb.Append(GetTimePrefix());
 		sb.Append(GetLogLevelPrefix(logLevel));
