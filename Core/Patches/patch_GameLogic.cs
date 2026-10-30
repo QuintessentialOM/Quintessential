@@ -27,11 +27,11 @@ class patch_GameLogic {
 	}
 
 	public void GameUnload(int exitCode) {
-        Logger.Log("Starting mod unloading.");
+        QuintessentialCore.Instance.Log.Info("Starting mod unloading.");
         foreach (var mod in QuintessentialLoader.CodeMods)
             mod.Unload();
 
-        Logger.Log("Finished unloading.");
+        QuintessentialCore.Instance.Log.Info("Finished unloading.");
         orig_GameUnload(exitCode);
 	}
 

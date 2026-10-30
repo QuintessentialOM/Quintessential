@@ -36,6 +36,10 @@ public abstract class QuintessentialMod {
     /// The current settings for the mod.
     /// </summary>
 	public object Settings;
+    /// <summary>
+    /// The logger for the mod.
+    /// </summary>
+	public Logging.Logger Log;
 
     /// <summary>
     /// The first method to be called by <see cref="Quintessential"/> in the<br/>

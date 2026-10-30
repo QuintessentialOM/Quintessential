@@ -1,18 +1,12 @@
 ﻿using System;
-using System.IO;
 
 namespace Quintessential;
-
-// don't actually know how logging works in OM, but rn it looks like it just doesn't?
-// so let's do it ourself
-// Note, It does, just not how we would like it
 
 /// <summary>
 /// Writes information to the logs.txt.
 /// </summary>
 public static class Logger {
 	
-	private static string LogPath;
 	public static bool Setup {
 		get;
 		private set;
@@ -20,9 +14,8 @@ public static class Logger {
 
 	public static void Init() {
 		if (!Setup) {
-			LogPath = Path.Combine(QuintessentialLoader.PathLightning, "log.txt");
-			File.Delete(LogPath);
-			Log("Quintessential log");
+			#pragma warning disable CS0618 // call to deprecated method
+			Log("Quintessential legacy logger (deprecated)");
 			Setup = true;
 		}
 	}
@@ -31,8 +24,9 @@ public static class Logger {
 	/// Log text to the logs file.
 	/// </summary>
 	/// <param name="text">The text to log.</param>
+	[Obsolete("Use [YourMod].Instance.Log instead")]
 	public static void Log(string text) {
-		File.AppendAllText(LogPath, $"({DateTime.Now}) {text ?? "null"}\n");
+		Logging.LogManager.LogRaw($"({DateTime.Now}) [old logger] {text ?? "null"}\n");
     }
 
     /// <summary>
@@ -40,14 +34,16 @@ public static class Logger {
 	/// Does not log the current time.
     /// </summary>
     /// <param name="text">The text to log.</param>
+	[Obsolete("Use [YourMod].Instance.Log instead")]
     public static void LogNoTime(string text) {
-        File.AppendAllText(LogPath, $"{text ?? "null"}\n");
+		Logging.LogManager.LogRaw($"[old logger] {text ?? "null"}\n");
     }
 
 	/// <summary>
 	/// Log an objec to the logs file.
 	/// </summary>
 	/// <param name="e">The object to log.</param>
+	[Obsolete("Use YourMod.Instance.Log instead")]
     public static void Log(object e) {
 		Log(e?.ToString());
 	}

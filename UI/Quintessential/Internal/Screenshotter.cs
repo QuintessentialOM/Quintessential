@@ -26,12 +26,12 @@ internal class Screenshotter{
 					IntPtr surface = SDL.SDL_CreateRGBSurfaceFrom(pixPtr, rect.w, rect.h, 32, rect.w * 4, 0xFF, 0xFF00, 0xFF0000, 0xFF000000);
 					if(surface.Equals(IntPtr.Zero))
 						throw new Exception($"Failed to create surface! \"{SDL.SDL_GetError()}\"");
-					Logger.Log("Created surface!");
+					QuintessentialUI.Instance.Log.Debug("Created surface!");
 					
 					var result = SDL_Image.IMG_SavePNG(surface, Path.Combine(QuintessentialLoader.PathScreenshots, "screenshot-" + 1 + ".png"));
 					if(result != 0)
 						throw new Exception($"Failed to save screenshot! \"{SDL.SDL_GetError()}\"");
-					Logger.Log("Took screenshot!");
+					QuintessentialUI.Instance.Log.Debug("Took screenshot!");
 					
 					SDL.SDL_FreeSurface(surface);
 				}

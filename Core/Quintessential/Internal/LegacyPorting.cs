@@ -14,16 +14,16 @@ internal static class LegacyPorting {
 
     public static void ImportLegacyCampaign(string path) {
         LegacyCampaignModel c = DataSerializer.Deserialize<LegacyCampaignModel>(path);
-        Logger.Log($"Campaign \"{c.Title}\" ({c.Name}) has {c.Chapters.Count} chapters.");
+        QuintessentialCore.Instance.Log.Info($"Campaign \"{c.Title}\" ({c.Name}) has {c.Chapters.Count} chapters.");
         c.Path = Path.GetDirectoryName(path);
         LegacyCampaignModels.Add(path, c);
     }
     public static void ImportLegacyJournal(string path) {
         LegacyJournalModel c = DataSerializer.Deserialize<LegacyJournalModel>(path);
-        Logger.Log($"Journal \"{c.Title}\" has {c.Chapters.Count} chapters.");
+        QuintessentialCore.Instance.Log.Info($"Journal \"{c.Title}\" has {c.Chapters.Count} chapters.");
         foreach (var chapter in new List<JournalChapterModel>(c.Chapters)) {
             if (chapter.Puzzles.Count != 5) {
-                Logger.Log($"Journal chapter \"{chapter.Title}\" in \"{c.Title}\" has {chapter.Puzzles.Count} puzzles instead of 5; skipping chapter.");
+                QuintessentialCore.Instance.Log.Warn($"Journal chapter \"{chapter.Title}\" in \"{c.Title}\" has {chapter.Puzzles.Count} puzzles instead of 5; skipping chapter.");
                 c.Chapters.Remove(chapter);
             }
         }
@@ -32,7 +32,7 @@ internal static class LegacyPorting {
             c.Path = Path.GetDirectoryName(path);
             LegacyJournalModels.Add(path, c);
         } else
-            Logger.Log($"Journal \"{c.Title}\" has no chapters, skipping.");
+            QuintessentialCore.Instance.Log.Warn($"Journal \"{c.Title}\" has no chapters, skipping.");
     }
 
     private static Dictionary<string, Campaign> CreateLegacyCampaigns() {
@@ -95,7 +95,7 @@ internal static class LegacyPorting {
                             cItem = new(entry.ID, Translations.WithAllLanguages(entry.Title), CampaignItemType.Letter, MaybeHelper.empty, requirement, Assets.musicTracks.solving1, Assets.sounds.fanfare_solving1, campaign);
                             break;
                         default:
-                            Logger.Log($"Campaign entry in {c.Value.Name} has unknown type {entry.Type}, skipping");
+                            QuintessentialCore.Instance.Log.Warn($"Campaign entry in {c.Value.Name} has unknown type {entry.Type}, skipping");
                             continue;
                     }
 
