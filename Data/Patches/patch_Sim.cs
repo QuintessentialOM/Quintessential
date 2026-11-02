@@ -472,7 +472,6 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
     [MonoModILInject("RunCycleGlyphs")]
     static void PatchRecipeSystem(MethodDefinition method, CustomAttribute attribute) {
 
-        MonoModRule.Modder.Log("Patching Recipe System init.");
         if (!method.HasBody) {
             throw new Exception("Unable to patch Recipe System init. (no body)");
         }
@@ -1306,7 +1305,6 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
 
     [MonoModILInject("RunCycleGlyphs")]
     public static void PatchGlyphBehaviour(MethodDefinition method, CustomAttribute attrib) {
-        MonoModRule.Modder.Log("Patching glyph Behaviour");
         if (!method.HasBody) {
             Console.WriteLine("Unable to patch glyph behaviour (no body)");
             throw new Exception();
@@ -1385,7 +1383,6 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
 
     [MonoModILInject("BeginCycle")]
     public static void PatchCycleEventsBegin(MethodDefinition method, CustomAttribute attrib) {
-        MonoModRule.Modder.Log("Patching Cycle Events");
         if (!method.HasBody) {
             Console.WriteLine("Unable to patch Cycle Events (no body)");
             throw new Exception();
@@ -1416,7 +1413,6 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
     }
     [MonoModILInject("EndCycle")]
     public static void PatchCycleEventsEnd(MethodDefinition method, CustomAttribute attrib) {
-        MonoModRule.Modder.Log("Patching Cycle Events");
         if (!method.HasBody) {
             Console.WriteLine("Unable to patch Cycle Events (no body)");
             throw new Exception();
@@ -1458,7 +1454,6 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
     [MonoModILInject(".ctor")]
     static void PatchCtor(MethodDefinition method, CustomAttribute attribute) {
 
-        MonoModRule.Modder.Log("Patching Sim init.");
         if (!method.HasBody) {
             throw new Exception("Unable to patch Sim init. (no body)");
         }

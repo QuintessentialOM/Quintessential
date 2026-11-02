@@ -17,7 +17,6 @@ class patch_ScoreManager {
     // removes a steam-related call to upload scores
     [MonoModILInject("SubmitScoreToSteamLeaderboard")]
     public static void PatchScoreManagerSubmit(MethodDefinition method, CustomAttribute attrib) {
-        MonoModRule.Modder.Log("Patching ScoreManager loading");
         if (method.HasBody) {
             ILCursor cursor = new(new ILContext(method));
             if (cursor.TryGotoNext(MoveType.After, instr => instr.Match(OpCodes.Brfalse_S))

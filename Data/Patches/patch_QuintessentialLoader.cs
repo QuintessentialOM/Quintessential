@@ -21,7 +21,6 @@ public class patch_QuintessentialLoader {
 
     [MonoModILInject("ModContentInit")]
     static void InjectDataContentInit(MethodDefinition method, CustomAttribute attribute) {
-        MonoModRule.Modder.Log("Patching DataContent init.");
         if (!method.HasBody) {
             throw new Exception("Unable to inject DataContent init. (no body)");
         }

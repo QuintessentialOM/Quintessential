@@ -20,7 +20,6 @@ public class patch_TextureEffect {
 
     [MonoModILInject(".ctor")]
     public static void PatchGlyphEffectConstructor(MethodDefinition method, CustomAttribute attrib) {
-        MonoModRule.Modder.Log("Patching texture effect (1/2)");
 
         if (!method.HasBody) {
             Console.WriteLine("Unable to patch texture effect constructor (no body)");
@@ -51,7 +50,6 @@ public class patch_TextureEffect {
 
     [MonoModILInject("RenderEffect")]
     public static void PatchTextureEffectRenderer(MethodDefinition method, CustomAttribute attrib) {
-        MonoModRule.Modder.Log("Patching texture effect (2/2)");
 
         if (!method.HasBody) {
             Console.WriteLine("Unable to patch texture effect renderer (no body)");

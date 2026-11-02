@@ -308,7 +308,6 @@ class patch_PuzzleEditorScreen {
 
     [MonoModILInject("RenderFrame")]
     public static void PatchPuzzleEditorScreen(MethodDefinition method, CustomAttribute attrib) {
-        MonoModRule.Modder.Log("Patching puzzle editor screen");
         if (!method.HasBody) {
             Console.WriteLine("Failed to modify puzzle editor screen (no body)!");
             throw new Exception();

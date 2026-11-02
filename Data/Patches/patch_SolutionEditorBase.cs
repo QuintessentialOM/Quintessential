@@ -11,7 +11,6 @@ class patch_SolutionEditorBase {
     [MonoModILInject("RenderPartBase")]
     static void PatchRecipeSystem(MethodDefinition method, CustomAttribute attribute) {
 
-        MonoModRule.Modder.Log("Patching Recipe System init.");
         if (!method.HasBody) {
             throw new Exception("Unable to patch Recipe System init. (no body)");
         }

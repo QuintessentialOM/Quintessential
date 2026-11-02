@@ -10,7 +10,6 @@ internal class patch_GameLogic {
 
     [MonoModILInject("ContentInit")]
     static void ContentInitBondTypeInit(MethodDefinition method, CustomAttribute attrib) {
-        MonoModRule.Modder.Log("Patching bond type init");
 
         if (!method.HasBody) {
             throw new Exception("Unable to patch bond types init. (no body)");

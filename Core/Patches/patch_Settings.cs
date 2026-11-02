@@ -35,8 +35,6 @@ internal class patch_Settings : Settings {
     [MonoModILInject(".ctor")]
     public static void PatchWindowPositionSetting(MethodDefinition method, CustomAttribute attribute) {
 
-        MonoModRule.Modder.Log("Patching window position settings init");
-
         if (!method.HasBody) {
             throw new Exception("Unable to patch window position settings init. (no body)");
         }
