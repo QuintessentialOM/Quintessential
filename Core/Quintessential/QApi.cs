@@ -35,9 +35,9 @@ public static class QApi {
 	/// <param name="after">The part type after which the other one gets added.</param>
 	public static void AddPartTypeToPanel(PartType type, PartType after) {
 		if(type == null || after == null)
-			Logger.Log("Tried to add a null part to the parts panel, or tried to add a part after a null part, not adding.");
+			QuintessentialCore.Instance.Log.Warn("Tried to add a null part to the parts panel, or tried to add a part after a null part, not adding.");
 		else if(type.Equals(after))
-			Logger.Log("Tried to add a part to the part panel after itself (circular reference), not adding.");
+			QuintessentialCore.Instance.Log.Warn("Tried to add a part to the part panel after itself (circular reference), not adding.");
 		else
 			PanelParts.Add(new Tuple<PartType, PartType>(type, after));
     }
@@ -50,9 +50,9 @@ public static class QApi {
     /// <param name="after">The English name of the setion after which the other one gets added.</param>
     public static void AddPartTypeSectionToPanel(List<PartType> parts, LocString name, string after = "Glyphs") {
         if (parts == null || name == null || after == null)
-            Logger.Log("Tried to add a null section to the parts panel, not adding.");
+            QuintessentialCore.Instance.Log.Warn("Tried to add a null section to the parts panel, not adding.");
         else if (name.GetEnglish() == after)
-            Logger.Log("Tried to add a section to the part panel after itself (circular reference), not adding.");
+            QuintessentialCore.Instance.Log.Warn("Tried to add a section to the part panel after itself (circular reference), not adding.");
         else
             PanelCustomSections.Add(new(parts, name, after));
     }

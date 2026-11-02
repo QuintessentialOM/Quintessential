@@ -71,7 +71,7 @@ class ChangeKeybindScreen : IScreen {
 			Key.Shift = shift;
 			Key.Control = ctrl;
 			Key.Alt = alt;
-			Logger.Log($"Changed keybind for \"{Label}\": from \"{old}\" to \"{Key}\".");
+			QuintessentialCore.Instance.Log.Info($"Changed keybind for \"{Label}\": from \"{old}\" to \"{Key}\".");
 			ModsScreen.SaveSettings(ToSave);
 			UI.CloseScreen();
 		}

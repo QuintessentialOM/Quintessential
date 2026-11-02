@@ -1,4 +1,5 @@
 ﻿using Quintessential.Internal;
+using Quintessential.Logging;
 using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
@@ -31,18 +32,17 @@ public class QuintessentialLoader
 
     private static readonly List<string> ModCampaignPaths = [];
     private static readonly List<string> ModJournalPaths = [];
-    public static void PreInit()
-    {
-        try
-        {
+    public static void PreInit() {
+        // Get logger for early logging before QuintessentialCore.Instance.Log is available
+        var quintCoreLogger = Logging.LogManager.GetModLogger("quintessential_core");
+
+        try {
             PathLightning = Path.GetDirectoryName(typeof(GameLogic).Assembly.Location);
             PathUnpackedMods = Path.Combine(PathLightning, "UnpackedMods");
             PathScreenshots = Path.Combine(PathLightning, "Screenshots");
             PathUnpackedMods = Path.Combine(PathLightning, "UnpackedMods");
 
-
-            Logger.Init();
-            Logger.Log("Starting pre-init loading.");
+            quintCoreLogger.Info("Starting pre-init loading.");
 
             // Instantiate code mods
             var modTypes = Assembly.GetExecutingAssembly().GetTypes().Where(t => typeof(QuintessentialMod).IsAssignableFrom(t) && !t.IsAbstract);
@@ -54,9 +54,10 @@ public class QuintessentialLoader
                 SetCodeModInstance(type, mod);
                 collectedCodeMods.Add(mod);
 
-
                 if (idCheckSet.Contains(mod.ModId)) throw new Exception($"Multiple mods cannot share the same id. Found multiple mods with id '{mod.ModId}'");
                 idCheckSet.Add(mod.ModId);
+
+                mod.Log = Logging.LogManager.GetModLogger(mod.ModId);
             }
 
             // Load modMeta files
@@ -87,21 +88,16 @@ public class QuintessentialLoader
             // Add mod content
             foreach (var mod in CodeMods)
                 mod.Load();
-            Logger.Log($"Finished pre-init loading - {Mods.Count} mods loaded, {CodeMods.Count} of them are code mods; {ModContentDirectories.Count} content directories"/*, and {LegacyCampaignModels.Count} custom campaigns found."*/);
+            quintCoreLogger.Info($"Finished pre-init loading - {Mods.Count} mods loaded, {CodeMods.Count} of them are code mods; {ModContentDirectories.Count} content directories"/*, and {LegacyCampaignModels.Count} custom campaigns found."*/);
             DataSerializer.WasInit = true;
-        }
-        catch (Exception e)
-        {
-            if (Logger.Setup)
-            {
-                Logger.Log("Failed to pre-initialize!");
-                Logger.Log(e);
-            }
-            throw;
+        } catch (Exception e) {
+            quintCoreLogger.Error("Failed to pre-initialize!");
+            quintCoreLogger.Error(e);
+            throw e;
         }
     }
     public static void ModContentInit() {
-        Logger.Log("Starting content loading.");
+    QuintessentialCore.Instance.Log.Info("Starting content loading.");
         foreach (var mod in CodeMods)
             mod.LoadContent();
 
@@ -109,23 +105,23 @@ public class QuintessentialLoader
         foreach (var mod in CodeMods)
             mod.LoadCompatContent();
 
-        Logger.Log("Loading campaigns and journals.");
+        QuintessentialCore.Instance.Log.Info("Loading campaigns and journals.");
         LegacyPorting.ExportNewFormat();
         LoadCampaigns();
         LoadJournals();
 
-        Logger.Log("Finalising content.");
+        QuintessentialCore.Instance.Log.Info("Finalising content.");
         foreach (var mod in CodeMods)
             mod.FinaliseContent();
 
-        Logger.Log("Finished content loading.");
+        QuintessentialCore.Instance.Log.Info("Finished content loading.");
     }
     public static void PostInit()
     {
-        Logger.Log("Starting post-init loading.");
+        QuintessentialCore.Instance.Log.Info("Starting post-init loading.");
         // Read mod save data
         PathModSaves = Path.Combine(OSInfo.GetSavePath(), "ModSettings");
-        Logger.Log($"Mod settings directory: \"{PathModSaves}\"");
+        QuintessentialCore.Instance.Log.Info($"Mod settings directory: \"{PathModSaves}\"");
         if (!Directory.Exists(PathModSaves))
             Directory.CreateDirectory(PathModSaves);
         foreach (var mod in CodeMods)
@@ -139,7 +135,7 @@ public class QuintessentialLoader
                     mod.Settings = settings;
                     mod.ApplySettings();
                 } else
-                    Logger.Log("Loaded null settings for mod " + Translations.Translate(mod.Meta.ModId));
+                    QuintessentialCore.Instance.Log.Info("Loaded null settings for mod " + Translations.Translate(mod.Meta.ModId));
             }
             if (mod.Settings == null) {
                 mod.Settings = mod.SettingsType.GetConstructor([]).Invoke([]);
@@ -148,7 +144,7 @@ public class QuintessentialLoader
         }
         foreach (var mod in CodeMods)
             mod.PostLoad();
-        Logger.Log("Finished post-init loading.");
+        QuintessentialCore.Instance.Log.Info("Finished post-init loading.");
     }
 
 
@@ -222,7 +218,7 @@ public class QuintessentialLoader
             }
             // log journals
             foreach (JournalVolume jv in journal.volumes) {
-                Logger.Log($"Journal {jv.issueName} has {jv.puzzles.Length} puzzles");
+                QuintessentialCore.Instance.Log.Info($"Journal {jv.issueName} has {jv.puzzles.Length} puzzles");
             }
             AllJournals.Add(journal);
         }
@@ -243,7 +239,7 @@ public class QuintessentialLoader
             } else if (File.Exists(baseName + ".puzzle.yaml")) {
                 puzzle = LegacyPuzzleModel.FromModel(DataSerializer.Deserialize<LegacyPuzzleModel>(baseName + ".puzzle.yaml"));
             } else {
-                Logger.Log($"Puzzle \"{puzzleFileName}\" from \"{campaignTitle}\" doesn't exist, ignoring");
+                QuintessentialCore.Instance.Log.Warn($"Puzzle \"{puzzleFileName}\" from \"{campaignTitle}\" doesn't exist, ignoring");
                 puzzle = null;
                 return false;
             }
@@ -254,8 +250,8 @@ public class QuintessentialLoader
 
             return true;
         } catch (Exception e) {
-            Logger.Log($"Exception loading puzzle \"{puzzleFileName}\" from \"{campaignTitle}\", ignoring");
-            Logger.Log(e);
+            QuintessentialCore.Instance.Log.Warn($"Exception loading puzzle \"{puzzleFileName}\" from \"{campaignTitle}\", ignoring");
+            QuintessentialCore.Instance.Log.Warn(e);
             puzzle = null;
             return false;
         }
@@ -263,7 +259,7 @@ public class QuintessentialLoader
     public static void CheckCampaignReload() {
         if (QuintessentialCoreSettings.Instance.HotReloadCampaigns.Pressed() && GameLogic.instance.GetCurrentScreen() is PuzzleSelectScreen)
         {
-            Logger.Log("Reloading campaigns and journals!");
+            QuintessentialCore.Instance.Log.Info("Reloading campaigns and journals!");
 
             ModPuzzleDirectories.Clear();
 
@@ -287,7 +283,7 @@ public class QuintessentialLoader
     private static void SetCodeModInstance(Type type, QuintessentialMod instance) {
         var property = type.GetProperty("Instance");
         if (property == null || !property.PropertyType.IsAssignableFrom(type) || property.SetMethod != null) {
-            Logger.Log($"Failed to find Instance properity for CodeMod.\n" +
+            QuintessentialCore.Instance.Log.Error($"Failed to find Instance property for CodeMod.\n" +
                 $"Add the following line to the ModClass:\n" +
                 $"\tpublic static {type.Name} Instance {{ get; }}");
             throw new Exception("Failed to set instance for a CodeMod.");
