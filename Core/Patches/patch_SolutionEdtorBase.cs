@@ -44,6 +44,7 @@ abstract class patch_SolutionEditorBase : SolutionEditorBase
         return pos + ((patch_PartType)(object)part.GetType()).programIndexOffset;
     }
     static bool AllowedPartProgramindexRender(Part part, bool allowed) {
-        return (allowed && !part.GetType().isFullHexCover) || ((patch_PartType)(object)part.GetType()).showProgramIndex;
+        if (((patch_PartType)(object)part.GetType()).showProgramIndex != null) return ((patch_PartType)(object)part.GetType()).showProgramIndex.Value;
+        return allowed && !part.GetType().isFullHexCover;
     }
 }

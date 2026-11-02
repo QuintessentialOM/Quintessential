@@ -39,11 +39,11 @@ class patch_PuzzleEditorScreen {
 		Bounds2 coverBounds = panelSize.Translated(new(80, 0));
 
 		// add scrollbar/scroll region
-		using (var _ = scrollbar.RenderScrollbar(panelSize.Min, panelSize.Size.CeilingToInt(), 0, -30)) {
+		using (var _ = scrollbar.RenderScrollbar(panelSize.Min + new Vector2(494f - 12f, 0f), (panelSize.Size - new Vector2(494f - 12f, 0f)).CeilingToInt(), 0, -30)) {
             // clear scroll zone
             RenderTargetStackManager.Clear(Color.Transparent);
 
-			var nCorner = new Vector2(-12, scrollbar.scrollOffset - 95);
+			var nCorner = new Vector2(-494f, scrollbar.scrollOffset - 95);
 
 			//// CustomPermissions may have just not been set? TODO: find a better place for the "canonical" setter
 			var conv = puzzle;
