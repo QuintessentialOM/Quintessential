@@ -135,7 +135,6 @@ public class patch_PartSimState : IComponentHolder<patch_PartSimState, ISimState
     [MonoModILInject(".ctor")]
     static void PatchCtor(MethodDefinition method, CustomAttribute attribute) {
 
-        MonoModRule.Modder.Log("Patching Sim init.");
         if (!method.HasBody) {
             throw new Exception("Unable to patch Sim init. (no body)");
         }

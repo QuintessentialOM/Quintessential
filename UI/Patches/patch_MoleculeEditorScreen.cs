@@ -304,7 +304,6 @@ class patch_MoleculeEditorScreen
 
     [MonoModILInject("RenderFrame")]
     static void PatchMoleculeEditorScreenAtomTray(MethodDefinition method, CustomAttribute attrib) {
-        MonoModRule.Modder.Log("Patching molecule editor screen atom tray");
         if (!method.HasBody) {
             Console.WriteLine("Failed to modify molecule editor rendering (no body)!");
             throw new Exception();

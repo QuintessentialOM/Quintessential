@@ -179,7 +179,6 @@ public class patch_Atom : ISerializableComponentHolder<patch_Atom, IAtomComponen
     [MonoModILInject(".ctor")]
     static void PatchCtor(MethodDefinition method, CustomAttribute attribute) {
 
-        MonoModRule.Modder.Log("Patching Sim init.");
         if (!method.HasBody) {
             throw new Exception("Unable to patch Sim init. (no body)");
         }

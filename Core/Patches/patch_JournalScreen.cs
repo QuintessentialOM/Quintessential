@@ -70,7 +70,6 @@ public class patch_JournalScreen {
 
     [MonoModILInject("RenderFrame")]
     static void PatchJournalScreen(MethodDefinition method, CustomAttribute attrib) {
-        MonoModRule.Modder.Log("Patching journal screen");
         if (method.HasBody) {
             ILCursor cursor = new(new ILContext(method));
             if (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchLdstr("The Journal of Alchemical Engineering"))) {
@@ -91,7 +90,6 @@ public class patch_JournalScreen {
 
     [MonoModILInject("RenderPuzzleSelect")]
     static void PatchJournalPuzzleBackgrounds(MethodDefinition method, CustomAttribute attrib) {
-        MonoModRule.Modder.Log("Patching journal screen puzzle backgrounds");
         if (method.HasBody) {
             ILCursor cursor = new(new ILContext(method));
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchStloc(1))) {

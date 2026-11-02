@@ -23,7 +23,6 @@ public class patch_Solution
 
     [MonoModILInject("FromPuzzle")]
     public static void PatchSolutionInitializer(MethodDefinition method, CustomAttribute attrib) {
-        MonoModRule.Modder.Log("Patching solution initializer");
         if (!method.HasBody) {
             Console.WriteLine("Failed to modify solution initializer (no body)!");
             throw new Exception();

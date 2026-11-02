@@ -22,7 +22,6 @@ class patch_SolutionRecorderScreen {
 
     [MonoModILInject("RenderFrame")]
     static void PatchGifRecorderFrame(MethodDefinition method, CustomAttribute attrib) {
-        MonoModRule.Modder.Log("Patching GIF recorder frame rendering");
         if (method.HasBody) {
             ILCursor cursor = new(new ILContext(method));
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCall("TextureRenderer", "Render"))) {
