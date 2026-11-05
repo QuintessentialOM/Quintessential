@@ -5,7 +5,7 @@ using MonoMod.Cil;
 using System;
 using System.Linq;
 
-[MonoModPatch("Campaigns/AsyncStateMachine")]
+[MonoModPatch("Campaigns/AsyncStateMachine_EnumeratePuzzleSelectEvents")]
 internal class patch_CampaignsAsyncStateMachine {
 
 

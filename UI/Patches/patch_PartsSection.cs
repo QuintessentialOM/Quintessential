@@ -30,7 +30,7 @@ internal class patch_PartsSection {
     }
 
     private static void GeneratePartIconIfNecessary(SolutionEditorScreen solEditScrn, PartTypeForToolbar part) {
-        if (!part.type.IsInputOutput() && part.type.baseTexture == null && part.type.hoverTexture == null && part.type.isFullHexCover && part.type.glyphHexes.Length > 0) {
+        if (!part.type.IsInputOutput() && part.type.iconTexture == null && part.type.iconHoverTexture == null && part.type.isFullHexCover && part.type.glyphHexes.Length > 0) {
             var partType = (patch_PartType) (object) part.type;
             partType.generatedIconBaseRenderT ??= new();
             partType.generatedIconHoverRenderT ??= new();
@@ -59,8 +59,8 @@ internal class patch_PartsSection {
             var afterTernary = cursor.DefineLabel();
             var ternaryElseBranch = cursor.DefineLabel();
 
-            // Target before `Texture obj2 = (isHover ? type.hoverTexture : type.baseTexture);` - it will go in the `else` branch
-            cursor.GotoNext(MoveType.After, instr => instr.MatchLdfld("PartType", "baseTexture"));
+            // Target before `Texture obj2 = (isHover ? type.iconHoverTexture : type.iconTexture);` - it will go in the `else` branch
+            cursor.GotoNext(MoveType.After, instr => instr.MatchLdfld("PartType", "iconTexture"));
             cursor.GotoPrev(MoveType.Before, instr => instr.MatchLdloc(12));
             // Any branches to here should also run our code
             cursor.MoveAfterLabels();

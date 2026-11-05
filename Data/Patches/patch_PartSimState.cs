@@ -117,7 +117,7 @@ public class patch_PartSimState : IComponentHolder<patch_PartSimState, ISimState
     static void PatchSimCtorArgs(MethodDefinition method, CustomAttribute attribute) {
         TypeReference sim = MonoModRule.Modder.FindType("Sim");
         TypeReference part = MonoModRule.Modder.FindType("Part");
-        MethodDefinition getState = part.Resolve().Methods.First(f => f.Name.Equals("GetSimState"));
+        MethodDefinition getState = part.Resolve().Methods.First(f => f.Name.Equals("CreateSimState"));
         if (!getState.HasBody) {
             throw new Exception("Unable to patch Sim Construct. (no body)");
         }
