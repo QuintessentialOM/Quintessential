@@ -34,7 +34,7 @@ class patch_Sim{
 
 	// Helper methods to find held or unheld atoms
 	public Maybe<AtomReference> FindAtomRelative(Part part, HexIndex offset){
-		return FindAtom(part.InFrontBy(offset));
+		return FindAtom(part.GlobalPosFromLocal(offset));
 	}
 	
 	public Maybe<AtomReference> FindAtom(HexIndex position){
