@@ -340,6 +340,27 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
 
         cursor.Index = cursor.Instrs.Count;
         cursor.GotoPrev(MoveType.Before, instr => instr.MatchRet());
+
+        cursor.EmitNop();
+        Instruction newAfter = cursor.Previous;
+        Instruction oldAfter = cursor.Next;
+        foreach (var instr in cursor.Instrs) {
+            if (ReferenceEquals(instr.Operand, oldAfter))
+                instr.Operand = newAfter;
+        }
+        foreach (var handler in method.Body.ExceptionHandlers) {
+            if (ReferenceEquals(handler.TryEnd, oldAfter))
+                handler.TryEnd = newAfter;
+            if (ReferenceEquals(handler.TryStart, oldAfter))
+                handler.TryStart = newAfter;
+            if (ReferenceEquals(handler.FilterStart, oldAfter))
+                handler.FilterStart = newAfter;
+            if (ReferenceEquals(handler.HandlerStart, oldAfter))
+                handler.HandlerStart = newAfter;
+            if (ReferenceEquals(handler.HandlerEnd, oldAfter))
+                handler.HandlerEnd = newAfter;
+        }
+
         cursor.EmitLdarg0();
         cursor.EmitCall(after);
     }
