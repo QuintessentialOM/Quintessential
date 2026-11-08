@@ -366,11 +366,11 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
     }
 
     // # Related to the .ctor of PartSimStates, adding arguments
-    [MonoModILInject("GetSimState")]
+    [MonoModILInject("CreateSimState")]
     static void PatchSimConstructArg(MethodDefinition method, CustomAttribute attribute) {
         TypeReference sim = MonoModRule.Modder.FindType("Sim");
         MethodDefinition construct = sim.Resolve().Methods.First(f => f.Name.Equals("ConstructSimulation"));
-        MethodDefinition emptyGet = MonoModRule.Modder.FindType("EmptySim").Resolve().Methods.First(f => f.Name.Equals("GetSimState"));
+        MethodDefinition emptyGet = MonoModRule.Modder.FindType("EmptySim").Resolve().Methods.First(f => f.Name.Equals("CreateSimState"));
         if (!construct.HasBody) {
             throw new Exception("Unable to patch Sim Construct. (no body)");
         }

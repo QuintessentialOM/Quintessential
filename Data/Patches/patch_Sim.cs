@@ -210,8 +210,8 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
                 GetAtomReference(part, bonderInfo.hexPos2, false, out AtomReference atomReference2) &&
                 bonderInfo.IsBondable(atomReference2.atomType))
             {
-                HexIndex pos1 = part.InFrontBy(bonderInfo.hexPos1);
-                HexIndex pos2 = part.InFrontBy(bonderInfo.hexPos2);
+                HexIndex pos1 = part.GlobalPosFromLocal(bonderInfo.hexPos1);
+                HexIndex pos2 = part.GlobalPosFromLocal(bonderInfo.hexPos2);
                 if (bonderInfo.isUnbond) {
                     if (atomReference1.molecule == atomReference2.molecule) {
                         patch_Molecule moleculeP = (patch_Molecule)(object)atomReference1.molecule;
@@ -326,10 +326,10 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
     public bool GetPartsAt(Part part, HexIndex offset, out List<KeyValuePair<Part, PartSimState>> parts) {
         parts = [.. base.simulationDict.Where(partPair => {
             var pos = partPair.Value.newPosition;
-            if (pos == part.InFrontBy(offset)) return true;
+            if (pos == part.GlobalPosFromLocal(offset)) return true;
             var rot = partPair.Value.rotation;
-            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
-            if (hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.GlobalPosFromLocal(hex) );
+            if (hexes.Any(hex => hex == part.GlobalPosFromLocal(offset))) return true;
             return false;
         })];
         return parts.Count != 0;
@@ -338,10 +338,10 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
         parts = [.. base.simulationDict.Where(partPair => {
             if (partPair.Key.GetType().Id != partId) return false;
             var pos = partPair.Value.newPosition;
-            if (pos == part.InFrontBy(offset)) return true;
+            if (pos == part.GlobalPosFromLocal(offset)) return true;
             var rot = partPair.Value.rotation;
-            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
-            if (hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.GlobalPosFromLocal(hex) );
+            if (hexes.Any(hex => hex == part.GlobalPosFromLocal(offset))) return true;
             return false;
         })];
         return parts.Count != 0;
@@ -350,10 +350,10 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
         parts = [.. base.simulationDict.Where(partPair => {
             if (!tag.HasPart(partPair.Key)) return false;
             var pos = partPair.Value.newPosition;
-            if (pos == part.InFrontBy(offset)) return true;
+            if (pos == part.GlobalPosFromLocal(offset)) return true;
             var rot = partPair.Value.rotation;
-            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
-            if (hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.GlobalPosFromLocal(hex) );
+            if (hexes.Any(hex => hex == part.GlobalPosFromLocal(offset))) return true;
             return false;
         })];
         return parts.Count != 0;
@@ -362,10 +362,10 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
         parts = [.. base.simulationDict.Where(partPair => {
             if (predicate(partPair.Key)) return false;
             var pos = partPair.Value.newPosition;
-            if (pos == part.InFrontBy(offset)) return true;
+            if (pos == part.GlobalPosFromLocal(offset)) return true;
             var rot = partPair.Value.rotation;
-            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
-            if (hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.GlobalPosFromLocal(hex) );
+            if (hexes.Any(hex => hex == part.GlobalPosFromLocal(offset))) return true;
             return false;
         })];
         return parts.Count != 0;
@@ -374,10 +374,10 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
         parts = [.. base.simulationDict.Where(partPair => {
             if (predicate(partPair)) return false;
             var pos = partPair.Value.newPosition;
-            if (pos == part.InFrontBy(offset)) return true;
+            if (pos == part.GlobalPosFromLocal(offset)) return true;
             var rot = partPair.Value.rotation;
-            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
-            if (hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.GlobalPosFromLocal(hex) );
+            if (hexes.Any(hex => hex == part.GlobalPosFromLocal(offset))) return true;
             return false;
         })];
         return parts.Count != 0;
@@ -386,11 +386,11 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
         parts = [.. base.simulationDict.Where(partPair => {
             var pos = partPair.Value.newPosition;
             foreach (var offset in offsets)
-                if (pos == part.InFrontBy(offset)) return true;
+                if (pos == part.GlobalPosFromLocal(offset)) return true;
             var rot = partPair.Value.rotation;
-            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.GlobalPosFromLocal(hex) );
             foreach (var offset in offsets)
-                if (hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+                if (hexes.Any(hex => hex == part.GlobalPosFromLocal(offset))) return true;
             return false;
         })];
         return parts.Count != 0;
@@ -400,11 +400,11 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
             if (partPair.Key.GetType().Id != partId) return false;
             var pos = partPair.Value.newPosition;
             foreach (var offset in offsets)
-                if (pos == part.InFrontBy(offset)) return true;
+                if (pos == part.GlobalPosFromLocal(offset)) return true;
             var rot = partPair.Value.rotation;
-            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.GlobalPosFromLocal(hex) );
             foreach (var offset in offsets)
-                if (hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+                if (hexes.Any(hex => hex == part.GlobalPosFromLocal(offset))) return true;
             return false;
         })];
         return parts.Count != 0;
@@ -414,11 +414,11 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
             if (!tag.HasPart(partPair.Key)) return false;
             var pos = partPair.Value.newPosition;
             foreach(var offset in offsets)
-                if(pos == part.InFrontBy(offset)) return true;
+                if(pos == part.GlobalPosFromLocal(offset)) return true;
             var rot = partPair.Value.rotation;
-            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.GlobalPosFromLocal(hex) );
             foreach(var offset in offsets)
-                if(hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+                if(hexes.Any(hex => hex == part.GlobalPosFromLocal(offset))) return true;
             return false;
         })];
         return parts.Count != 0;
@@ -428,11 +428,11 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
             if (predicate(partPair.Key)) return false;
             var pos = partPair.Value.newPosition;
             foreach(var offset in offsets)
-                if(pos == part.InFrontBy(offset)) return true;
+                if(pos == part.GlobalPosFromLocal(offset)) return true;
             var rot = partPair.Value.rotation;
-            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.GlobalPosFromLocal(hex) );
             foreach(var offset in offsets)
-                if(hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+                if(hexes.Any(hex => hex == part.GlobalPosFromLocal(offset))) return true;
             return false;
         })];
         return parts.Count != 0;
@@ -442,11 +442,11 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
             if (predicate(partPair)) return false;
             var pos = partPair.Value.newPosition;
             foreach(var offset in offsets)
-                if (pos == part.InFrontBy(offset)) return true;
+                if (pos == part.GlobalPosFromLocal(offset)) return true;
             var rot = partPair.Value.rotation;
-            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.InFrontBy(hex) );
+            var hexes = partPair.Key.GetType().glyphHexes.Select( hex => partPair.Key.GlobalPosFromLocal(hex) );
             foreach(var offset in offsets)
-                if (hexes.Any(hex => hex == part.InFrontBy(offset))) return true;
+                if (hexes.Any(hex => hex == part.GlobalPosFromLocal(offset))) return true;
             return false;
         })];
         return parts.Count != 0;
