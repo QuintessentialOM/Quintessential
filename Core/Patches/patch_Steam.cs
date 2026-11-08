@@ -6,9 +6,9 @@ using Quintessential.Internal;
 
 internal class patch_Steam{
 
-	public static extern void orig_method_2150();
-	public static void method_2150(){
-		orig_method_2150(); // is this necessary?
+	public static extern void orig_DiscardStaleEventsAndRunCallbacks();
+	public static void DiscardStaleEventsAndRunCallbacks(){
+		orig_DiscardStaleEventsAndRunCallbacks(); // is this necessary?
 		QuintessentialLoader.CheckCampaignReload();
 	}
 }

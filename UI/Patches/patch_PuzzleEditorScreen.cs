@@ -14,12 +14,18 @@ using MonoMod.Cil;
 using MonoMod.InlineRT;
 using Quintessential;
 using Quintessential.Internal;
+using Quintessential.Serialization;
+using SDL2;
 using System;
+using System.Diagnostics.Metrics;
 using System.Linq;
+using System.Text.Json.Nodes;
 
 class patch_PuzzleEditorScreen {
 
-	private Scrollbar scrollbar; // initializer is not merged
+    private Scrollbar scrollbar; // initializer is not merged
+
+    private int moleculeEditorOffset = 0;
 
 	[MonoModIgnore]
 	private readonly PuzzleEditorScreenType type;
@@ -39,11 +45,11 @@ class patch_PuzzleEditorScreen {
 		Bounds2 coverBounds = panelSize.Translated(new(80, 0));
 
 		// add scrollbar/scroll region
-		using (var _ = scrollbar.RenderScrollbar(panelSize.Min, panelSize.Size.CeilingToInt(), 0, -30)) {
+		using (var _ = scrollbar.RenderScrollbar(panelSize.Min + new Vector2(494f - 22f, 0f), (panelSize.Size - new Vector2(494f - 12f, 0f)).CeilingToInt(), 0, -20)) {
             // clear scroll zone
             RenderTargetStackManager.Clear(Color.Transparent);
 
-			var nCorner = new Vector2(-12, scrollbar.scrollOffset - 95);
+			var nCorner = new Vector2(-484f, scrollbar.scrollOffset - 95);
 
 			//// CustomPermissions may have just not been set? TODO: find a better place for the "canonical" setter
 			var conv = puzzle;
@@ -58,9 +64,9 @@ class patch_PuzzleEditorScreen {
 			Vector2 instructionsCorner = new(nCorner.X + 489, partsCorner.Y + ruleSize.Y * 4);
 			UIUtils.RenderScreenTitle(Translations.Translate("Instructions"), instructionsCorner, 900, false, true);
 
-			InstructionType[] types = InstructionTypes.instructions;
 			var i = 0;
-			foreach (var type in types) {
+			foreach (var type in InstructionTypes.instructions) {
+                if (i >= 14) break;
 				var basePos = instructionsCorner + new Vector2(50 + 60 * i, -60);
 				var istructionPos = basePos;
 				if (type.permissionCategory == PuzzlePermissions.None)
@@ -102,7 +108,7 @@ class patch_PuzzleEditorScreen {
             //Vector2 cursor = rulesCorner + new Vector2(0, ruleSize.Y * 2.5f);
 
             // modded categories, if enabled
-            foreach (var category in QApi.PuzzleOptions.GroupBy(k => k.SectionName)) {
+            foreach (var category in QApi.PuzzleOptions.GroupBy(k => k.SectionName.ToString())) {
                 UIUtils.RenderScreenTitle(category.Key, cursor, 900, false, true);
 
                 var idx = 0;
@@ -150,13 +156,30 @@ class patch_PuzzleEditorScreen {
         UIUtils.RenderScreenTitle(Translations.Translate("Reagents"), pos + new Vector2(489f, 522f), 904, false, true);
         UIUtils.RenderScreenTitle(Translations.Translate("Mechanisms and Glyphs"), pos + new Vector2(489f, 270f), 904, false, true);
 
+        if (isPersonal || int.Max(puzzleCont.currentPuzzle.outputs.Length, puzzleCont.currentPuzzle.inputs.Length) > 4) {
+            Vector2 rPos = pos + new Vector2(1390f, 775f);
+            bool inLeftBound = Bounds2.WithSize(rPos - new Vector2(907f, 0f), patch_MoleculeEditorScreen.prevAtoms.size.ToVector2()).Contains(InputManager.MousePos());
+            bool inRightBound = Bounds2.WithSize(rPos, patch_MoleculeEditorScreen.nextAtoms.size.ToVector2()).Contains(InputManager.MousePos());
+            TextureRenderer.Render((moleculeEditorOffset > 0) ? inLeftBound ? patch_MoleculeEditorScreen.prevAtomsHover : patch_MoleculeEditorScreen.prevAtoms : patch_MoleculeEditorScreen.prevAtomsFaded, rPos - new Vector2(907f, 0f));
+            TextureRenderer.Render((moleculeEditorOffset < int.Max(puzzleCont.currentPuzzle.outputs.Length, puzzleCont.currentPuzzle.inputs.Length) - 1) ? inRightBound ? patch_MoleculeEditorScreen.nextAtomsHover : patch_MoleculeEditorScreen.nextAtoms : patch_MoleculeEditorScreen.nextAtomsFaded, rPos);
+            if (InputManager.IsClickPressed(MouseButtonType.LeftClick) && (inLeftBound || inRightBound)) {
+                if (inLeftBound && moleculeEditorOffset > 0) {
+                    Assets.sounds.click_button.PlaySound(1f);
+                    moleculeEditorOffset--;
+                } else if (inRightBound && moleculeEditorOffset < int.Max(puzzleCont.currentPuzzle.outputs.Length, puzzleCont.currentPuzzle.inputs.Length) - 1) {
+                    Assets.sounds.click_button.PlaySound(1f);
+                    moleculeEditorOffset++;
+                }
+            }
+        }
+
         bool screenOpened = false;
         for (int i = 0; i < 2; i++) {
             PuzzleInputOutput[] array = ((i == 0) ? puzzleCont.currentPuzzle.outputs : puzzleCont.currentPuzzle.inputs);
             string text = ((i == 0) ? Translations.Translate("Create New Product").ToUpper() : Translations.Translate("Create New Reagent").ToUpper());
             for (int j = 0; j < 4; j++) {
                 Bounds2 bounds2 = Bounds2.WithSize(pos + new Vector2(495f, 588f) + new Vector2((float)(j * 236), (float)((i == 0) ? (-28) : (-281))), new Vector2(226f, 201f));
-                if (array.Length > j) {
+                if (array.Length > j + moleculeEditorOffset) {
                     TextureRenderer.Render(isPersonal ? Assets.textures.puzzle_editor.product : Assets.textures.puzzle_editor.product_no_close, bounds2.Min);
                     bool flag = false;
                     if (isPersonal) {
@@ -164,9 +187,9 @@ class patch_PuzzleEditorScreen {
                         bool flag2 = bounds3.Contains(InputManager.MousePos());
                         if (!flag2 && bounds2.Contains(InputManager.MousePos())) {
                             flag = true;
-                            if (InputManager.IsClickPressed((MouseButtonType)1)) {
+                            if (InputManager.IsClickPressed(MouseButtonType.LeftClick)) {
                                 int I = i;
-                                int J = j;
+                                int J = j + moleculeEditorOffset;
                                 var moleculeEditorScreen = new MoleculeEditorScreen(array[J].molecule, I == 0, new Action<Molecule>(molecule => {
                                     (I == 0 ? puzzleCont.currentPuzzle.outputs : puzzleCont.currentPuzzle.inputs)[J].molecule = molecule;
                                     puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
@@ -177,6 +200,33 @@ class patch_PuzzleEditorScreen {
                                 GameLogic.instance.PushScreen(moleculeEditorScreen);
                                 Assets.sounds.click_button.PlaySound(1f);
                             }
+
+                            if (InputManager.IsKeyPressed(SDL.SDLKey.SDLK_c) && InputManager.IsModifierKeyHeld(ModifierKeyType.Ctrl)) {
+                                try {
+                                    SDL.SDL_SetClipboardText(Codecs.MOLECULE.Encode(JsonCodecMap.Instance, array[j + moleculeEditorOffset].molecule).ToString());
+                                    Assets.sounds.code_success.PlaySound(1f);
+                                } catch (Exception e) {
+                                    QuintessentialUI.Instance.Log.Warn("Failed to copy molecule to clipboard!\n{}", e);
+                                    Assets.sounds.code_failure.PlaySound(1f);
+                                }
+                            }
+                            if (InputManager.IsKeyPressed(SDL.SDLKey.SDLK_v) && InputManager.IsModifierKeyHeld(ModifierKeyType.Ctrl)) {
+                                int I = i;
+                                int J = j + moleculeEditorOffset;
+                                try {
+                                    string clipboardText = SDL.SDL_GetClipboardText();
+                                    var molecule = Codecs.MOLECULE.Decode(JsonCodecMap.Instance, JsonNode.Parse(clipboardText));
+                                    GameLogic.instance.PushScreen(MessageBoxScreen.ConfirmBox(bounds, true, (i == 0) ? Translations.Translate("Do you really want to replace this product?") : Translations.Translate("Do you really want to replace this reagent?"), MaybeHelper.empty, (i == 0) ? Translations.Translate("Replace Product") : Translations.Translate("Replace Reagent"), Translations.Translate("Cancel"), () => {
+                                        (I == 0 ? puzzleCont.currentPuzzle.outputs : puzzleCont.currentPuzzle.inputs)[J].molecule = molecule;
+                                        puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
+                                    }, () => { }));
+                                    puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
+                                    Assets.sounds.code_success.PlaySound(1f);
+                                } catch (Exception e) {
+                                    QuintessentialUI.Instance.Log.Warn("Failed to paste molecule from clipboard!\n{0}", e);
+                                    Assets.sounds.code_failure.PlaySound(1f);
+                                }
+                            }
                         }
                         TextureRenderer.Render(Assets.textures.puzzle_editor.product_close, bounds3.Min);
                         if (flag2) {
@@ -184,7 +234,7 @@ class patch_PuzzleEditorScreen {
                             if (InputManager.IsClickPressed((MouseButtonType)1)) {
 
                                 int I = i;
-                                int J = j;
+                                int J = j + moleculeEditorOffset;
                                 GameLogic.instance.PushScreen(MessageBoxScreen.ConfirmBox(bounds, true, (i == 0) ? Translations.Translate("Do you really want to delete this product?") : Translations.Translate("Do you really want to delete this reagent?"), MaybeHelper.empty, (i == 0) ? Translations.Translate("Delete Product") : Translations.Translate("Delete Reagent"), Translations.Translate("Cancel"), () => {
 
                                     if (I == 0) {
@@ -199,17 +249,17 @@ class patch_PuzzleEditorScreen {
                         }
 
                         Vector2 namePos = bounds2.BottomLeft + new Vector2(bounds2.Width / 2f - 7, -17);
-                        var isElement = array[j].molecule.GetAtoms().Count == 1;
-                        LocString fallback = LocString.Format(Translations.WithAllLanguages("_({0})_"), array[j].molecule.GetDisplayName().GetOrDefault(QuintessentialUI.Instance.Translate("editor.unnamed_molecule")));
-                        Bounds2 textArea = TextureRenderer.RenderText(array[j].molecule.displayName.GetOrDefault(fallback), namePos, Assets.fonts.crimson_13, UI.TextColor, TextAlignment.Center, 1f, 0.6f, 236, 206, 0, new Color(), null, int.MaxValue, true, true);
+                        var isElement = array[j + moleculeEditorOffset].molecule.GetAtoms().Count == 1;
+                        LocString fallback = LocString.Format(Translations.WithAllLanguages("_({0})_"), array[j + moleculeEditorOffset].molecule.GetDisplayName().GetOrDefault(QuintessentialUI.Instance.Translate("editor.unnamed_molecule")));
+                        Bounds2 textArea = TextureRenderer.RenderText(array[j + moleculeEditorOffset].molecule.displayName.GetOrDefault(fallback), namePos, Assets.fonts.crimson_13, UI.TextColor, TextAlignment.Center, 1f, 0.6f, 236, 206, 0, new Color(), null, int.MaxValue, true, true);
                         if (textArea.Contains(InputManager.MousePos()) && InputManager.IsClickPressed(MouseButtonType.LeftClick) && !screenOpened) {
                             screenOpened = true;
-                            int J = j;
+                            int J = j + moleculeEditorOffset;
                             GameLogic.instance.PushScreen(
                                 MessageBoxScreenEx.Textbox(
                                     bounds,
                                     QuintessentialUI.Instance.Translate("editor.renaming." + (i == 0 ? "product" : "reagent")),
-                                    array[j].molecule.GetDisplayName().GetOrDefault(LocString.emptyString),
+                                    array[J].molecule.GetDisplayName().GetOrDefault(LocString.emptyString),
                                     QuintessentialUI.Instance.Translate("editor.renaming.confirm_" + (i == 0 ? "product" : "reagent")),
                                     s => {
                                         array[J].molecule.displayName = Translations.WithAllLanguages(s);
@@ -220,7 +270,7 @@ class patch_PuzzleEditorScreen {
                             Assets.sounds.click_button.PlaySound(1f);
                         }
                     }
-                    Texture renderedTexture = Editor.RenderMoleculeForDisplay(array[j].molecule, i != 0, flag, new Vector2(156f, 146f), false, MaybeHelper.empty).GetTarget().renderedTexture;
+                    Texture renderedTexture = Editor.RenderMoleculeForDisplay(array[j + moleculeEditorOffset].molecule, i != 0, flag, new Vector2(156f, 146f), false, MaybeHelper.empty).GetTarget().renderedTexture;
                     Vector2 vector = (renderedTexture.size.ToVector2() / 2).Rounded();
                     Vector2 vector2 = bounds2.Center.Rounded() - vector + new Vector2(-8f, 0f);
                     TextureRenderer.Render(renderedTexture, vector2);
@@ -245,6 +295,24 @@ class patch_PuzzleEditorScreen {
 
 							GameLogic.instance.PushScreen(moleculeEditorScreen);
                             Assets.sounds.click_button.PlaySound(1f);
+                        }
+
+                        if (InputManager.IsKeyPressed(SDL.SDLKey.SDLK_v) && InputManager.IsModifierKeyHeld(ModifierKeyType.Ctrl)) {
+                            int I = i;
+                            try {
+                                string clipboardText = SDL.SDL_GetClipboardText();
+                                var molecule = Codecs.MOLECULE.Decode(JsonCodecMap.Instance, JsonNode.Parse(clipboardText));
+                                if (I == 0) {
+                                    puzzleCont.currentPuzzle.outputs = [.. puzzleCont.currentPuzzle.outputs, new PuzzleInputOutput(molecule)];
+                                } else {
+                                    puzzleCont.currentPuzzle.inputs = [.. puzzleCont.currentPuzzle.inputs, new PuzzleInputOutput(molecule)];
+                                }
+                                puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
+                                Assets.sounds.code_success.PlaySound(1f);
+                            } catch (Exception e) {
+                                QuintessentialUI.Instance.Log.Warn("Failed to paste molecule from clipboard!\n{0}", e);
+                                Assets.sounds.code_failure.PlaySound(1f);
+                            }
                         }
                     }
                 }
@@ -291,24 +359,23 @@ class patch_PuzzleEditorScreen {
 		return false;
 	}
 
-	private static bool DrawPuzzleButton(Puzzle p, Vector2 param_3552, int param_3025, bool param_3553, bool param_3554, bool param_4458, bool param_4459) {
+	private static bool DrawPuzzleButton(Puzzle p, Vector2 pos, int textOverflow, bool isSelected, bool isComplete, bool isEnabled, bool canHoverAndClick) {
         bool shift = InputManager.IsModifierKeyHeld(ModifierKeyType.Shift);
         string name = shift ? "ID: " + p.puzzleId.Replace("_", "\\_") : p.puzzleName;
 
 		// draw the button
-		ButtonDrawingLogic bdl = UIUtils.PuzzleButton(name, param_3552, param_3025, param_3553, param_3554);
-        bool flag = bdl.RenderAndCheckIfPressed(param_4458, param_4459);
+		ButtonDrawingLogic bdl = UIUtils.PuzzleButton(name, pos, textOverflow, isSelected, isComplete);
+        bool flag = bdl.RenderAndCheckIfPressed(isEnabled, canHoverAndClick);
 		if (shift)
 		{
 			// draw hash line
-			TextureRenderer.RenderText("HASH: " + p.fileHash.ToString(), bdl.getBounds().Center + new Vector2(-15f, -24f), Assets.fonts.crimson_13, UI.TextColor, TextAlignment.Center, 1f, 0.6f, float.MaxValue, param_3025 - 75, 0, default, null, int.MaxValue, false, true);
+			TextureRenderer.RenderText("HASH: " + p.fileHash.ToString(), bdl.getBounds().Center + new Vector2(-15f, -24f), Assets.fonts.crimson_13, UI.TextColor, TextAlignment.Center, 1f, 0.6f, float.MaxValue, textOverflow - 75, 0, default, null, int.MaxValue, false, true);
 		}
         return flag;
     }
 
     [MonoModILInject("RenderFrame")]
     public static void PatchPuzzleEditorScreen(MethodDefinition method, CustomAttribute attrib) {
-        MonoModRule.Modder.Log("Patching puzzle editor screen");
         if (!method.HasBody) {
             Console.WriteLine("Failed to modify puzzle editor screen (no body)!");
             throw new Exception();

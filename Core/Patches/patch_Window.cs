@@ -25,8 +25,6 @@ internal class patch_Window : Window {
     [MonoModILInject("SetFullscreen")]
     public static void PatchFixFullscreenStuckBug(MethodDefinition method, CustomAttribute attribute) {
 
-        MonoModRule.Modder.Log("Patching window position set");
-
         if (!method.HasBody) {
             throw new Exception("Unable to patch window position set. (no body)");
         }

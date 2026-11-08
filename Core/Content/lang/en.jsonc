@@ -13,6 +13,7 @@
     "settings": {
       "hot_reload": "Hot Reload Campaigns",
       "custom_campaigns": "Enable Campaign Switcher",
+      "collision_optimization": "Disable Collision Optimization",
       "switcher": {
         "": "Campaign Switcher Options:",
         "left": "Switch Campaign Left",

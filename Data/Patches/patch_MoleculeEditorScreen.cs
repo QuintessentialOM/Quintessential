@@ -9,7 +9,6 @@ class patch_MoleculeEditorScreen {
 
     [MonoModILInject("MoleculeError")]
     public static void PatchMoleculeEditorScreenMoleculeError(MethodDefinition method, CustomAttribute attrib) {
-        MonoModRule.Modder.Log("Patching molecule editor screen error detector");
         if (!method.HasBody) {
             Console.WriteLine("Failed to modify molecule editor error detector (no body)!");
             throw new Exception();

@@ -1,5 +1,6 @@
 ﻿using Quintessential.Serialization;
 using System;
+using System.Collections.ObjectModel;
 
 namespace Quintessential.Components;
 
@@ -10,6 +11,7 @@ public interface IComponentHolder<THold, TComp> where TComp : IComponentBase<THo
     public abstract bool TryGetComponent(Identifier toGet, out TComp extension);
     public abstract TComp GetComponent(Identifier toGet);
     public abstract bool HasComponent(Identifier id);
+    public abstract ReadOnlyDictionary<Identifier, TComp> GetComponents();
 }
 
 public interface ISerializableComponentHolder<THold, TComp> : IComponentHolder<THold, TComp> where TComp : IComponentBase<THold> where THold : ISerializableComponentHolder<THold, TComp> {

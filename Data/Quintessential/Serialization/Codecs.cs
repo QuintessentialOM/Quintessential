@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Quintessential.Internal;
+using System;
 using System.Collections.Generic;
 
 namespace Quintessential.Serialization;
@@ -77,6 +78,12 @@ public static class Codecs {
     public static Codec<Solution> SOLUTION => patch_Solution.SOLUTION;
     public static Codec<Puzzle> PUZZLE => patch_Puzzle.PUZZLE;
 
+    public static Codec<CampaignItem> CAMPAIGN_ITEM => CampaignSerializer.CAMPAIGN_ITEM;
+    public static Codec<CampaignChapter> CHAPTER => CampaignSerializer.CHAPTER;
+    public static Codec<Campaign> CAMPAIGN => CampaignSerializer.CAMPAIGN;
+    public static Codec<JournalVolume> VOLUME => CampaignSerializer.VOLUME;
+    public static Codec<Journal> JOURNAL => CampaignSerializer.JOURNAL;
+
     public static readonly Codec<ModMeta> MOD = new ModMetaCodec();
     public static readonly Codec<Version> VERSION = new VersionCodec();
     public static readonly Codec<VersionRange> VERSIONRANGE = new VersionRangeCodec();
@@ -86,4 +93,5 @@ public static class Codecs {
         (gId, rId) => GlyphRecipe.Recipes[gId][rId]
     );
     public static readonly Codec<AtomTag> ATOMTAG = CodecFactory.CreateTag<AtomTag>((id, isTable) => new(id, isTable));
+    public static readonly Codec<PartTag> PARTTAG = CodecFactory.CreateTag<PartTag>((id, isTable) => new(id, isTable));
 }

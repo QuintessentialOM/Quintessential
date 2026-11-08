@@ -10,9 +10,9 @@ using System.Linq;
 class patch_GLRenderer {
 
     [MonoModIgnore]
-    private static extern uint LinkShader(uint param_4320, uint param_4321);
+    private static extern uint LinkShader(uint vertexShaderHandle, uint pixelShaderHandle);
     [MonoModIgnore]
-    public extern void DestroyShader(IntPtr param_4323);
+    public extern void DestroyShader(IntPtr shaderHandle);
 
 
     public bool ReloadShaderIfChanged(Shader shader) {
@@ -53,8 +53,8 @@ class patch_GLRenderer {
         }
         return false;
     }
-    private uint LoadShaderFileUint(uint param_8180, string param_4322) {
-        throw new NotImplementedException();
+    private uint LoadShaderFileUint(uint shaderType, string shaderFilePath) {
+        throw new Exception("ILInject failed to apply");
     }
 
     [MonoModILInject("LoadShaderFileUint")]

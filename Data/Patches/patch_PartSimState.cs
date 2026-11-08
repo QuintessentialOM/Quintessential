@@ -6,6 +6,7 @@ using Quintessential;
 using Quintessential.Components;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using static Quintessential.CycleEvent;
 
@@ -36,6 +37,9 @@ public class patch_PartSimState : IComponentHolder<patch_PartSimState, ISimState
             throw new Exception("Identifier was not contained on object.");
         }
         return ext;
+    }
+    public ReadOnlyDictionary<Identifier, ISimStateComponent> GetComponents() {
+        return new ReadOnlyDictionary<Identifier, ISimStateComponent>(Components);
     }
     public bool RemoveComponent(Identifier toRemove) {
         if (Components.TryGetValue(toRemove, out ISimStateComponent value))
@@ -77,11 +81,12 @@ public class patch_PartSimState : IComponentHolder<patch_PartSimState, ISimState
                 component.OnSpawnMolecules(occupied);
         }
     }
-    internal void OnInstruction(InstructionType instruction, Maybe<int> index, InstructionCycleState instructionState) {
+    internal void OnInstruction(InstructionType instruction, Maybe<int> index, InstructionCycleState instructionState, ref bool handleAsVanilla) {
+        if (instruction.category == InstructionCategory.Custom) handleAsVanilla = false;
         Identifier[] componentIDs = [.. Components.Keys];
         for (int i = 0; i < componentIDs.Length; i++) {
             if (Components.TryGetValue(componentIDs[i], out var component))
-                component.OnInstruction(instruction, index, instructionState);
+                component.OnInstruction(instruction, index, instructionState, ref handleAsVanilla);
         }
     }
     internal void OnGrabStateChange(Maybe<Molecule> molecule, bool newState) {
@@ -112,7 +117,7 @@ public class patch_PartSimState : IComponentHolder<patch_PartSimState, ISimState
     static void PatchSimCtorArgs(MethodDefinition method, CustomAttribute attribute) {
         TypeReference sim = MonoModRule.Modder.FindType("Sim");
         TypeReference part = MonoModRule.Modder.FindType("Part");
-        MethodDefinition getState = part.Resolve().Methods.First(f => f.Name.Equals("GetSimState"));
+        MethodDefinition getState = part.Resolve().Methods.First(f => f.Name.Equals("CreateSimState"));
         if (!getState.HasBody) {
             throw new Exception("Unable to patch Sim Construct. (no body)");
         }
@@ -130,7 +135,6 @@ public class patch_PartSimState : IComponentHolder<patch_PartSimState, ISimState
     [MonoModILInject(".ctor")]
     static void PatchCtor(MethodDefinition method, CustomAttribute attribute) {
 
-        MonoModRule.Modder.Log("Patching Sim init.");
         if (!method.HasBody) {
             throw new Exception("Unable to patch Sim init. (no body)");
         }

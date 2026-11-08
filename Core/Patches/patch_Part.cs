@@ -58,4 +58,13 @@ class patch_Part {
 		cursor.EmitCall(getId);
         cursor.EmitCall(getById);
     }
+
+    [MonoModIgnore] public extern bool orig_HasArms();
+    public bool HasArms() {
+        return orig_HasArms() || ((patch_PartType)(object)GetType()).isArmLike;
+    }
+    [MonoModIgnore] public extern bool orig_HasAtoms();
+    public bool HasAtoms() {
+        return orig_HasAtoms() || ((patch_PartType)(object)GetType()).isWheelLike;
+    }
 }

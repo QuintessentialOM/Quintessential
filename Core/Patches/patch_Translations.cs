@@ -63,8 +63,6 @@ public class patch_Translations {
     [MonoModILInject("Translate")]
     public static void DeformatKeysPatch(MethodDefinition method, CustomAttribute attrib) {
 
-        MonoModRule.Modder.Log("Patching Translations translate");
-
         if (!method.HasBody) {
             throw new Exception("Unable to patch translate. (no body)");
         }

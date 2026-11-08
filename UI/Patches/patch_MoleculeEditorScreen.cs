@@ -7,25 +7,29 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod;
 using MonoMod.Cil;
-using MonoMod.InlineRT;
 using Quintessential;
+using Quintessential.Internal;
+using Quintessential.Serialization;
+using SDL2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Nodes;
+using static MoleculeEditorScreen;
 
 class patch_MoleculeEditorScreen
 {
 
     internal Puzzle editing;
 
-    private static readonly Texture prevAtoms = AssetLoaderHelper.LoadTexture("textures/editor_go_left");
-    private static readonly Texture prevAtomsFaded = AssetLoaderHelper.LoadTexture("textures/editor_go_left_faded");
-    private static readonly Texture prevAtomsHover = AssetLoaderHelper.LoadTexture("textures/editor_go_left_hover");
-    private static readonly Texture nextAtoms = AssetLoaderHelper.LoadTexture("textures/editor_go_right");
-    private static readonly Texture nextAtomsFaded = AssetLoaderHelper.LoadTexture("textures/editor_go_right_faded");
-    private static readonly Texture nextAtomsHover = AssetLoaderHelper.LoadTexture("textures/editor_go_right_hover");
+    internal static readonly Texture prevAtoms = AssetLoaderHelper.LoadTexture("textures/editor_go_left");
+    internal static readonly Texture prevAtomsFaded = AssetLoaderHelper.LoadTexture("textures/editor_go_left_faded");
+    internal static readonly Texture prevAtomsHover = AssetLoaderHelper.LoadTexture("textures/editor_go_left_hover");
+    internal static readonly Texture nextAtoms = AssetLoaderHelper.LoadTexture("textures/editor_go_right");
+    internal static readonly Texture nextAtomsFaded = AssetLoaderHelper.LoadTexture("textures/editor_go_right_faded");
+    internal static readonly Texture nextAtomsHover = AssetLoaderHelper.LoadTexture("textures/editor_go_right_hover");
     // for measuring stuff in debugging
-    //private static readonly Texture dot = class_235.method_618(Color.Red);
+    //private static readonly Texture dot = AssetLoaderHelper.ColorTexture(Color.Red);
 
     private static BondType summedTriplexPlaceHolder = new("quintessential_ui:triplex_placeholder", null, null, null);
 
@@ -54,7 +58,7 @@ class patch_MoleculeEditorScreen
         Vector2 uiSize = new(1516f, 922f);
         Vector2 corner = (InputManager.screenSize / 2 - uiSize / 2 + new Vector2(-2f, -11f)).Rounded();
         if (QApi.ModAtomTypes.Count > 0 || true) {
-            Vector2 lPos = corner + new Vector2(90f, 800f);
+            Vector2 lPos = corner + new Vector2(90f, 802f);
             Vector2 rPos = lPos;
             rPos.X += 350 - nextAtoms.size.X;
             bool inLeftBound = Bounds2.WithSize(lPos, prevAtoms.size.ToVector2()).Contains(InputManager.MousePos());
@@ -63,17 +67,18 @@ class patch_MoleculeEditorScreen
             TextureRenderer.Render(currentPage < LastPage ? inRightBound ? nextAtomsHover : nextAtoms : nextAtomsFaded, rPos);
             UI.DrawText($"{currentPage + 1}/{LastPage + 1}", corner + new Vector2(262f, 800f), UI.Text, UI.TextColor, TextAlignment.Center);
             if (InputManager.IsClickPressed(MouseButtonType.LeftClick) && (inLeftBound || inRightBound)) {
-                Assets.sounds.click_button.PlaySound(1f);
 
                 if (inLeftBound && currentPage > 0) {
+                    Assets.sounds.click_button.PlaySound(1f);
                     currentPage--;
                 } else if (inRightBound && currentPage < LastPage) {
+                    Assets.sounds.click_button.PlaySound(1f);
                     currentPage++;
                 }
             }
         }
         {
-            Vector2 lPos = corner + new Vector2(90f, 277f);
+            Vector2 lPos = corner + new Vector2(90f, 279f);
             Vector2 rPos = lPos;
             rPos.X += 350 - nextAtoms.size.X;
             bool inLeftBound = Bounds2.WithSize(lPos, prevAtoms.size.ToVector2()).Contains(InputManager.MousePos());
@@ -82,13 +87,35 @@ class patch_MoleculeEditorScreen
             TextureRenderer.Render(currentPageBonds < LastPageBonds ? inRightBound ? nextAtomsHover : nextAtoms : nextAtomsFaded, rPos);
             UI.DrawText($"{currentPageBonds + 1}/{LastPageBonds + 1}", corner + new Vector2(262f, 277f), UI.Text, UI.TextColor, TextAlignment.Center);
             if (InputManager.IsClickPressed(MouseButtonType.LeftClick) && (inLeftBound || inRightBound)) {
-                Assets.sounds.click_button.PlaySound(1f);
 
                 if (inLeftBound && currentPageBonds > 0) {
+                    Assets.sounds.click_button.PlaySound(1f);
                     currentPageBonds--;
                 } else if (inRightBound && currentPageBonds < LastPageBonds) {
+                    Assets.sounds.click_button.PlaySound(1f);
                     currentPageBonds++;
                 }
+            }
+        }
+
+        if (InputManager.IsKeyPressed(SDL.SDLKey.SDLK_c) && InputManager.IsModifierKeyHeld(ModifierKeyType.Ctrl)) {
+            try {
+                SDL.SDL_SetClipboardText(Codecs.MOLECULE.Encode(JsonCodecMap.Instance, molecule).ToString());
+                Assets.sounds.code_success.PlaySound(1f);
+            } catch (Exception e) {
+                QuintessentialUI.Instance.Log.Warn("Failed to copy molecule to clipboard!\n{}", e);
+                Assets.sounds.code_failure.PlaySound(1f);
+            }
+        }
+
+        if (InputManager.IsKeyPressed(SDL.SDLKey.SDLK_v) && InputManager.IsModifierKeyHeld(ModifierKeyType.Ctrl)) {
+            try {
+                string clipboardText = SDL.SDL_GetClipboardText();
+                molecule = Codecs.MOLECULE.Decode(JsonCodecMap.Instance, JsonNode.Parse(clipboardText));
+                Assets.sounds.code_success.PlaySound(1f);
+            } catch (Exception e) {
+                QuintessentialUI.Instance.Log.Warn("Failed to paste molecule from clipboard!\n{0}", e);
+                Assets.sounds.code_failure.PlaySound(1f);
             }
         }
     }
@@ -304,7 +331,6 @@ class patch_MoleculeEditorScreen
 
     [MonoModILInject("RenderFrame")]
     static void PatchMoleculeEditorScreenAtomTray(MethodDefinition method, CustomAttribute attrib) {
-        MonoModRule.Modder.Log("Patching molecule editor screen atom tray");
         if (!method.HasBody) {
             Console.WriteLine("Failed to modify molecule editor rendering (no body)!");
             throw new Exception();

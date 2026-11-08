@@ -1,5 +1,6 @@
 ﻿using MonoMod;
 using Quintessential.Internal;
+using Quintessential.Logging;
 using System;
 using System.Linq;
 
@@ -25,7 +26,11 @@ class patch_AppInit {
             if (args.Contains("-unsafeExport")) {
                 LegacyPorting.UnsafeLegacyExport = true;
             }
-            
+            foreach (var arg in args) {
+                if (arg.StartsWith("-logLevel=") && Enum.TryParse<LogLevel>(arg.Split('=', 2)[1], true, out var logLevel)) {
+                    Logger.defaultMinimumLogLevel = logLevel;
+                }
+            }
         }
 
         orig_Main(args);

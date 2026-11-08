@@ -125,7 +125,8 @@ public interface ISimStateComponent : IComponent<patch_PartSimState, Part, Sim?>
     /// <param name="instruction">The instruction to be executed.</param>
     /// <param name="index">The index of the instruction.</param>
     /// <param name="instructionState">The time when the execution is happeding.</param>
-    public virtual void OnInstruction(InstructionType instruction, Maybe<int> index, InstructionCycleState instructionState) { }
+    /// <param name="handleAsVanilla">Set to false to stop the instruction from being handled normally.</param>
+    public virtual void OnInstruction(InstructionType instruction, Maybe<int> index, InstructionCycleState instructionState, ref bool handleAsVanilla) { }
     /// <summary>
     /// Called when the grab state of the part is changed, befor the <see cref="Molecule"/> is released or after it's grabbed.
     /// </summary>
@@ -291,3 +292,30 @@ public interface IBondComponent : IComponent<patch_Bond, patch_Molecule?>, ISimC
     /// <param name="solutionEditor">The solution editor used for rendering.</param>
     public virtual void OnRender(Action doRender, ref Vector2 offset, ref HexIndex hexOffset, ref float rotationAngle, ref float opacityMultiplier, ref float height, SolutionEditorBase solutionEditor) { doRender(); }
 }
+
+/// <summary>
+/// A component interface for storing data on a <see cref="Campaign"/>
+/// </summary>
+public interface ICampaignComponent : IComponent<patch_Campaign> { }
+/// <summary>
+/// A component interface for storing data on a <see cref="CampaignChapter"/>
+/// </summary>
+public interface IChapterComponent : IComponent<patch_CampaignChapter> { }
+/// <summary>
+/// A component interface for storing data on a <see cref="CampaignItem"/>
+/// </summary>
+public interface ICampaignItemComponent : IComponent<patch_CampaignItem> {
+    /// <summary>
+    /// Called when the capaign item is clicked in the puzzle select.
+    /// </summary>
+    /// <param name="handleAsVanilla">Set to false to stop the campaign item from being parsed normally.</param>
+    public virtual void OnSelected(ref bool handleAsVanilla) { }
+}
+/// <summary>
+/// A component interface for storing data on a <see cref="Journal"/>
+/// </summary>
+public interface IJournalComponent : IComponent<patch_Journal> { }
+/// <summary>
+/// A component interface for storing data on a <see cref="JournalVolume"/>
+/// </summary>
+public interface IJournalVolumeComponent : IComponent<patch_JournalVolume> { }

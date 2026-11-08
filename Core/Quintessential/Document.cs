@@ -64,7 +64,7 @@ public class Document {
                 }
             }
         } catch (Exception e) {
-            Logger.LogNoTime("\n" + e.Message);
+            QuintessentialCore.Instance.Log.Warn("\n" + e.Message);
         }
     }
 }

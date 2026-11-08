@@ -21,7 +21,7 @@ internal static class patch_LegacyPorting {
             File.Delete(newPath);
         }
         File.WriteAllText(newPath, json.ToString());
-        Logger.LogNoTime("----Exported: " + newPath);
+        QuintessentialData.Instance.Log.Debug("\n----Exported: " + newPath);
 
         foreach (var chapter in campaign.chapters) {
             foreach (var item in chapter.campaignItems) {
@@ -32,7 +32,7 @@ internal static class patch_LegacyPorting {
 
                         var jsonPuzzle = Codecs.PUZZLE.Encode(JsonCodecMap.Instance, puzzle);
                         File.WriteAllText(path, jsonPuzzle.ToString());
-                        Logger.LogNoTime("----Exported: " + path);
+                        QuintessentialData.Instance.Log.Debug("\n----Exported: " + path);
                     }
                 } catch {}
             }
@@ -51,7 +51,7 @@ internal static class patch_LegacyPorting {
             File.Delete(newPath);
         }
         File.WriteAllText(newPath, json.ToString());
-        Logger.LogNoTime("----Exported: " + newPath);
+        QuintessentialData.Instance.Log.Debug("\n----Exported: " + newPath);
 
         foreach (var volume in journal.volumes) {
             foreach (var puzzle in volume.puzzles) {
@@ -60,7 +60,7 @@ internal static class patch_LegacyPorting {
 
                     var jsonPuzzle = Codecs.PUZZLE.Encode(JsonCodecMap.Instance, puzzle);
                     File.WriteAllText(path, jsonPuzzle.ToString());
-                    Logger.LogNoTime("----Exported: " + path);
+                    QuintessentialData.Instance.Log.Debug("\n----Exported: " + path);
                 } catch { }
             }
         }
@@ -77,7 +77,7 @@ internal static class patch_LegacyPorting {
             File.Delete(newPath);
         }
         File.WriteAllText(newPath, json.ToString());
-        Logger.LogNoTime("----Exported: " + newPath);
+        QuintessentialData.Instance.Log.Debug("----Exported: " + newPath);
     }
 
 }

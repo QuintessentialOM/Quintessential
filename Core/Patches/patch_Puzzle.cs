@@ -20,7 +20,6 @@ class patch_Puzzle : Puzzle {
 
 	[MonoModILInject("SaveToFile")]
     public static void PatchPuzzleIdWrite(MethodDefinition method, CustomAttribute attrib) {
-        MonoModRule.Modder.Log("Patching puzzle ids");
         // Replace "SteamUser.GetSteamID().m_SteamID" with "0" (until a proper format is created)
         if (method.HasBody) {
             ILCursor cursor = new(new ILContext(method));

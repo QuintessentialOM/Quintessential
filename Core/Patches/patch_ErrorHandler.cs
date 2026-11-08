@@ -1,5 +1,6 @@
 ﻿using MonoMod;
 using Quintessential;
+using Quintessential.Internal;
 using SDL2;
 using System;
 using System.Diagnostics;
@@ -17,23 +18,26 @@ class patch_ErrorHandler {
 	[MonoModReplace]
 	public static void BindHandler() {
 		AppDomain.CurrentDomain.UnhandledException += (sender, args) => {
-			Logger.Log("Encountered an error!");
+            var sb = new StringBuilder();
+			sb.AppendLine("Encountered an error!");
 			Exception e = args.ExceptionObject as Exception;
-            Logger.LogNoTime("");
-            Logger.LogNoTime(" -<>- Runtime information: ");
-            Logger.LogNoTime(" Working directory   : " + Directory.GetCurrentDirectory());
-            Logger.LogNoTime(" Process architecture: " + RuntimeInformation.ProcessArchitecture);
-            Logger.LogNoTime(" Os      architecture: " + RuntimeInformation.OSArchitecture);
-			Logger.LogNoTime(" Runtime identifier  : " + RuntimeInformation.RuntimeIdentifier);
-            Logger.LogNoTime(" Runtime directory   : " + RuntimeEnvironment.GetRuntimeDirectory());
-            Logger.LogNoTime(" Runtime version     : " + RuntimeEnvironment.GetSystemVersion());
-            Logger.LogNoTime(" OS      version     : " + Environment.OSVersion);
-            Logger.LogNoTime("");
-            Logger.LogNoTime(" -<>- Exception:");
-            Logger.LogNoTime(StackTraceHelper.FormatExceptionStackTrace(e));
-            Logger.LogNoTime("");
-            Logger.LogNoTime(" -<>- SDL Error:");
-            Logger.LogNoTime(SDL.SDL_GetError());
+            sb.AppendLine("");
+            sb.AppendLine(" -<>- Runtime information: ");
+            sb.AppendLine(" Working directory   : " + Directory.GetCurrentDirectory());
+            sb.AppendLine(" Process architecture: " + RuntimeInformation.ProcessArchitecture);
+            sb.AppendLine(" Os      architecture: " + RuntimeInformation.OSArchitecture);
+			sb.AppendLine(" Runtime identifier  : " + RuntimeInformation.RuntimeIdentifier);
+            sb.AppendLine(" Runtime directory   : " + RuntimeEnvironment.GetRuntimeDirectory());
+            sb.AppendLine(" Runtime version     : " + RuntimeEnvironment.GetSystemVersion());
+            sb.AppendLine(" OS      version     : " + Environment.OSVersion);
+            sb.AppendLine("");
+            sb.AppendLine(" -<>- Exception:");
+            sb.AppendLine(StackTraceHelper.FormatExceptionStackTrace(e));
+            sb.AppendLine("");
+            sb.AppendLine(" -<>- SDL Error:");
+            sb.AppendLine(SDL.SDL_GetError());
+
+            QuintessentialCore.Instance.Log.Error(sb.ToString());
         };
 	}
 

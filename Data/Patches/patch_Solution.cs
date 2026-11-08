@@ -8,6 +8,7 @@ using Quintessential.Components;
 using Quintessential.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Globalization;
 using System.IO;
@@ -43,6 +44,9 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
             throw new Exception("Identifier was not contained on object.");
         }
         return ext;
+    }
+    public ReadOnlyDictionary<Identifier, ISolutionComponent> GetComponents() {
+        return new ReadOnlyDictionary<Identifier, ISolutionComponent>(Components);
     }
     public bool RemoveComponent(Identifier toRemove) {
         if (Components.TryGetValue(toRemove, out ISolutionComponent value))
@@ -197,24 +201,26 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
         if (enabledVanillaFormat) {
             try {
                 Solution s = (Solution)(object)this;
-                var transformed = Solution.FromData(s.ToData(), s.nameOnDisk, s.creationTime);
-                if (transformed.HasValue())
-                    isVanillaSafe = encoded.ToJsonString() == SOLUTION.Encode(JsonCodecMap.Instance, transformed.GetValue()).ToJsonString();
+                if (!s.parts.Any(part => ((patch_EditableProgram)(object)part.program).GetInstructions().Any(instr => ((patch_InstructionType)instr.Value).id == ':'))) {
+                    var transformed = Solution.FromData(s.ToData(), s.nameOnDisk, s.creationTime);
+                    if (transformed.HasValue())
+                        isVanillaSafe = encoded.ToJsonString() == SOLUTION.Encode(JsonCodecMap.Instance, transformed.GetValue()).ToJsonString();
+                }
             } catch { }
         }
 
         if (isVanillaSafe) {
             OrderProgrammables();
-            ChangeFileExtension("", () => PlatformBridge.fileWriter.method_1355(GetFilePath(), ((Solution)(object)this).ToData()));
+            ChangeFileExtension("", () => PlatformBridge.fileWriter.WriteFile(GetFilePath(), ((Solution)(object)this).ToData()));
         } else if (string.IsNullOrWhiteSpace(ExtraFileExtension)) {
             OrderProgrammables();
-            ChangeFileExtension(".json", () => PlatformBridge.fileWriter.method_1356(GetFilePath(), encoded.ToJsonString()));
+            ChangeFileExtension(".json", () => PlatformBridge.fileWriter.WriteAsciiStringToFile(GetFilePath(), encoded.ToJsonString()));
         } else if (ExtraFileExtension == ".json") {
             OrderProgrammables();
-            PlatformBridge.fileWriter.method_1356(GetFilePath(), encoded.ToJsonString());
+            PlatformBridge.fileWriter.WriteAsciiStringToFile(GetFilePath(), encoded.ToJsonString());
         } else if (ExtraFileExtension == ".jsonc") { // Human readable version of json
             OrderProgrammables();
-            PlatformBridge.fileWriter.method_1356(GetFilePath(), encoded.ToString());
+            PlatformBridge.fileWriter.WriteAsciiStringToFile(GetFilePath(), encoded.ToString());
         } else
             throw new Exception("Invalid extra file extension '" + ExtraFileExtension + "' for solution from: " + GetFilePath());
     }
@@ -288,7 +294,6 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
     [MonoModILInject(".ctor")]
     static void PatchCtor(MethodDefinition method, CustomAttribute attribute) {
 
-        MonoModRule.Modder.Log("Patching Sim init.");
         if (!method.HasBody) {
             throw new Exception("Unable to patch Sim init. (no body)");
         }

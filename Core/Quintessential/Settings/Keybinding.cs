@@ -18,22 +18,26 @@ public class Keybinding {
 		Alt = alt;
 	}
 
-	public bool IsControlKeysPressed(){
+	public bool IsControlKeysPressed() {
 		return (!Shift || InputManager.IsModifierKeyHeld(ModifierKeyType.Shift)) &&
 			(!Control || InputManager.IsModifierKeyHeld(ModifierKeyType.Ctrl)) &&
 			(!Alt || InputManager.IsModifierKeyHeld(ModifierKeyType.Alt));
 	}
 
-	public bool Pressed(){
+	public bool Pressed() {
 		return IsControlKeysPressed() && InputManager.IsKeyPressed(SDL.SDL_GetKeyFromName(Key));
 	}
 
-	public bool Held(){
+	public bool Held() {
 		return IsControlKeysPressed() && InputManager.IsKeyHeld(SDL.SDL_GetKeyFromName(Key));
 	}
 
-	public bool Released(){
+	public bool Released() {
 		return IsControlKeysPressed() && InputManager.IsKeyReleased(SDL.SDL_GetKeyFromName(Key));
+	}
+
+	public bool Typed() {
+		return IsControlKeysPressed() && InputManager.IsKeyTyped(SDL.SDL_GetKeyFromName(Key));
 	}
 
 	public Keybinding Copy() {

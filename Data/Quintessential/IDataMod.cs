@@ -1,4 +1,5 @@
-﻿using Quintessential.Serialization;
+﻿using Quintessential.Internal;
+using Quintessential.Serialization;
 using System.Collections.Generic;
 using System.IO;
 
@@ -26,11 +27,11 @@ public interface IDataMod {
     public static sealed void LoadTagsFromFiles(ModMeta mod) {
         if (File.Exists(Path.Combine(mod.PathToDirectory, "Content", "tags", AtomTag.FileName))) {
             DataSerializer.Deserialize<Dictionary<Identifier, AtomTag>>(Path.Combine(mod.PathToDirectory, "Content", "tags", AtomTag.FileName));
-            Logger.Log($"Loaded {AtomTag.FileName} from '{mod.ModId}'");
+            QuintessentialData.Instance.Log.Debug($"Loaded {AtomTag.FileName} from '{mod.ModId}'");
         }
         if (File.Exists(Path.Combine(mod.PathToDirectory, "Content", "tags", PartTag.FileName))) {
             DataSerializer.Deserialize<Dictionary<Identifier, PartTag>>(Path.Combine(mod.PathToDirectory, "Content", "tags", PartTag.FileName));
-            Logger.Log($"Loaded {PartTag.FileName} from '{mod.ModId}'");
+            QuintessentialData.Instance.Log.Debug($"Loaded {PartTag.FileName} from '{mod.ModId}'");
         }
     }
 }

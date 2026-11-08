@@ -13,7 +13,10 @@ public class QuintessentialCoreSettings {
 	[SettingsLabelKey("quintessential_core.settings.custom_campaigns")]
 	public bool EnableCustomCampaigns = true;
 
-	[SettingsLabelKey("quintessential_core.settings.switcher")]
+    [SettingsLabelKey("quintessential_core.settings.collision_optimization")]
+    public bool DisableCollisionOptimization = false;
+
+    [SettingsLabelKey("quintessential_core.settings.switcher")]
 	public CampaignSwitcherSettings SwitcherSettings = new();
 
 	public class CampaignSwitcherSettings : SettingsGroup {

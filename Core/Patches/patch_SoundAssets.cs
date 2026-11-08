@@ -5,9 +5,9 @@ internal class patch_SoundAssets {
     static internal List<Sound> Sounds = [];
 
     [MonoModReplace]
-    public void ResetPlayingSounds() {
+    public void ResetPlayedThisFrame() {
         foreach (var sound in Sounds) {
-            sound.isPlaying = false;
+            sound.playedThisFrame = false;
         }
     }
 }

@@ -11,7 +11,8 @@ public static class QApi {
 
 	public static readonly List<Tuple<Predicate<Part>, PartRendererDelegate>> PartRenderers = [];
 	public static readonly List<Tuple<PartType, PartType>> PanelParts = [];
-	public static readonly List<AtomType> ModAtomTypes = [];
+    public static readonly List<Tuple<List<PartType>, LocString, string>> PanelCustomSections = [];
+    public static readonly List<AtomType> ModAtomTypes = [];
 	public static readonly List<Action<Sim, bool>> ToRunAfterCycle = [];
 	public static readonly List<PuzzleOption> PuzzleOptions = [];
     public static readonly List<Tuple<AtomType, LocString>> AtomTypePrefixes= [];
@@ -34,21 +35,36 @@ public static class QApi {
 	/// <param name="after">The part type after which the other one gets added.</param>
 	public static void AddPartTypeToPanel(PartType type, PartType after) {
 		if(type == null || after == null)
-			Logger.Log("Tried to add a null part to the parts panel, or tried to add a part after a null part, not adding.");
+			QuintessentialCore.Instance.Log.Warn("Tried to add a null part to the parts panel, or tried to add a part after a null part, not adding.");
 		else if(type.Equals(after))
-			Logger.Log("Tried to add a part to the part panel after itself (circular reference), not adding.");
+			QuintessentialCore.Instance.Log.Warn("Tried to add a part to the part panel after itself (circular reference), not adding.");
 		else
 			PanelParts.Add(new Tuple<PartType, PartType>(type, after));
-	}
+    }
 
-	// TODO check the part type before calling the delegate for performance reasons.
-	/// <summary>
-	/// Adds a PartRenderer, which renders any parts that satisfy the given predicate. Usually, this predicate simply checks the part type of the part.
-	/// </summary>
-	/// <param name="mod">The mod that adds the renderer.</param>
-	/// <param name="renderer">The PartRenderer to be added and displayed.</param>
-	/// <param name="typeChecker">A predicate that determines which parts the renderer should try to display.</param>
-	public static void AddPartTypesRenderer(this QuintessentialMod mod, PartRendererDelegate renderer, Predicate<Part> typeChecker) {
+    /// <summary>
+    /// Adds a part type section to the part panel after another with the given English name.
+    /// </summary>
+    /// <param name="parts">The parts in the section.</param>
+    /// <param name="name">The name of the new section.</param>
+    /// <param name="after">The English name of the setion after which the other one gets added.</param>
+    public static void AddPartTypeSectionToPanel(List<PartType> parts, LocString name, string after = "Glyphs") {
+        if (parts == null || name == null || after == null)
+            QuintessentialCore.Instance.Log.Warn("Tried to add a null section to the parts panel, not adding.");
+        else if (name.GetEnglish() == after)
+            QuintessentialCore.Instance.Log.Warn("Tried to add a section to the part panel after itself (circular reference), not adding.");
+        else
+            PanelCustomSections.Add(new(parts, name, after));
+    }
+
+    // TODO check the part type before calling the delegate for performance reasons.
+    /// <summary>
+    /// Adds a PartRenderer, which renders any parts that satisfy the given predicate. Usually, this predicate simply checks the part type of the part.
+    /// </summary>
+    /// <param name="mod">The mod that adds the renderer.</param>
+    /// <param name="renderer">The PartRenderer to be added and displayed.</param>
+    /// <param name="typeChecker">A predicate that determines which parts the renderer should try to display.</param>
+    public static void AddPartTypesRenderer(this QuintessentialMod mod, PartRendererDelegate renderer, Predicate<Part> typeChecker) {
 		PartRenderers.Add(new Tuple<Predicate<Part>, PartRendererDelegate>(typeChecker, renderer));
 	}
 
@@ -157,7 +173,7 @@ public static class QApi {
 	/// <param name="productionChamber">The chamber type to add.</param>
 	/// <param name="autoCentre">
 	/// Whether to automatically assign a centred offset for the chamber's overlay texture.<br/>
-	/// Otherwise, the chamber's <c>field_1730</c> must have its offset<br/>
+	/// Otherwise, the chamber's <c>borderTexture</c> must have its offset<br/>
 	/// assigned by <c>UI.AssignOffset</c>, or the chamber will be visually incorrect.
 	/// </param>
 	public static void AddProductionChamber(this QuintessentialMod mod, string id, ProductionChamber productionChamber, bool autoCentre = true){

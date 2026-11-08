@@ -26,7 +26,7 @@ internal class patch_Settings : Settings {
         windowYPos.Set(y);
     }
     public void WindowCtor() {
-        int def = SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(AppConsts.centeredWindows ? 1 : 0);
+        int def = SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(AppConsts.explicitDisplayIndex ? 1 : 0);
         windowXPos = new SettingsItem<int>(GetConfig(), "QuintWindowPos.X", def, new Func<string, Maybe<int>>(ParseInt), new Func<int, string>(IntToString));
         windowYPos = new SettingsItem<int>(GetConfig(), "QuintWindowPos.Y", def, new Func<string, Maybe<int>>(ParseInt), new Func<int, string>(IntToString));
     }
@@ -34,8 +34,6 @@ internal class patch_Settings : Settings {
 
     [MonoModILInject(".ctor")]
     public static void PatchWindowPositionSetting(MethodDefinition method, CustomAttribute attribute) {
-
-        MonoModRule.Modder.Log("Patching window position settings init");
 
         if (!method.HasBody) {
             throw new Exception("Unable to patch window position settings init. (no body)");
