@@ -14,8 +14,11 @@ using MonoMod.Cil;
 using MonoMod.InlineRT;
 using Quintessential;
 using Quintessential.Internal;
+using Quintessential.Serialization;
+using SDL2;
 using System;
 using System.Linq;
+using System.Text.Json.Nodes;
 
 class patch_PuzzleEditorScreen {
 
@@ -164,7 +167,7 @@ class patch_PuzzleEditorScreen {
                         bool flag2 = bounds3.Contains(InputManager.MousePos());
                         if (!flag2 && bounds2.Contains(InputManager.MousePos())) {
                             flag = true;
-                            if (InputManager.IsClickPressed((MouseButtonType)1)) {
+                            if (InputManager.IsClickPressed(MouseButtonType.LeftClick)) {
                                 int I = i;
                                 int J = j;
                                 var moleculeEditorScreen = new MoleculeEditorScreen(array[J].molecule, I == 0, new Action<Molecule>(molecule => {
@@ -176,6 +179,33 @@ class patch_PuzzleEditorScreen {
 
                                 GameLogic.instance.PushScreen(moleculeEditorScreen);
                                 Assets.sounds.click_button.PlaySound(1f);
+                            }
+
+                            if (InputManager.IsKeyPressed(SDL.SDLKey.SDLK_c) && InputManager.IsModifierKeyHeld(ModifierKeyType.Ctrl)) {
+                                try {
+                                    SDL.SDL_SetClipboardText(Codecs.MOLECULE.Encode(JsonCodecMap.Instance, array[j].molecule).ToString());
+                                    Assets.sounds.code_success.PlaySound(1f);
+                                } catch (Exception e) {
+                                    QuintessentialUI.Instance.Log.Warn("Failed to copy molecule to clipboard!\n{}", e);
+                                    Assets.sounds.code_failure.PlaySound(1f);
+                                }
+                            }
+                            if (InputManager.IsKeyPressed(SDL.SDLKey.SDLK_v) && InputManager.IsModifierKeyHeld(ModifierKeyType.Ctrl)) {
+                                int I = i;
+                                int J = j;
+                                try {
+                                    string clipboardText = SDL.SDL_GetClipboardText();
+                                    var molecule = Codecs.MOLECULE.Decode(JsonCodecMap.Instance, JsonNode.Parse(clipboardText));
+                                    GameLogic.instance.PushScreen(MessageBoxScreen.ConfirmBox(bounds, true, (i == 0) ? Translations.Translate("Do you really want to replace this product?") : Translations.Translate("Do you really want to replace this reagent?"), MaybeHelper.empty, (i == 0) ? Translations.Translate("Replace Product") : Translations.Translate("Replace Reagent"), Translations.Translate("Cancel"), () => {
+                                        (I == 0 ? puzzleCont.currentPuzzle.outputs : puzzleCont.currentPuzzle.inputs)[J].molecule = molecule;
+                                        puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
+                                    }, () => { }));
+                                    puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
+                                    Assets.sounds.code_success.PlaySound(1f);
+                                } catch (Exception e) {
+                                    QuintessentialUI.Instance.Log.Warn("Failed to paste molecule from clipboard!\n{0}", e);
+                                    Assets.sounds.code_failure.PlaySound(1f);
+                                }
                             }
                         }
                         TextureRenderer.Render(Assets.textures.puzzle_editor.product_close, bounds3.Min);
@@ -245,6 +275,24 @@ class patch_PuzzleEditorScreen {
 
 							GameLogic.instance.PushScreen(moleculeEditorScreen);
                             Assets.sounds.click_button.PlaySound(1f);
+                        }
+
+                        if (InputManager.IsKeyPressed(SDL.SDLKey.SDLK_v) && InputManager.IsModifierKeyHeld(ModifierKeyType.Ctrl)) {
+                            int I = i;
+                            try {
+                                string clipboardText = SDL.SDL_GetClipboardText();
+                                var molecule = Codecs.MOLECULE.Decode(JsonCodecMap.Instance, JsonNode.Parse(clipboardText));
+                                if (I == 0) {
+                                    puzzleCont.currentPuzzle.outputs = [.. puzzleCont.currentPuzzle.outputs, new PuzzleInputOutput(molecule)];
+                                } else {
+                                    puzzleCont.currentPuzzle.inputs = [.. puzzleCont.currentPuzzle.inputs, new PuzzleInputOutput(molecule)];
+                                }
+                                puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
+                                Assets.sounds.code_success.PlaySound(1f);
+                            } catch (Exception e) {
+                                QuintessentialUI.Instance.Log.Warn("Failed to paste molecule from clipboard!\n{0}", e);
+                                Assets.sounds.code_failure.PlaySound(1f);
+                            }
                         }
                     }
                 }

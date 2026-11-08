@@ -7,11 +7,15 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod;
 using MonoMod.Cil;
-using MonoMod.InlineRT;
 using Quintessential;
+using Quintessential.Internal;
+using Quintessential.Serialization;
+using SDL2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Nodes;
+using static MoleculeEditorScreen;
 
 class patch_MoleculeEditorScreen
 {
@@ -89,6 +93,27 @@ class patch_MoleculeEditorScreen
                 } else if (inRightBound && currentPageBonds < LastPageBonds) {
                     currentPageBonds++;
                 }
+            }
+        }
+
+        if (InputManager.IsKeyPressed(SDL.SDLKey.SDLK_c) && InputManager.IsModifierKeyHeld(ModifierKeyType.Ctrl)) {
+            try {
+                SDL.SDL_SetClipboardText(Codecs.MOLECULE.Encode(JsonCodecMap.Instance, molecule).ToString());
+                Assets.sounds.code_success.PlaySound(1f);
+            } catch (Exception e) {
+                QuintessentialUI.Instance.Log.Warn("Failed to copy molecule to clipboard!\n{}", e);
+                Assets.sounds.code_failure.PlaySound(1f);
+            }
+        }
+
+        if (InputManager.IsKeyPressed(SDL.SDLKey.SDLK_v) && InputManager.IsModifierKeyHeld(ModifierKeyType.Ctrl)) {
+            try {
+                string clipboardText = SDL.SDL_GetClipboardText();
+                molecule = Codecs.MOLECULE.Decode(JsonCodecMap.Instance, JsonNode.Parse(clipboardText));
+                Assets.sounds.code_success.PlaySound(1f);
+            } catch (Exception e) {
+                QuintessentialUI.Instance.Log.Warn("Failed to paste molecule from clipboard!\n{0}", e);
+                Assets.sounds.code_failure.PlaySound(1f);
             }
         }
     }
