@@ -33,25 +33,25 @@ class patch_ToolbarManager {
     }
 
 	[MonoModIgnore] // # unsafe
-	internal extern void layer_0_method_2047(string param_5645, List<PartTypeForToolbar> partToolbar);
+	internal extern void layer_0_AddSection(string param_5645, List<PartTypeForToolbar> partToolbar);
 
-    internal void method_2047(string param_5645, List<PartTypeForToolbar> partToolbar) {
-		LocString name;
-		if (param_5645 == Translations.Translate("Products")) {
-			name = Translations.Translate("Products");
-        } else if (param_5645 == Translations.Translate("Reagents")) {
-            name = Translations.Translate("Reagents");
-        } else if (param_5645 == Translations.Translate("Mechanisms")) {
-            name = Translations.Translate("Mechanisms");
-        } else if (param_5645 == Translations.Translate("Glyphs")) {
-            name = Translations.Translate("Glyphs");
+    internal void AddSection(string name, List<PartTypeForToolbar> partToolbar) {
+		LocString localizedName;
+		if (name == Translations.Translate("Products")) {
+            localizedName = Translations.Translate("Products");
+        } else if (name == Translations.Translate("Reagents")) {
+            localizedName = Translations.Translate("Reagents");
+        } else if (name == Translations.Translate("Mechanisms")) {
+            localizedName = Translations.Translate("Mechanisms");
+        } else if (name == Translations.Translate("Glyphs")) {
+            localizedName = Translations.Translate("Glyphs");
         } else {
-			name = Translations.Translate(param_5645);
+            localizedName = Translations.Translate(name);
 		}
-		AddSection(name, partToolbar);
+		AddSection(localizedName, partToolbar);
     }
     public void AddSection(LocString name, List<PartTypeForToolbar> partToolbar) {
-		layer_0_method_2047(name, partToolbar);
+        layer_0_AddSection(name, partToolbar);
 
         foreach (var section in QApi.PanelCustomSections.Where(section => section.Item3 == name.GetEnglish())) {
 			List<PartTypeForToolbar> types = [];
