@@ -210,15 +210,18 @@ class patch_Sim{
             }
             colliders.AddRange(additionalCollisions);
             regions.Add(new(Bounds2.WithCorners(float.NegativeInfinity, float.NegativeInfinity, float.PositiveInfinity, float.PositiveInfinity), moleculeCounts, colliders.Count - moleculeCounts));
-            for (int k = regions[^1].firstIndex; k < colliders.Count; k++) {
+            for (int k = 0; k < colliders.Count; k++) {
                 Sim.Collider collider = colliders[k];
-                foreach (var region in regions) {
-                    if (region.bounds.Expanded(new Vector2(collider.radius, collider.radius)).Contains(collider.center)) {
-                        int colliderIndex = Math.Min(region.firstIndex + region.colliderCount, k);
-                        for (int l = region.firstIndex; l < colliderIndex; l++) {
-                            Sim.Collider collider2 = colliders[l];
-                            if (Vector2.Distance(collider.center, collider2.center) < collider.radius + collider2.radius) {
-                                HandleCollision(collider, collider2, time);
+
+                if (k >= regions[^1].firstIndex) {
+                    foreach (var region in regions) {
+                        if (region.bounds.Expanded(new Vector2(collider.radius, collider.radius)).Contains(collider.center)) {
+                            int colliderIndex = Math.Min(region.firstIndex + region.colliderCount, k);
+                            for (int l = region.firstIndex; l < colliderIndex; l++) {
+                                Sim.Collider collider2 = colliders[l];
+                                if (Vector2.Distance(collider.center, collider2.center) < collider.radius + collider2.radius) {
+                                    HandleCollision(collider, collider2, time);
+                                }
                             }
                         }
                     }

@@ -17,7 +17,6 @@ using Quintessential.Internal;
 using Quintessential.Serialization;
 using SDL2;
 using System;
-using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text.Json.Nodes;
 
@@ -204,10 +203,11 @@ class patch_PuzzleEditorScreen {
                             if (InputManager.IsKeyPressed(SDL.SDLKey.SDLK_c) && InputManager.IsModifierKeyHeld(ModifierKeyType.Ctrl)) {
                                 try {
                                     SDL.SDL_SetClipboardText(Codecs.MOLECULE.Encode(JsonCodecMap.Instance, array[j + moleculeEditorOffset].molecule).ToString());
-                                    Assets.sounds.code_success.PlaySound(1f);
+                                    patch_MoleculeEditorScreen.CopySound.PlaySound(1f);
                                 } catch (Exception e) {
-                                    QuintessentialUI.Instance.Log.Warn("Failed to copy molecule to clipboard!\n{}", e);
-                                    Assets.sounds.code_failure.PlaySound(1f);
+                                    // If this fails then saving the puzzle will. We're in deep water by that point.
+                                    QuintessentialUI.Instance.Log.Error("Failed to copy molecule to clipboard!\n{}", e);
+                                    patch_MoleculeEditorScreen.PasteFailed.PlaySound(1f);
                                 }
                             }
                             if (InputManager.IsKeyPressed(SDL.SDLKey.SDLK_v) && InputManager.IsModifierKeyHeld(ModifierKeyType.Ctrl)) {
@@ -219,12 +219,13 @@ class patch_PuzzleEditorScreen {
                                     GameLogic.instance.PushScreen(MessageBoxScreen.ConfirmBox(bounds, true, (i == 0) ? Translations.Translate("Do you really want to replace this product?") : Translations.Translate("Do you really want to replace this reagent?"), MaybeHelper.empty, (i == 0) ? Translations.Translate("Replace Product") : Translations.Translate("Replace Reagent"), Translations.Translate("Cancel"), () => {
                                         (I == 0 ? puzzleCont.currentPuzzle.outputs : puzzleCont.currentPuzzle.inputs)[J].molecule = molecule;
                                         puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
+                                        patch_MoleculeEditorScreen.PasteSuccess.PlaySound(1f);
                                     }, () => { }));
                                     puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
-                                    Assets.sounds.code_success.PlaySound(1f);
+                                    patch_MoleculeEditorScreen.PasteStarts.PlaySound(1f);
                                 } catch (Exception e) {
                                     QuintessentialUI.Instance.Log.Warn("Failed to paste molecule from clipboard!\n{0}", e);
-                                    Assets.sounds.code_failure.PlaySound(1f);
+                                    patch_MoleculeEditorScreen.PasteFailed.PlaySound(1f);
                                 }
                             }
                         }
@@ -308,10 +309,11 @@ class patch_PuzzleEditorScreen {
                                     puzzleCont.currentPuzzle.inputs = [.. puzzleCont.currentPuzzle.inputs, new PuzzleInputOutput(molecule)];
                                 }
                                 puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
-                                Assets.sounds.code_success.PlaySound(1f);
+                                patch_MoleculeEditorScreen.PasteStarts.PlaySound(1f);
+                                patch_MoleculeEditorScreen.PasteSuccess.PlaySound(1f);
                             } catch (Exception e) {
                                 QuintessentialUI.Instance.Log.Warn("Failed to paste molecule from clipboard!\n{0}", e);
-                                Assets.sounds.code_failure.PlaySound(1f);
+                                patch_MoleculeEditorScreen.PasteFailed.PlaySound(1f);
                             }
                         }
                     }
