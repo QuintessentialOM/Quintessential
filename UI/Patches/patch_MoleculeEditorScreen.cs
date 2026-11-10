@@ -28,6 +28,10 @@ class patch_MoleculeEditorScreen
     internal static readonly Texture nextAtoms = AssetLoaderHelper.LoadTexture("textures/editor_go_right");
     internal static readonly Texture nextAtomsFaded = AssetLoaderHelper.LoadTexture("textures/editor_go_right_faded");
     internal static readonly Texture nextAtomsHover = AssetLoaderHelper.LoadTexture("textures/editor_go_right_hover");
+    internal static Sound CopySound;
+    internal static Sound PasteStarts;
+    internal static Sound PasteSuccess;
+    internal static Sound PasteFailed;
     // for measuring stuff in debugging
     //private static readonly Texture dot = AssetLoaderHelper.ColorTexture(Color.Red);
 
@@ -101,7 +105,7 @@ class patch_MoleculeEditorScreen
         if (InputManager.IsKeyPressed(SDL.SDLKey.SDLK_c) && InputManager.IsModifierKeyHeld(ModifierKeyType.Ctrl)) {
             try {
                 SDL.SDL_SetClipboardText(Codecs.MOLECULE.Encode(JsonCodecMap.Instance, molecule).ToString());
-                Assets.sounds.code_success.PlaySound(1f);
+                CopySound.PlaySound(1f);
             } catch (Exception e) {
                 QuintessentialUI.Instance.Log.Warn("Failed to copy molecule to clipboard!\n{}", e);
                 Assets.sounds.code_failure.PlaySound(1f);
@@ -112,10 +116,11 @@ class patch_MoleculeEditorScreen
             try {
                 string clipboardText = SDL.SDL_GetClipboardText();
                 molecule = Codecs.MOLECULE.Decode(JsonCodecMap.Instance, JsonNode.Parse(clipboardText));
-                Assets.sounds.code_success.PlaySound(1f);
+                PasteStarts.PlaySound(1f);
+                PasteSuccess.PlaySound(1f);
             } catch (Exception e) {
                 QuintessentialUI.Instance.Log.Warn("Failed to paste molecule from clipboard!\n{0}", e);
-                Assets.sounds.code_failure.PlaySound(1f);
+                PasteFailed.PlaySound(1f);
             }
         }
     }
