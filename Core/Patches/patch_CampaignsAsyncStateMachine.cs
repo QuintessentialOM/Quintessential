@@ -45,11 +45,11 @@ internal class patch_CampaignsAsyncStateMachine {
                 Maybe<CampaignItem> maybe = patch_CampaignsForAsync.FindCampaignItemById(id);
                 return maybe.HasValue() && maybe.GetValue().IsComplete();
             });
-            isSatisfied = completed > someOfMany.required;
+            isSatisfied = completed >= someOfMany.required;
             return true;
         } else if (item.requirement is UnlockReqCompleteSomeOfChapter someOfChapter) {
             int completed = chapter.campaignItems.Count(item => item.IsComplete());
-            isSatisfied = completed > someOfChapter.required;
+            isSatisfied = completed >= someOfChapter.required;
             return true;
         }
         return false;
