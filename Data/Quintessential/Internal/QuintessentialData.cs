@@ -1,5 +1,4 @@
 ﻿using Quintessential.Serialization;
-using System;
 
 namespace Quintessential.Internal;
 

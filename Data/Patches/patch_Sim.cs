@@ -11,11 +11,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading;
-using YamlDotNet.Core.Tokens;
 using static Quintessential.CycleEvent;
 using static Quintessential.PartCycleDelegate;
-using static Sim;
 
 public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
 

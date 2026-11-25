@@ -4,7 +4,6 @@ using MonoMod;
 using MonoMod.Cil;
 using System;
 using System.Linq;
-using static MonoMod.InlineRT.MonoModRule;
 
 [MonoModPatch("Campaigns/AsyncStateMachine_EnumeratePuzzleSelectEvents")]
 internal class patch_CampaignsAsyncStateMachine {

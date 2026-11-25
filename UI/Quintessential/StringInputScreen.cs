@@ -1,6 +1,5 @@
 ﻿using SDL2;
 using System;
-using static VignetteEvent;
 
 namespace Quintessential;
 
