@@ -1,4 +1,5 @@
 ﻿using Quintessential.Serialization;
+using System;
 
 namespace Quintessential.Internal;
 
@@ -216,6 +217,17 @@ internal class QuintessentialData : QuintessentialMod, IDataMod {
     public override void FinaliseContent() {
         // TODO find a better place for this!
         InstructionPlacementOptimiser.CompactInstructionTrays();
+
+        // Fix parts with cycle delegates, but no recipes.
+        foreach (var partType in PartTypes.partTypes) {
+            if (((patch_PartType)(object)partType).CycleDelegate != null && !GlyphRecipe.Recipes.ContainsKey(partType.Id)) {
+                GlyphRecipe.Recipes[partType.Id] = [];
+                GlyphRecipe.Recipes[partType.Id].Add(partType.Id, new GlyphRecipe() {
+                    RecipeId = partType.Id,
+                    RecipeGlyphId = partType.Id
+                });
+            }
+        }
     }
 
     public override void PostLoad() { }

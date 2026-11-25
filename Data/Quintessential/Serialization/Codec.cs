@@ -4,7 +4,7 @@ namespace Quintessential.Serialization;
 
 /* This code uses -dynamic-!
  * Why?
- * Although dynamic is horrible all my research led me to believe that
+ * Although dynamic is horrible, all of my research led me to believe that
  * generic lambda function can't be created. E.g.:
  * //> private Func<CodecMap<TData>, TData, T> Decoder<TData>;
  * We'd need such a type, sice TData isn't known when the Codec is being constructed.
@@ -13,6 +13,7 @@ namespace Quintessential.Serialization;
  * This means that the type of the -dynamic- parameters is actually known,
  * it just has to be hidden from the compiler.
  * Still: // TODO: Remove dynamic somehow!
+ * -- Fate of A.
  */
 
 /// <summary>
