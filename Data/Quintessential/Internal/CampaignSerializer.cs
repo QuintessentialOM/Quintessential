@@ -11,7 +11,6 @@ internal class CampaignSerializer {
         Codecs.STRING.Seal("Type", (UnlockRequirement req) => {
             if (req is UnlockReqCompleteCampaignItem) return "Single";
             if (req is UnlockReqCompleteMany) return "Many";
-            if (req is UnlockReqCompleteSomeOfChapter) return "SomeOfChapter";
             if (req is UnlockReqCompleteSomeOfMany) return "SomeOfMany";
             if (req is UnlockReqCustom) throw new Exception("Cannot serialze Custom Unlock Requirements.");
             if (req is UnlockReqNever) return "Never";
@@ -29,8 +28,7 @@ internal class CampaignSerializer {
             else return [];
         }).WithDefault([]),
         Codecs.INT.Seal("Amount", (UnlockRequirement req) => {
-            if (req is UnlockReqCompleteSomeOfChapter someOfChapter) return someOfChapter.required;
-            else if (req is UnlockReqCompleteSomeOfMany someOfMany) return someOfMany.required;
+            if (req is UnlockReqCompleteSomeOfMany someOfMany) return someOfMany.required;
             else if (req is UnlockReqPuzzlesComplete puzzlesComplete) return puzzlesComplete.requiredMinimum;
             else return 0;
         }).WithDefault(0),
@@ -38,7 +36,6 @@ internal class CampaignSerializer {
             return type switch {
                 "Single" => new UnlockReqCompleteCampaignItem(itemId),
                 "Many" => new UnlockReqCompleteMany([.. itemIds]),
-                "SomeOfChapter" => new UnlockReqCompleteSomeOfChapter(amount),
                 "SomeOfMany" => new UnlockReqCompleteSomeOfMany([.. itemIds], amount),
                 "Never" => new UnlockReqNever(),
                 "Nothing" => new UnlockReqNothing(),

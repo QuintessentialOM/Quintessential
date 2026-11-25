@@ -32,7 +32,7 @@ internal class patch_CampaignsAsyncStateMachine {
             isSatisfied = false;
             return true;
         } else if (item.requirement is UnlockReqCustom custom) {
-            isSatisfied = custom.check();
+            isSatisfied = custom.check(chapter, item);
             return true;
         } else if (item.requirement is UnlockReqCompleteMany many) {
             isSatisfied = many.requiredItemIds.All(id => {
@@ -46,10 +46,6 @@ internal class patch_CampaignsAsyncStateMachine {
                 return maybe.HasValue() && maybe.GetValue().IsComplete();
             });
             isSatisfied = completed >= someOfMany.required;
-            return true;
-        } else if (item.requirement is UnlockReqCompleteSomeOfChapter someOfChapter) {
-            int completed = chapter.campaignItems.Count(item => item.IsComplete());
-            isSatisfied = completed >= someOfChapter.required;
             return true;
         }
         return false;
