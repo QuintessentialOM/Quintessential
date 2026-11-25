@@ -1267,28 +1267,35 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
 
     [MonoModILInject("ProcessInputs")]
     public static void PatchProcessInputsRejection(MethodDefinition method, CustomAttribute attrib) {
-        ILCursor cursor = new(new ILContext(method));
+        // ~ The following code is commented out because it doesn't work. ( Surprise! )
+        // ~ Replacing the check for the animation with simstate.wasActivated
+        // ~ fails because wasActivated is set later in the cycle.
+        // ~ The objectively correct way to fix this issue would be to check if any recipe on the glyph would return true.
+        // ~ That would take a lot of pathing though! So for now I'll just comment this code out,
+        // ~ and hopefully this will work for most modded things, and not only the vanilla game.
+        // ~ -- Fate of A.
 
-        cursor.GotoNext(MoveType.Before, instr => instr.MatchLdfld("Sim", "simulationDict"));
-        FieldReference simulationDict = cursor.Next.Operand as FieldReference;
-        VariableReference part = cursor.Next.Next.Operand as VariableReference;
-        MethodReference getItem = cursor.Next.Next.Next.Operand as MethodReference;
-        FieldDefinition wasActivated = MonoModRule.Modder.FindType("PartSimState").Resolve().Fields.First(field => field.Name == "wasActivated");
+        //ILCursor cursor = new(new ILContext(method));
+        //cursor.GotoNext(MoveType.Before, instr => instr.MatchLdfld("Sim", "simulationDict"));
+        //FieldReference simulationDict = cursor.Next.Operand as FieldReference;
+        //VariableReference part = cursor.Next.Next.Operand as VariableReference;
+        //MethodReference getItem = cursor.Next.Next.Next.Operand as MethodReference;
+        //FieldDefinition wasActivated = MonoModRule.Modder.FindType("PartSimState").Resolve().Fields.First(field => field.Name == "wasActivated");
 
-        cursor.TryGotoNext(MoveType.Before, instr => instr.MatchCallvirt("Sim", "GetAtomReference"));
-        cursor.TryGotoPrev(MoveType.After, instr => instr.MatchLdarg0());
-        Instruction start = cursor.Prev;
-        cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdfld("AtomType", "predecessorMetal"));
-        cursor.TryGotoNext(MoveType.Before, instr => instr.OpCode == OpCodes.Brfalse_S);
-        int removeIndex = cursor.Index;
-        cursor.Goto(start);
-        cursor.RemoveRange(removeIndex - cursor.Index);
+        //cursor.TryGotoNext(MoveType.Before, instr => instr.MatchCallvirt("Sim", "GetAtomReference"));
+        //cursor.TryGotoPrev(MoveType.After, instr => instr.MatchLdarg0());
+        //Instruction start = cursor.Prev;
+        //cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdfld("AtomType", "predecessorMetal"));
+        //cursor.TryGotoNext(MoveType.Before, instr => instr.OpCode == OpCodes.Brfalse_S);
+        //int removeIndex = cursor.Index;
+        //cursor.Goto(start);
+        //cursor.RemoveRange(removeIndex - cursor.Index);
 
-        cursor.EmitLdarg0();
-        cursor.EmitLdfld(simulationDict);
-        cursor.EmitLdloc(part);
-        cursor.EmitCallvirt(getItem);
-        cursor.EmitLdfld(wasActivated);
+        //cursor.EmitLdarg0();
+        //cursor.EmitLdfld(simulationDict);
+        //cursor.EmitLdloc(part);
+        //cursor.EmitCallvirt(getItem);
+        //cursor.EmitLdfld(wasActivated);
     }
 
     #endregion
