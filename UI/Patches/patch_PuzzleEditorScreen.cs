@@ -269,16 +269,6 @@ class patch_PuzzleEditorScreen {
                                     },
                                     (s) => true
                                 )
-                                //MessageBoxScreenEx.Textbox(
-                                //    bounds,
-                                //    QuintessentialUI.Instance.Translate("editor.renaming." + (i == 0 ? "product" : "reagent")),
-                                //    array[J].molecule.GetDisplayName().GetOrDefault(LocString.emptyString),
-                                //    QuintessentialUI.Instance.Translate("editor.renaming.confirm_" + (i == 0 ? "product" : "reagent")),
-                                //    s => {
-                                //        array[J].molecule.displayName = Translations.WithAllLanguages(s);
-                                //        puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
-                                //    }
-                                //)
                             );
                             Assets.sounds.click_button.PlaySound(1f);
                         }
