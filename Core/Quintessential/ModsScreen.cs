@@ -90,8 +90,10 @@ class ModsScreen : IScreen {
 	private float DrawModLabel(ModMeta mod, Vector2 pos, Vector2 bgSize){
 		bool hasIcon = !string.IsNullOrWhiteSpace(mod.Icon);
 		Vector2 titlePos = hasIcon ? pos + new Vector2(140, -30) : pos;
-		if (hasIcon)
-			TextureRenderer.Render(mod.IconCache ??= AssetLoaderHelper.LoadTexture(mod.Icon), pos + new Vector2(20, bgSize.Y - 99f - 100));
+		if (hasIcon) {
+			mod.IconCache ??= AssetLoaderHelper.LoadTexture(mod.Icon);
+            TextureRenderer.Render(mod.IconCache, Color.White, pos + new Vector2(20, bgSize.Y - 99f - 100), new Vector2(128f, 128f));
+		}
 
         UI.DrawText(Translations.Translate(mod.ModId), titlePos + new Vector2(20, bgSize.Y - 99f), UI.Title, UI.TextColor, TextAlignment.Left);
 		string ver = mod.Version.ToString();
