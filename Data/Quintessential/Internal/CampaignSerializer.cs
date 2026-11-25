@@ -11,7 +11,6 @@ internal class CampaignSerializer {
         Codecs.STRING.Seal("Type", (UnlockRequirement req) => {
             if (req is UnlockReqCompleteCampaignItem) return "Single";
             if (req is UnlockReqCompleteMany) return "Many";
-            if (req is UnlockReqCompleteSomeOfChapter) return "SomeOfChapter";
             if (req is UnlockReqCompleteSomeOfMany) return "SomeOfMany";
             if (req is UnlockReqCustom) throw new Exception("Cannot serialze Custom Unlock Requirements.");
             if (req is UnlockReqNever) return "Never";
@@ -29,8 +28,7 @@ internal class CampaignSerializer {
             else return [];
         }).WithDefault([]),
         Codecs.INT.Seal("Amount", (UnlockRequirement req) => {
-            if (req is UnlockReqCompleteSomeOfChapter someOfChapter) return someOfChapter.required;
-            else if (req is UnlockReqCompleteSomeOfMany someOfMany) return someOfMany.required;
+            if (req is UnlockReqCompleteSomeOfMany someOfMany) return someOfMany.required;
             else if (req is UnlockReqPuzzlesComplete puzzlesComplete) return puzzlesComplete.requiredMinimum;
             else return 0;
         }).WithDefault(0),
@@ -38,7 +36,6 @@ internal class CampaignSerializer {
             return type switch {
                 "Single" => new UnlockReqCompleteCampaignItem(itemId),
                 "Many" => new UnlockReqCompleteMany([.. itemIds]),
-                "SomeOfChapter" => new UnlockReqCompleteSomeOfChapter(amount),
                 "SomeOfMany" => new UnlockReqCompleteSomeOfMany([.. itemIds], amount),
                 "Never" => new UnlockReqNever(),
                 "Nothing" => new UnlockReqNothing(),
@@ -130,6 +127,7 @@ internal class CampaignSerializer {
         Codecs.LOCSTRING.Seal("Title", (CampaignChapter chapter) => chapter.title),
         Codecs.LOCSTRING.Seal("Name", (CampaignChapter chapter) => chapter.name),
         Codecs.LOCSTRING.Seal("Location", (CampaignChapter chapter) => chapter.locationName),
+        UNLOCK_REQ.Seal("UnlockRequirement", (CampaignChapter chapter) => chapter.requirement).WithDefault(null),
         LIST_CAMPAIGN_ITEM.Seal("Items", (CampaignChapter chapter) => chapter.campaignItems),
         Codecs.STRING.Seal("Background", (CampaignChapter chapter) => patch_DataLoader.GetTexturePath(chapter.background, "")).WithDefault(""),
         Codecs.STRING.Seal("LockedIcon", (CampaignChapter chapter) => patch_DataLoader.GetTexturePath(chapter.lockedIcon, "")).WithDefault(""),
@@ -139,7 +137,7 @@ internal class CampaignSerializer {
         Codecs.VECTOR2.Seal("ButtonOffset", (CampaignChapter chapter) => chapter.buttonOffset).WithDefault(Vector2.Zero),
         CHAPTER_ALIGNMENT.Seal("Aligment", (CampaignChapter chapter) => chapter.alignment).WithDefault(ChapterAlignment.Right),
         ChapterComponentsCodec.Seal("Components", (CampaignChapter chapter) => ((patch_CampaignChapter)(object)chapter).Components.Where(pair => patch_CampaignChapter.RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefault([]),
-        (title, name, location, items, background, lockedIcon, unlockedIcon, hoverIcon, gemIcon, buttonOffset, aligment, components) => {
+        (title, name, location, unlockReq, items, background, lockedIcon, unlockedIcon, hoverIcon, gemIcon, buttonOffset, aligment, components) => {
             var c = new CampaignChapter(title, name, location,
                 background == "" ? null : patch_DataLoader.GetOther(background),
                 lockedIcon == "" ? null : patch_DataLoader.GetOther(lockedIcon),
@@ -148,6 +146,7 @@ internal class CampaignSerializer {
                 gemIcon == "" ? null : patch_DataLoader.GetOther(gemIcon),
                 buttonOffset, aligment
             ) {
+                requirement = unlockReq,
                 campaignItems = items
             };
             ((patch_CampaignChapter)(object)c).Components = components;

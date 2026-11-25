@@ -112,6 +112,29 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
             };
         }
     );
+
+    private static readonly Codec<NoteStickMode> noteStickModeCodec = EnumCodec<NoteStickMode>.Create();
+    private static readonly Codec<NoteVisibilityMode> noteVisibilityModeCodec = EnumCodec<NoteVisibilityMode>.Create();
+    private static readonly Codec<List<LocString>> locStringsCodec = ListCodec<LocString>.Create(Codecs.LOCSTRING);
+    private static readonly Codec<StickyNote> stickyNoteCodec = Codec<StickyNote>.Create(
+    noteStickModeCodec.Seal("RenderMode", (StickyNote note) => note.renderMode).WithDefault(NoteStickMode.BoardPanel),
+    noteVisibilityModeCodec.Seal("VisibilityMode", (StickyNote note) => note.visibilityMode).WithDefault(NoteVisibilityMode.Always),
+    Codecs.VECTOR2.Seal("Pos", (StickyNote note) => note.offset),
+    locStringsCodec.Seal("Points", (StickyNote note) => [..note.points]).WithDefault([]),
+    (renderMode, visibilityMode, pos, points) => {
+        return new StickyNote() {
+            renderMode = renderMode,
+            visibilityMode = visibilityMode,
+            offset = pos,
+            points = [..points]
+        };
+    }
+);
+    private static readonly Codec<List<StickyNote>> stickyNotesCodec = ListCodec<StickyNote>.Create(stickyNoteCodec);
+    
+    private static readonly Codec<Dictionary<PartType, int>> partLimitsCodec = DictCodec<PartType, int>.Create(Codecs.INT, t => t.Id, t => PartTypes.GetById(t).GetValue());
+    private static readonly Codec<List<Part>> partsCodec = ListCodec<Part>.Create(Codecs.PART);
+
     internal static readonly Codec<Puzzle> PUZZLE = Codec<Puzzle>.Create(
         Codecs.STRING.Seal("Id", (Puzzle puzzle) => puzzle.puzzleId),
         Codecs.LOCSTRING.Seal("Name", (Puzzle puzzle) => puzzle.puzzleName),
@@ -122,8 +145,14 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
         moleculesCodec.Seal("Outputs", (Puzzle puzzle) => [.. puzzle.outputs.Select(io => (patch_Molecule)(object)io.molecule)]),
         Codecs.INT.Seal("OutputMultiplier", (Puzzle puzzle) => puzzle.outputMultiplier).WithDefault(1),
         productionInfoCodec.Seal("ProductionInfo", (Puzzle puzzle) => puzzle.productionInfo.HasValue() ? puzzle.productionInfo.GetValue() : null).WithDefault(null),
+        Codecs.BOOL.Seal("IsTutorial", (Puzzle puzzle) => puzzle.isTutorial).WithDefault(false),
+        stickyNotesCodec.Seal("Notes", (Puzzle puzzle) => [.. puzzle.notes]).WithDefault([]),
+        Codecs.LIST_HEXINDEX.Seal("Highlights", (Puzzle puzzle) => [.. puzzle.highlights]).WithDefault([]),
+        partLimitsCodec.Seal("PartLimits", (Puzzle puzzle) => puzzle.limitedPartAmounts).WithDefault([]),
+        partsCodec.Seal("PresetParts", (Puzzle puzzle) => ((patch_Puzzle)(object)puzzle).PresetParts ).WithDefault([]),
+        patch_Solution.componentsCodec.Seal("PresetComponents", (Puzzle puzzle) => ((patch_Puzzle)(object)puzzle).PresetComponents.Where(pair => patch_Solution.RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefault([]),
         componentsCodec.Seal("Components", (Puzzle puzzle) => ((patch_Puzzle)(object)puzzle).Components.Where(pair => RegisteredComponents[pair.Key] != null).ToDictionary()).WithDefault([]),
-        (id, name, author, permissions, customPermissions, inputs, outputs, multiplier, prodInfo, components) => {
+        (id, name, author, permissions, customPermissions, inputs, outputs, multiplier, prodInfo, isTutorial, notes, highlights, partLimits, presetParts, presetComponents, components) => {
             Puzzle puzzle = new() {
                 puzzleId = id,
                 puzzleName = name,
@@ -134,7 +163,26 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
                 outputs = [.. outputs.Select(io => new PuzzleInputOutput((Molecule)(object)io))],
                 outputMultiplier = multiplier,
                 productionInfo = prodInfo != null ? MaybeHelper.Create(prodInfo) : MaybeHelper.empty,
+                notes = [..notes],
+                limitedPartAmounts = partLimits,
+                isTutorial = isTutorial,
+                highlights = [..highlights],
             };
+            foreach (var part in presetParts) {
+                if (part.GetIsFixed()) {
+                    if (part.GetType().isInput && inputs.Count > part.GetInputOutputIndex()) {
+                        int i = part.GetInputOutputIndex();
+                        ((patch_PuzzleInputOutput)(object)puzzle.inputs[i]).SkipReposition = true;
+                        puzzle.inputs[i].hexPos = default(HexIndex);
+                    } else if (part.GetType().IsOutput() && outputs.Count > part.GetInputOutputIndex()) {
+                        int i = part.GetInputOutputIndex();
+                        ((patch_PuzzleInputOutput)(object)puzzle.outputs[i]).SkipReposition = true;
+                        puzzle.outputs[i].hexPos = default(HexIndex);
+                    }
+                }
+            }
+            ((patch_Puzzle)(object)puzzle).PresetParts = presetParts;
+            ((patch_Puzzle)(object)puzzle).PresetComponents = presetComponents;
             foreach (var component in components) {
                 if (((patch_Puzzle)(object)puzzle).HasComponent(component.Key))
                     ((patch_Puzzle)(object)puzzle).RemoveComponent(component.Key);
@@ -144,6 +192,10 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
             return puzzle;
         }
     );
+
+    public List<Part> PresetParts;
+    public Dictionary<Identifier, ISolutionComponent> PresetComponents;
+
     [MonoModIgnore] // # unsafe assuming first patch
     public extern void layer_0_SaveToFile(string path);
     public void SaveToFile(string path) {
@@ -256,6 +308,8 @@ public class patch_Puzzle : ISerializableComponentHolder<patch_Puzzle, IPuzzleCo
 
     public void InitObjectsInCtor() {
         Components = [];
+        PresetParts = [];
+        PresetComponents = [];
     }
 
     [MonoModILInject(".ctor")]

@@ -151,6 +151,18 @@ public class patch_Part : ISerializableComponentHolder<patch_Part, IPartComponen
         cursor.EmitLdarg1();
         cursor.EmitCall(onCall);
         cursor.EmitLdloc(cloned);
+
+        MethodReference getFixed = method.DeclaringType.Methods.First(f => f.Name.Equals("GetIsFixed"));
+        cursor.Index = 0;
+        cursor.GotoNext(MoveType.After, instr => instr.MatchCall("Utils", "AssertOrThrow"));
+        int end = cursor.Index;
+        cursor.Index = 0;
+        cursor.RemoveRange(end);
+
+        cursor.GotoNext(MoveType.After, instr => instr.MatchCallvirt("Part", "GetType"));
+        cursor.Remove();
+        cursor.EmitLdarg0();
+        cursor.EmitCall(getFixed);
     }
     [MonoModILInject("ResetTypeById")]
     static void PatchReset(MethodDefinition method, CustomAttribute attribute) {

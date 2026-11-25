@@ -55,7 +55,7 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
     }
     public bool HasComponent(Identifier id) { return Components.ContainsKey(id); }
 
-    private static Dictionary<Identifier, Codec<ISolutionComponent>> RegisteredComponents = [];
+    internal static Dictionary<Identifier, Codec<ISolutionComponent>> RegisteredComponents = [];
     public static void RegisterComponent(Identifier Id, Codec<ISolutionComponent> codec) {
         RegisteredComponents[Id] = codec;
     }
@@ -153,7 +153,7 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
     private extern UndoSnapshot CreateSnapshot();
     [MonoModIgnore]
     private extern void OrderProgrammables();
-    private static readonly Codec<Dictionary<Identifier, ISolutionComponent>> componentsCodec = CatalogueCodec<Identifier, ISolutionComponent>.Create(
+    internal static readonly Codec<Dictionary<Identifier, ISolutionComponent>> componentsCodec = CatalogueCodec<Identifier, ISolutionComponent>.Create(
         RegisteredComponents, id => id.ToString(), str => new Identifier(str)
     );
     private static readonly Codec<Dictionary<ScoreMetric, int>> scoreCodec = DictCodec<ScoreMetric, int>.Create(
@@ -282,6 +282,26 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
         cursor.EmitCall(clone);
     }
 
+    [MonoModILInject(".ctor")]
+    static void PatchOutputPlaceDown(MethodDefinition method, CustomAttribute attribute) {
+        ILCursor cursor = new(new ILContext(method));
+        FieldDefinition shouldSkip = MonoModRule.Modder.FindType("PuzzleInputOutput").Resolve().Fields.First(f => f.Name.Equals("SkipReposition"));
+
+        cursor.GotoNext(MoveType.After, instr => instr.MatchCall(out var m) && m.Name.Equals("HasValue"));
+        cursor.Index++;
+        cursor.Emit(OpCodes.Brtrue, cursor.Prev.Operand);
+        cursor.Index--;
+        cursor.EmitLdloc1();
+        cursor.EmitLdfld(shouldSkip);
+
+        cursor.GotoNext(MoveType.After, instr => instr.MatchCall(out var m) && m.Name.Equals("HasValue"));
+        cursor.Index++;
+        cursor.Emit(OpCodes.Brtrue, cursor.Prev.Operand);
+        cursor.Index--;
+        cursor.EmitLdloc(4);
+        cursor.EmitLdfld(shouldSkip);
+    }
+
     #endregion
 
     #region Ctor
@@ -289,6 +309,20 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
     public void InitObjectsInCtor() {
         Components = [];
         ExtraFileExtension = "";
+    }
+
+    public void AddPuzzlePresets(patch_Puzzle p) {
+        foreach (Part part in p.PresetParts) {
+            Part clone = part.Clone((Solution)(object)this, MaybeHelper.empty);
+            clone.SetRotation((Solution)(object)this, clone.GetRotation());
+            ((Solution)(object)this).RepositionPart(clone, part.GetHexPos());
+        }
+        foreach (var component in p.PresetComponents) {
+            if (RegisteredComponents[component.Key] != null) {
+                var encoded = RegisteredComponents[component.Key].Encode(JsonCodecMap.Instance, component.Value);
+                AddComponent(RegisteredComponents[component.Key].Decode(JsonCodecMap.Instance, encoded));
+            }
+        }
     }
 
     [MonoModILInject(".ctor")]
@@ -299,8 +333,14 @@ public class patch_Solution : ISerializableComponentHolder<patch_Solution, ISolu
         }
         ILCursor cursor = new(new ILContext(method));
         MethodReference init = method.DeclaringType.Methods.First(f => f.Name.Equals("InitObjectsInCtor"));
+        MethodReference addPresets = method.DeclaringType.Methods.First(f => f.Name.Equals("AddPuzzlePresets"));
         cursor.EmitLdarg0();
         cursor.EmitCall(init);
+
+        cursor.GotoNext(MoveType.Before, instr => instr.MatchCallvirt("Solution", "OrderProgrammables"));
+        cursor.EmitLdarg1();
+        cursor.EmitCall(addPresets);
+        cursor.EmitLdarg0();
     }
 
     [MonoModILInject(".ctor")]

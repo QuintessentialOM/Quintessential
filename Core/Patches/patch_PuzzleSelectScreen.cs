@@ -1,7 +1,6 @@
 ﻿using MonoMod;
 using MonoMod.Utils;
 using Quintessential;
-using System.Linq;
 
 #pragma warning disable CS0626 // Method, operator, or accessor is marked external and has no attributes on it
 
@@ -12,8 +11,9 @@ class patch_PuzzleSelectScreen {
     [MonoModIgnore]
     private CampaignChapter currentChapter;
     [MonoModIgnore]
+    private extern bool IsUnlocked(CampaignChapter chapter);
+    [MonoModIgnore]
     public extern void orig_RenderFrame(float deltaTime);
-
     bool needsReset;
 	public void RenderFrame(float deltaTime) {
         needsReset = needsReset || currentChapter.campaign == Campaigns.deReMetallica;
@@ -56,11 +56,18 @@ class patch_PuzzleSelectScreen {
 		}
 	}
 
-    public static void SetCampaign(int newCampaignIndex) {
-        currentCampaign = Utils.Modulo(newCampaignIndex, QuintessentialLoader.AllCampaigns.Count);
+    public void SetCampaign(int newCampaignIndex) {
+        newCampaignIndex = Utils.Modulo(newCampaignIndex, QuintessentialLoader.AllCampaigns.Count);
+        int chapterIndex = int.Clamp(GameLogic.instance.saveData.GetDefaultChapter(), 0, QuintessentialLoader.AllCampaigns[newCampaignIndex].chapters.Length - 1);
+        while (chapterIndex >= 0 && !IsUnlocked(QuintessentialLoader.AllCampaigns[newCampaignIndex].chapters[chapterIndex]))
+            chapterIndex--;
+        if (chapterIndex < 0) return;
+
+        currentCampaign = newCampaignIndex;
         Campaigns.opusMagnum = QuintessentialLoader.AllCampaigns[currentCampaign];
         Campaigns.campaigns[0] = QuintessentialLoader.AllCampaigns[currentCampaign];
-        GameLogic.instance.saveData.SetDefaultChapter(int.Clamp(GameLogic.instance.saveData.GetDefaultChapter(), 0, Campaigns.opusMagnum.chapters.Length - 1));
+        GameLogic.instance.saveData.SetDefaultChapter(chapterIndex);
+        currentChapter = Campaigns.opusMagnum.chapters[chapterIndex];
         UI.InstantCloseScreen();
         UI.OpenScreen(new PuzzleSelectScreen());
     }

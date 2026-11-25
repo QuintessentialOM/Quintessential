@@ -257,15 +257,17 @@ class patch_PuzzleEditorScreen {
                             screenOpened = true;
                             int J = j + moleculeEditorOffset;
                             GameLogic.instance.PushScreen(
-                                MessageBoxScreenEx.Textbox(
+                                new StringInputScreen(
                                     bounds,
                                     QuintessentialUI.Instance.Translate("editor.renaming." + (i == 0 ? "product" : "reagent")),
                                     array[J].molecule.GetDisplayName().GetOrDefault(LocString.emptyString),
                                     QuintessentialUI.Instance.Translate("editor.renaming.confirm_" + (i == 0 ? "product" : "reagent")),
                                     s => {
-                                        array[J].molecule.displayName = Translations.WithAllLanguages(s);
+                                        if (string.IsNullOrEmpty(s)) array[J].molecule.displayName = MaybeHelper.empty;
+                                        else array[J].molecule.displayName = Translations.WithAllLanguages(s);
                                         puzzle.SaveToFile(GameLogic.instance.workshopManager.CustomPuzzlePath(puzzle));
-                                    }
+                                    },
+                                    (s) => true
                                 )
                             );
                             Assets.sounds.click_button.PlaySound(1f);

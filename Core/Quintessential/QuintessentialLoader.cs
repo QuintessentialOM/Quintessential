@@ -180,6 +180,9 @@ public class QuintessentialLoader
         ((patch_Campaign)(object)Campaigns.deReMetallica).QuintTitle = Translations.Translate("De Re Metallica");
         AllCampaigns.Add(VanillaCampaign);
 
+        Array.Resize(ref Campaigns.campaigns, Campaigns.campaigns.Length + 1);
+        Campaigns.campaigns[^1] = VanillaCampaign;
+
         foreach (var path in ModCampaignPaths) {
             var campaign = DataLoader.LoadCampaign(path);
 
@@ -192,6 +195,8 @@ public class QuintessentialLoader
                 }
             }
             AllCampaigns.Add(campaign);
+            Array.Resize(ref Campaigns.campaigns, Campaigns.campaigns.Length + 1);
+            Campaigns.campaigns[^1] = campaign;
         }
     }
     public static void LoadJournals() {
@@ -266,8 +271,8 @@ public class QuintessentialLoader
             Campaigns.opusMagnum = VanillaCampaign;
             Campaigns.campaigns[0] = VanillaCampaign;
             JournalVolumes.volumes = [.. VanillaJournal.volumes];
-            patch_PuzzleSelectScreen.SetCampaign(0);
-            patch_JournalScreen.SetJournal(0);
+            //patch_PuzzleSelectScreen.SetCampaign(0);
+            //patch_JournalScreen.SetJournal(0);
 
             foreach (ModMeta mod in Mods)
                 LoadModCampaigns(mod);

@@ -108,4 +108,12 @@ public class patch_JournalScreen {
             throw new Exception();
         }
     }
+
+    [MonoModILInject("RenderFrame")]
+    static void PatchDifficultyWarning(MethodDefinition method, CustomAttribute attrib) {
+        ILCursor cursor = new(new ILContext(method));
+        cursor.GotoNext(MoveType.After, instr => instr.MatchLdsfld("Puzzles", "surrenderFlare"));
+        cursor.GotoNext(MoveType.After, instr => instr.OpCode == OpCodes.Brtrue || instr.OpCode == OpCodes.Brtrue_S);
+        cursor.Emit(OpCodes.Br, cursor.Prev.Operand);
+    }
 }
