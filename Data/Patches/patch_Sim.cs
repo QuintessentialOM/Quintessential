@@ -12,8 +12,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
+using YamlDotNet.Core.Tokens;
 using static Quintessential.CycleEvent;
 using static Quintessential.PartCycleDelegate;
+using static Sim;
 
 public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
 
@@ -1267,35 +1269,32 @@ public class patch_Sim : Sim, IComponentHolder<patch_Sim, ISimComponent> {
 
     [MonoModILInject("ProcessInputs")]
     public static void PatchProcessInputsRejection(MethodDefinition method, CustomAttribute attrib) {
-        // ~ The following code is commented out because it doesn't work. ( Surprise! )
-        // ~ Replacing the check for the animation with simstate.wasActivated
-        // ~ fails because wasActivated is set later in the cycle.
-        // ~ The objectively correct way to fix this issue would be to check if any recipe on the glyph would return true.
-        // ~ That would take a lot of pathing though! So for now I'll just comment this code out,
-        // ~ and hopefully this will work for most modded things, and not only the vanilla game.
-        // ~ -- Fate of A.
+        ILCursor cursor = new(new ILContext(method));
+        cursor.GotoNext(MoveType.Before, instr => instr.MatchLdfld("Sim", "simulationDict"));
+        VariableReference part = cursor.Next.Next.Operand as VariableReference;
+        MethodDefinition rejectionActivated = method.DeclaringType.Methods.First(m => m.Name == "IsRejectionActivated");
 
-        //ILCursor cursor = new(new ILContext(method));
-        //cursor.GotoNext(MoveType.Before, instr => instr.MatchLdfld("Sim", "simulationDict"));
-        //FieldReference simulationDict = cursor.Next.Operand as FieldReference;
-        //VariableReference part = cursor.Next.Next.Operand as VariableReference;
-        //MethodReference getItem = cursor.Next.Next.Next.Operand as MethodReference;
-        //FieldDefinition wasActivated = MonoModRule.Modder.FindType("PartSimState").Resolve().Fields.First(field => field.Name == "wasActivated");
+        cursor.TryGotoNext(MoveType.Before, instr => instr.MatchCallvirt("Sim", "GetAtomReference"));
+        cursor.TryGotoPrev(MoveType.After, instr => instr.MatchLdarg0());
+        Instruction start = cursor.Prev;
+        cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdfld("AtomType", "predecessorMetal"));
+        cursor.TryGotoNext(MoveType.Before, instr => instr.OpCode == OpCodes.Brfalse_S);
+        int removeIndex = cursor.Index;
+        cursor.Goto(start);
+        cursor.RemoveRange(removeIndex - cursor.Index);
 
-        //cursor.TryGotoNext(MoveType.Before, instr => instr.MatchCallvirt("Sim", "GetAtomReference"));
-        //cursor.TryGotoPrev(MoveType.After, instr => instr.MatchLdarg0());
-        //Instruction start = cursor.Prev;
-        //cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdfld("AtomType", "predecessorMetal"));
-        //cursor.TryGotoNext(MoveType.Before, instr => instr.OpCode == OpCodes.Brfalse_S);
-        //int removeIndex = cursor.Index;
-        //cursor.Goto(start);
-        //cursor.RemoveRange(removeIndex - cursor.Index);
+        cursor.EmitLdarg0();
+        cursor.EmitLdloc(part);
+        cursor.EmitCallvirt(rejectionActivated);
+    }
 
-        //cursor.EmitLdarg0();
-        //cursor.EmitLdfld(simulationDict);
-        //cursor.EmitLdloc(part);
-        //cursor.EmitCallvirt(getItem);
-        //cursor.EmitLdfld(wasActivated);
+    private bool IsRejectionActivated(Part part) {
+        foreach ( var recipe in GlyphRecipe.Recipes["om:rejection"]){
+            if (recipe.Value.Predicate.InvokeAndClear(this, part)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     #endregion
